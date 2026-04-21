@@ -22,6 +22,11 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        VITE_APP_NAME: ${VITE_APP_NAME:-Aiterra CRM}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_META_APP_ID: ${VITE_META_APP_ID:-}
+        VITE_AUTH_TOKEN_KEY: ${VITE_AUTH_TOKEN_KEY:-crm_auth_token}
     restart: unless-stopped
     ports:
       - "80:80"

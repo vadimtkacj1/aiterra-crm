@@ -7,6 +7,16 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+ARG VITE_APP_NAME
+ARG VITE_API_BASE_URL
+ARG VITE_META_APP_ID
+ARG VITE_AUTH_TOKEN_KEY
+ENV VITE_APP_NAME=$VITE_APP_NAME \
+    VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_META_APP_ID=$VITE_META_APP_ID \
+    VITE_AUTH_TOKEN_KEY=$VITE_AUTH_TOKEN_KEY
+
 RUN npm run build
 
 # ── Stage 2: serve ──────────────────────────────────────────────────────────

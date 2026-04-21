@@ -8,6 +8,7 @@ from app.core.settings import settings
 from app.db.session import get_db
 from app.api.deps import get_current_user, require_admin, require_account_member
 from app.models.user import User
+from app.models.account import Account
 from app.models.integration_meta import MetaIntegration
 from app.models.campaign import TrackedCampaign
 from app.schemas.analytics import CampaignAds, CampaignSnapshot, MetaAccountBilling
@@ -21,6 +22,11 @@ router = APIRouter()
 
 class MetaConnectRequest(BaseModel):
     account_id: int
+    access_token: str
+    ad_account_id: str
+
+
+class MetaAdminConnectRequest(BaseModel):
     access_token: str
     ad_account_id: str
 
@@ -88,6 +94,31 @@ def connect_meta(
         db.add(integration)
     db.commit()
     return {"status": "success", "message": "Meta account connected"}
+
+
+@router.post("/admin-connect", summary="Admin: set global Meta Ads integration (no account_id required)")
+def admin_connect_meta(
+    req: MetaAdminConnectRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    ad_account_id = normalize_meta_ad_account_id(req.ad_account_id)
+    integration = get_global_meta_integration(db)
+    if integration:
+        integration.access_token = req.access_token
+        integration.ad_account_id = ad_account_id
+    else:
+        first_account = db.scalar(select(Account).order_by(Account.id.asc()))
+        if not first_account:
+            raise HTTPException(status_code=400, detail="no_accounts_yet")
+        integration = MetaIntegration(
+            account_id=first_account.id,
+            access_token=req.access_token,
+            ad_account_id=ad_account_id,
+        )
+        db.add(integration)
+    db.commit()
+    return {"status": "success"}
 
 
 @router.get("/campaigns/available", summary="List campaigns from global Meta ad account")

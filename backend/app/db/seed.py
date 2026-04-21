@@ -63,11 +63,8 @@ def seed_admin() -> None:
                 else:
                     ad_id = accounts[0]["id"]
             if ad_id:
-                existing = db.query(MetaIntegration).filter(MetaIntegration.account_id == demo.id).first()
-                if existing:
-                    existing.access_token = tok
-                    existing.ad_account_id = ad_id
-                else:
+                any_integration = db.query(MetaIntegration).first()
+                if not any_integration:
                     db.add(
                         MetaIntegration(
                             account_id=demo.id,
@@ -75,7 +72,7 @@ def seed_admin() -> None:
                             ad_account_id=ad_id,
                         )
                     )
-                db.commit()
+                    db.commit()
     finally:
         db.close()
 

@@ -14,16 +14,20 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy to server
     runs-on: ubuntu-latest
     steps:
+      - name: Decode SSH key
+        run: |
+          echo "${{ secrets.SSH_KEY_B64 }}" | base64 -d > ./ssh_key
+          chmod 600 ./ssh_key
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          key_path: ./ssh_key
           script: |
             set -euo pipefail
             cd ~/crm

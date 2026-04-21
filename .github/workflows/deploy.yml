@@ -60,11 +60,14 @@ jobs:
       - name: Prepare SSH key
         shell: bash
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SSH_PRIVATE_KEY_B64: ${{ secrets.SSH_KEY }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          echo "Secret length: ${#SSH_PRIVATE_KEY_B64}"
+          printf '%s' "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          echo "Key file size: $(wc -c < ~/.ssh/id_ed25519) bytes"
+          head -1 ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
       - name: Add server host key

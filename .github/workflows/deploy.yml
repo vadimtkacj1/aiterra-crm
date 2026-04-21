@@ -1,38 +1,109 @@
-name: Deploy
+name: CI/CD
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ccd-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  deploy:
+  # ---------------------------
+  # 1) CI: build/lint (optional tests)
+  # ---------------------------
+  ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
-      - name: Write SSH key
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Test
+        run: npm test --if-present
+
+  # ---------------------------
+  # 2) CD: deploy to server
+  # ---------------------------
+  deploy:
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare SSH key
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
-          cat > ~/.ssh/id_ed25519 << 'EOF'
-          ${{ secrets.SSH_KEY }}
-          EOF
+          printf '%s' "${{ secrets.SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          # validate private key format
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
 
-      - name: Add known host
+      - name: Add server host key
+        shell: bash
         run: |
-          ssh-keyscan -H -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          set -euo pipefail
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Test SSH
+      - name: Test SSH connection
+        shell: bash
         run: |
+          set -euo pipefail
           ssh -i ~/.ssh/id_ed25519 -p "${{ secrets.SSH_PORT }}" \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "echo OK"
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "echo 'SSH OK:' \$(whoami)@\$(hostname)"
 
       - name: Deploy
+        shell: bash
         run: |
+          set -euo pipefail
           ssh -i ~/.ssh/id_ed25519 -p "${{ secrets.SSH_PORT }}" \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" << 'EOF'
-            set -e
+            set -euo pipefail
+
+            # project dir
+            mkdir -p ~/crm
             cd ~/crm
-            git pull origin main
-            docker compose up -d --build
+
+            # if repo already cloned
+            if [ -d .git ]; then
+              git fetch --all --prune
+              git checkout main
+              git pull --ff-only origin main
+            else
+              echo "Repo not initialized on server (~/crm/.git missing)."
+              echo "Clone repo manually once, then re-run workflow."
+              exit 1
+            fi
+
+            # deploy
+            docker compose pull || true
+            docker compose up -d --build --remove-orphans
             docker image prune -f
+
+            echo "Deploy done"
+            docker compose ps
           EOF

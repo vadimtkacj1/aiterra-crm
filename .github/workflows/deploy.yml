@@ -96,15 +96,14 @@ jobs:
             mkdir -p ~/crm
             cd ~/crm
 
-            # if repo already cloned
+            # clone on first run, pull on subsequent runs
             if [ -d .git ]; then
               git fetch --all --prune
               git checkout main
               git pull --ff-only origin main
             else
-              echo "Repo not initialized on server (~/crm/.git missing)."
-              echo "Clone repo manually once, then re-run workflow."
-              exit 1
+              git clone https://github.com/${{ github.repository }}.git .
+              git checkout main
             fi
 
             # deploy

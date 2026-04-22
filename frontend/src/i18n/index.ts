@@ -3,7 +3,7 @@ import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import he from "./locales/he.json";
 
-export const defaultLanguage = "en";
+export const defaultLanguage = "he";
 
 export const i18nReady = i18n.use(initReactI18next).init({
   resources: {

@@ -77,7 +77,10 @@ export function CheckoutPaymentPanel({ total, intent, agreed, loading, onAgreeCh
         <Typography.Text style={{ fontSize: 13, lineHeight: 1.55, color: "#475569" }}>
           {intent === "hosted" ? (
             <>
-              {t("billing.checkoutConsentHosted")} <Link to="/terms">{t("billing.checkoutTermsLink")}</Link>.
+              {t("billing.checkoutConsentHosted")}{" "}
+              <Link to="/cancel-policy">{t("billing.checkoutCancelPolicyLink")}</Link>{" "}
+              {t("billing.checkoutAnd")}{" "}
+              <Link to="/privacy-policy">{t("billing.checkoutPrivacyPolicyLink")}</Link>.
             </>
           ) : (
             t("billing.checkoutConsentSaved")

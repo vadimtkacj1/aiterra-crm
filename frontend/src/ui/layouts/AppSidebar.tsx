@@ -1,5 +1,5 @@
 import { CloseOutlined } from "@ant-design/icons";
-import { ConfigProvider, Drawer, Layout, Menu, theme } from "antd";
+import { Button, ConfigProvider, Drawer, Layout, Menu, theme } from "antd";
 import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
 import logoUrl from "../../assets/logo.svg";
@@ -52,24 +52,33 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
   if (isMobile) {
     return (
       <Drawer
-        title={
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "4px 0" }}>
-            <SidebarLogo maxWidth={136} />
-          </div>
-        }
-        placement="left"
+        title={null}
+        placement="right"
         open={drawerOpen}
         onClose={onDrawerClose}
-        closeIcon={<CloseOutlined style={{ color: "rgba(255,255,255,0.75)" }} />}
+        closable={false}
         styles={{
-          header: { background: SIDEBAR_DARK_BG, borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "12px 48px 16px 16px" },
-          body: { background: SIDEBAR_DARK_BG, padding: 0 },
+          wrapper: { width: 288 },
+          body: { background: SIDEBAR_DARK_BG, padding: 0, display: "flex", flexDirection: "column" },
           content: { background: SIDEBAR_DARK_BG },
         }}
-        size={288}
         aria-label={t("layout.openMenu")}
       >
-        <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 12px 0" }}>
+          <Button
+            type="text"
+            shape="circle"
+            icon={<CloseOutlined />}
+            onClick={onDrawerClose}
+            style={{ color: "rgba(255,255,255,0.65)" }}
+          />
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", padding: "8px 12px 20px" }}>
+          <SidebarLogo maxWidth={136} />
+        </div>
+        <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
+        </div>
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
           <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,0.12)", background: SIDEBAR_DARK_BG }}>
             <LanguageSwitcher variant="sidebar" />

@@ -89,6 +89,12 @@ export function SiteFooter() {
           <Link to="/terms" style={{ color: "#111827", textDecoration: "none" }}>
             תקנון ותנאי שימוש
           </Link>
+          <Link to="/cancel-policy" style={{ color: "#111827", textDecoration: "none" }}>
+            מדיניות ביטולים
+          </Link>
+          <Link to="/privacy-policy" style={{ color: "#111827", textDecoration: "none" }}>
+            מדיניות פרטיות
+          </Link>
         </div>
       </div>
     </footer>

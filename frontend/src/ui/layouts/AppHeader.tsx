@@ -104,7 +104,7 @@ export function AppHeader({
         zIndex: 10,
       }}
     >
-      {/* Left: mobile menu button + current account */}
+      {/* First group: burger + current account */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
         {isMobile && (
           <Button
@@ -137,7 +137,7 @@ export function AppHeader({
         ) : null}
       </div>
 
-      {/* Right: user name, notifications, settings, logout */}
+      {/* Right: user name, notifications, settings, logout, mobile menu */}
       <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 12 }}>
         {!isMobile && !hideHeaderRightName && headerRightLabel ? (
           <Typography.Text type="secondary" ellipsis style={{ maxWidth: 220 }} title={headerRightLabel}>

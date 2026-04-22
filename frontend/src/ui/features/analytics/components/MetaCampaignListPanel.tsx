@@ -170,6 +170,77 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
   const goalMetric = data ? getTotalGoalLabel(data, t) : null;
 
   const columns: ColumnsType<CampaignSummaryRow> = useMemo(() => {
+    const actionCol: ColumnsType<CampaignSummaryRow>[number] = {
+      title: "",
+      key: "action",
+      width: 40,
+      render: (_: unknown, row: CampaignSummaryRow) => (
+        <Button
+          type="text"
+          size="small"
+          icon={<RightOutlined />}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (accountId) navigate(accountCampaignPath(accountId, row.campaignId));
+          }}
+        />
+      ),
+    };
+
+    if (isMobile) {
+      return [
+        {
+          title: t("analytics.table.campaign"),
+          dataIndex: "campaignName",
+          key: "name",
+          sorter: (a, b) => a.campaignName.localeCompare(b.campaignName),
+          ellipsis: true,
+          render: (name: string, row: CampaignSummaryRow) => (
+            <Flex vertical gap={2}>
+              <Typography.Text strong style={{ fontSize: 13 }}>{name}</Typography.Text>
+              <Flex gap={4} wrap="wrap">
+                <Tag color={statusColor(row.status ?? "ACTIVE")} style={{ fontSize: 10, padding: "0 4px", lineHeight: "16px", margin: 0 }}>
+                  {(row.status ?? "ACTIVE").toUpperCase()}
+                </Tag>
+                {row.objective && (
+                  <Tag color={goalKindColor(classifyCampaignObjective(row.objective))} style={{ fontSize: 10, padding: "0 4px", lineHeight: "16px", margin: 0 }}>
+                    {t(goalKindI18nKey(classifyCampaignObjective(row.objective)))}
+                  </Tag>
+                )}
+              </Flex>
+            </Flex>
+          ),
+        },
+        {
+          title: t("analytics.table.spend"),
+          dataIndex: "spend",
+          key: "spend",
+          width: 90,
+          sorter: (a, b) => a.spend - b.spend,
+          defaultSortOrder: "descend",
+          render: (v: number) => (
+            <Typography.Text strong style={{ fontSize: 12 }}>{v.toFixed(0)} {currency}</Typography.Text>
+          ),
+        },
+        {
+          title: t("meta.panel.result"),
+          key: "result",
+          width: 80,
+          render: (_: unknown, row: CampaignSummaryRow) => {
+            const m = getPrimaryGoalDisplay(row, t);
+            return (
+              <Flex vertical gap={0}>
+                <Typography.Text strong style={{ fontSize: 13 }}>{m.value}</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 10 }}>{m.label}</Typography.Text>
+              </Flex>
+            );
+          },
+          sorter: (a, b) => primaryGoalSortValue(a) - primaryGoalSortValue(b),
+        },
+        actionCol,
+      ];
+    }
+
     return [
       {
         title: t("analytics.table.campaign"),
@@ -261,26 +332,9 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
         sorter: (a, b) => a.ctr - b.ctr,
         render: (v: number) => `${v.toFixed(2)}%`,
       },
-      {
-        title: "",
-        key: "action",
-        width: 48,
-        render: (_: unknown, row: CampaignSummaryRow) => (
-          <Button
-            type="text"
-            size="small"
-            icon={<RightOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (accountId) {
-                navigate(accountCampaignPath(accountId, row.campaignId));
-              }
-            }}
-          />
-        ),
-      },
+      actionCol,
     ];
-  }, [t, currency, accountId, navigate]);
+  }, [t, currency, accountId, navigate, isMobile]);
 
   const updatedAtText = data?.updatedAt
     ? new Date(data.updatedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })

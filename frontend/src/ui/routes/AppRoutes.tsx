@@ -17,6 +17,8 @@ import { HelpPage } from "../pages/help";
 import { LoginPage } from "../pages/login";
 import { PricingPage } from "../pages/pricing";
 import { TermsPage } from "../pages/terms";
+import { CancellationPolicyPage } from "../pages/cancel-policy";
+import { PrivacyPolicyPage } from "../pages/privacy-policy";
 import { TakanonRedirect } from "../pages/takanon";
 import { LegacySettingsRedirect } from "../pages/settings";
 import { AccountBillingCheckoutPageRoute } from "../pages/a/[accountId]/billing/checkout";
@@ -38,6 +40,8 @@ export function AppRoutes() {
       />
       <Route path={Paths.pricing} element={<PricingPage />} />
       <Route path={Paths.terms} element={<TermsPage />} />
+      <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />
+      <Route path={Paths.privacyPolicy} element={<PrivacyPolicyPage />} />
       <Route path={Paths.takanon} element={<TakanonRedirect />} />
       <Route
         element={

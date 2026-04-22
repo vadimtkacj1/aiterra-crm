@@ -29,6 +29,8 @@ export const Paths = {
   login: "/login",
   pricing: "/pricing",
   terms: "/terms",
+  cancelPolicy: "/cancel-policy",
+  privacyPolicy: "/privacy-policy",
   takanon: "/takanon",
   root: "/",
   /** CRM guide (authenticated). */

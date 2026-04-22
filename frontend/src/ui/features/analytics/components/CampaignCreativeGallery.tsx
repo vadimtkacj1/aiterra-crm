@@ -136,7 +136,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
             <img
               src={preview.thumbnailUrl}
               alt={preview.adName}
-              style={{ display: "block", width: "100%", maxHeight: "90vh", objectFit: "contain", borderRadius: 8 }}
+              style={{ display: "block", maxWidth: "100%", maxHeight: "85vh", margin: "0 auto", borderRadius: 8 }}
             />
           )
         )}
@@ -154,12 +154,12 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                   ad.thumbnailUrl ? (
                     <div
                       onClick={() => setPreview(ad)}
-                      style={{ position: "relative", height: 180, overflow: "hidden", borderRadius: "8px 8px 0 0", cursor: "pointer" }}
+                      style={{ position: "relative", height: 180, overflow: "hidden", borderRadius: "8px 8px 0 0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                     >
                       <img
                         src={ad.thumbnailUrl}
                         alt={ad.adName}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }}
                       />
                       {ad.videoUrl && (
                         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.25)" }}>

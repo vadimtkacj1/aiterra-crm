@@ -131,10 +131,7 @@ def detach_token(zcredit_token: str) -> None:
 # ── Invoice (one-time payment) ────────────────────────────────────────────────
 
 def _mock_payment_url(doc_id: str) -> str:
-    """Returns a local mock payment page URL for development use."""
-    from app.core.settings import settings as _s  # local import to avoid circular
-    base = (_s.app_base_url or "http://localhost:8000").rstrip("/")
-    return f"{base}/api/mock-payment/{doc_id}"
+    return f"/api/mock-payment/{doc_id}"
 
 
 def create_invoice(

@@ -343,15 +343,14 @@ def billing_overview(
 
         inv = zcredit_service.try_retrieve_invoice(instruction.payment_doc_id or "")
         inv_status = getattr(inv, "status", None) if inv else None
-        pay_url = instruction.payment_url or (
-            str(inv.payment_url) if inv and getattr(inv, "payment_url", None) else None
-        )
-        # Same mock fallback as one_time branch above.
-        if not pay_url:
-            from app.services import zcredit_service as _zs
-            if not _zs._is_configured():
-                key = instruction.payment_doc_id or f"ins_{instruction.id}"
-                pay_url = _zs._mock_payment_url(key)
+        from app.services import zcredit_service as _zs
+        if not _zs._is_configured():
+            key = instruction.payment_doc_id or f"ins_{instruction.id}"
+            pay_url = _zs._mock_payment_url(key)
+        else:
+            pay_url = instruction.payment_url or (
+                str(inv.payment_url) if inv and getattr(inv, "payment_url", None) else None
+            )
         first_invoice_open = inv_status == "open"
         assume_open = first_invoice_open or (
             bool(pay_url) and inv_status != "paid"
@@ -404,14 +403,13 @@ def billing_overview(
             return
         if inv_status in ("void", "uncollectible"):
             return
-        pay_url = stored_payment_url or (
-            str(inv.payment_url) if inv and getattr(inv, "payment_url", None) else None
-        )
-        if not pay_url:
-            from app.services import zcredit_service as _zs
-
-            if not _zs._is_configured():
-                pay_url = _zs._mock_payment_url(payment_doc_id)
+        from app.services import zcredit_service as _zs
+        if not _zs._is_configured():
+            pay_url = _zs._mock_payment_url(payment_doc_id)
+        else:
+            pay_url = stored_payment_url or (
+                str(inv.payment_url) if inv and getattr(inv, "payment_url", None) else None
+            )
         if not pay_url:
             return
         pay_with_card = bool(

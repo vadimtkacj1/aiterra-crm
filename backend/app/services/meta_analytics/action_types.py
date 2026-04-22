@@ -19,6 +19,9 @@ LEAD_ACTION_TYPES = frozenset(
         "leadgen_grouped",
         "onsite_conversion.lead_grouped",
         "offsite_conversion.fb_pixel_lead",
+        "onsite_conversion.messaging_conversation_started_7d",
+        "complete_registration",
+        "submit_application",
     }
 )
 PURCHASE_ACTION_TYPES = frozenset(

@@ -9,6 +9,7 @@ Simulates the hosted payment flow for local development:
 from __future__ import annotations
 
 import logging
+from typing import NamedTuple
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.settings import settings
 from app.db.session import get_db
 from app.models.billing_instruction import AccountBillingInstruction
+from app.models.billing_instruction_history import BillingInstructionHistory
 
 logger = logging.getLogger(__name__)
 
@@ -32,32 +34,63 @@ def _require_mock_mode() -> None:
         raise HTTPException(status_code=404, detail="not_found")
 
 
-def _find_instruction(db: Session, doc_id: str) -> AccountBillingInstruction | None:
-    # "ins_{id}" keys are used when payment_doc_id was never stored (legacy records).
+class _PaymentData(NamedTuple):
+    amount: float | None
+    currency: str
+    description: str
+    account_id: int
+    doc_id: str
+
+
+def _find_payment_data(db: Session, doc_id: str) -> _PaymentData | None:
+    """Locate payment display data by doc_id in live instruction or history."""
     if doc_id.startswith("ins_"):
         try:
             ins_id = int(doc_id[4:])
         except ValueError:
             return None
-        return db.query(AccountBillingInstruction).filter_by(id=ins_id).first()
-    return (
+        ins = db.query(AccountBillingInstruction).filter_by(id=ins_id).first()
+        if ins:
+            return _PaymentData(ins.amount, ins.currency or "ILS", ins.description or "Invoice", ins.account_id, doc_id)
+        return None
+
+    ins = (
         db.query(AccountBillingInstruction)
         .filter(AccountBillingInstruction.payment_doc_id == doc_id)
         .first()
     )
+    if ins:
+        return _PaymentData(ins.amount, ins.currency or "ILS", ins.description or "Invoice", ins.account_id, doc_id)
+
+    # doc_id may belong to a superseded/history row (e.g. admin changed billing since the URL was generated)
+    hist = (
+        db.query(BillingInstructionHistory)
+        .filter(BillingInstructionHistory.payment_doc_id == doc_id)
+        .first()
+    )
+    if hist:
+        return _PaymentData(
+            float(hist.amount) if hist.amount else None,
+            hist.currency or "ILS",
+            hist.description or "Invoice",
+            hist.account_id,
+            doc_id,
+        )
+
+    return None
 
 
 @router.get("/mock-payment/{doc_id}", response_class=HTMLResponse, include_in_schema=False)
 def mock_payment_page(doc_id: str, db: Session = Depends(get_db)) -> HTMLResponse:
     _require_mock_mode()
 
-    ins = _find_instruction(db, doc_id)
-    if not ins:
+    data = _find_payment_data(db, doc_id)
+    if not data:
         raise HTTPException(status_code=404, detail="invoice_not_found")
 
-    amount = f"{ins.amount:.2f}" if ins.amount else "—"
-    currency = ins.currency or "ILS"
-    description = ins.description or "Invoice"
+    amount = f"{data.amount:.2f}" if data.amount else "—"
+    currency = data.currency
+    description = data.description
     confirm_url = f"/api/mock-payment/{doc_id}/confirm"
 
     html = f"""<!DOCTYPE html>
@@ -205,14 +238,21 @@ def mock_payment_confirm(
 ) -> JSONResponse:
     _require_mock_mode()
 
-    ins = _find_instruction(db, doc_id)
+    data = _find_payment_data(db, doc_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="invoice_not_found")
+
+    ins = db.query(AccountBillingInstruction).filter_by(account_id=data.account_id).first()
     if not ins:
         raise HTTPException(status_code=404, detail="invoice_not_found")
 
     success: bool = bool(payload.get("success", True))
 
     if success:
-        ins.payment_url = None  # clears the pending payment — same as real webhook does
+        # Only clear payment_url when this doc_id is still the active one;
+        # superseded doc_ids should not overwrite the live instruction's state.
+        if ins.payment_doc_id == doc_id:
+            ins.payment_url = None
         if ins.charge_type == "monthly":
             ins.subscription_status = "active"
         logger.info("mock_payment: confirmed doc_id=%s account_id=%s", doc_id, ins.account_id)

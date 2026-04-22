@@ -285,15 +285,23 @@ def fetch_campaign_ads(
         try:
             r = httpx.get(
                 f"{GRAPH_ROOT}/{cid}",
-                params={"fields": "thumbnail_url,video_id,object_story_spec", "thumbnail_width": 600, "thumbnail_height": 315, "access_token": access_token},
+                params={"fields": "thumbnail_url,image_url,video_id,object_story_spec", "thumbnail_width": 1080, "thumbnail_height": 1080, "access_token": access_token},
                 timeout=30.0,
             )
             if r.status_code == 200:
                 data = r.json()
-                url = data.get("thumbnail_url", "")
+                story_spec = data.get("object_story_spec") or {}
+                link_data = story_spec.get("link_data") or {}
+                video_data = story_spec.get("video_data") or {}
+                url = (
+                    data.get("image_url", "")
+                    or link_data.get("picture", "")
+                    or link_data.get("image_url", "")
+                    or video_data.get("image_url", "")
+                    or data.get("thumbnail_url", "")
+                )
                 if url:
                     hires_by_creative[cid] = url
-                story_spec = data.get("object_story_spec") or {}
                 video_id = data.get("video_id", "") or (story_spec.get("video_data") or {}).get("video_id", "")
                 if video_id:
                     try:
@@ -350,6 +358,10 @@ def fetch_campaign_ads(
         creative = ad.get("creative") or {}
         creative_id = scalar_str(creative.get("id") if isinstance(creative, dict) else "")
         image_url = scalar_str(creative.get("image_url") if isinstance(creative, dict) else "")
+        if not image_url and isinstance(creative, dict):
+            spec = creative.get("object_story_spec") or {}
+            link_data = spec.get("link_data") or {}
+            image_url = scalar_str(link_data.get("picture", "") or link_data.get("image_url", ""))
         thumbnail = image_url or hires_by_creative.get(creative_id) or scalar_str(creative.get("thumbnail_url") if isinstance(creative, dict) else "")
         ins = insights_by_id.get(ad_id, {})
         result.append({

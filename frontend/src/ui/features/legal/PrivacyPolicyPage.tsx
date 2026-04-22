@@ -1,6 +1,29 @@
+import { ArrowRightOutlined } from "@ant-design/icons";
+import { Button } from "antd";
+import { useNavigate } from "react-router-dom";
+
 export function PrivacyPolicyPage() {
+  const navigate = useNavigate();
+
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "transparent", color: "#111827" }}>
+      <Button
+        type="default"
+        icon={<ArrowRightOutlined />}
+        onClick={() => navigate(-1)}
+        style={{
+          position: "fixed",
+          top: 20,
+          right: 24,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+        }}
+      >
+        חזרה
+      </Button>
       <main style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 56px", display: "grid", gap: 32 }}>
         <header style={{ display: "grid", gap: 12 }}>
           <h1 style={{ margin: 0, fontSize: 32, fontWeight: 700 }}>תקנון תנאי שימוש ומדיניות פרטיות</h1>

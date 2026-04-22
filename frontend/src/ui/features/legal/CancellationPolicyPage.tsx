@@ -1,6 +1,29 @@
+import { ArrowRightOutlined } from "@ant-design/icons";
+import { Button } from "antd";
+import { useNavigate } from "react-router-dom";
+
 export function CancellationPolicyPage() {
+  const navigate = useNavigate();
+
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "transparent", color: "#111827" }}>
+      <Button
+        type="default"
+        icon={<ArrowRightOutlined />}
+        onClick={() => navigate(-1)}
+        style={{
+          position: "fixed",
+          top: 20,
+          right: 24,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+        }}
+      >
+        חזרה
+      </Button>
       <main style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 56px", display: "grid", gap: 32 }}>
         <header style={{ display: "grid", gap: 12 }}>
           <h1 style={{ margin: 0, fontSize: 32, fontWeight: 700 }}>מדיניות ביטולים והחזרים כספיים</h1>
@@ -79,10 +102,12 @@ export function CancellationPolicyPage() {
 
         <section style={{ display: "grid", gap: 10 }}>
           <h2 style={{ margin: 0, fontSize: 22 }}>6. אופן מתן הודעת ביטול</h2>
-          <p style={{ margin: 0, lineHeight: 1.8, color: "#374151" }}>לצורך ביטול, יש לפנות לחברה באחת מהדרכים הבאות:</p>
+          <p style={{ margin: 0, lineHeight: 1.8, color: "#374151" }}>
+            לקוח יקר, הנך רשאי לבטל את העסקה בהתאם להוראות חוק הגנת הצרכן, תשמ"א-1981, תקנותיו ומדיניות הביטולים של החברה. ניתן למסור הודעת ביטול עסקה לחברה באמצעות אחת מהדרכים הבאות:
+          </p>
           <ul style={{ margin: 0, paddingRight: 20, display: "grid", gap: 8, color: "#374151", lineHeight: 1.8 }}>
-            <li>שליחת הודעה דרך טופס צור קשר במערכת הפאנל.</li>
-            <li>שליחת אימייל רשמי לכתובת החברה (מומלץ לציין "בקשת ביטול" ופרטי לקוח).</li>
+            <li>א. בדוא"ל לכתובת office@aiterra.co.il</li>
+            <li>ב. בהודעה מסודרת במסרון ישירות לנציג החברה</li>
           </ul>
         </section>
       </main>

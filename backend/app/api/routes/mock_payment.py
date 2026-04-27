@@ -369,9 +369,8 @@ def cancel_policy_page() -> HTMLResponse:
     </section>
     <section>
       <h2>7. יצירת קשר</h2>
-      <p>Contact</p>
-      <p>Phone number 0526780739</p>
-      <p>Michael</p>
+      <p>טלפון: 0526780739</p>
+      <p>מיכאל</p>
     </section>
   </main>
 </body></html>"""
@@ -443,9 +442,8 @@ def privacy_policy_page() -> HTMLResponse:
     </section>
     <section>
       <h2>9. יצירת קשר</h2>
-      <p>Contact</p>
-      <p>Phone number 0526780739</p>
-      <p>Michael</p>
+      <p>טלפון: 0526780739</p>
+      <p>מיכאל</p>
     </section>
   </main>
 </body></html>"""

@@ -321,7 +321,7 @@ def cancel_policy_page() -> HTMLResponse:
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>מדיניות ביטולים</title><style>{_POLICY_CSS}</style></head>
 <body>
-  <a class="back" href="javascript:history.back()">&#8594; חזרה</a>
+  <a class="back" href="/" onclick="if(window.history.length > 1){{history.back(); return false;}}">&#8594; חזרה</a>
   <main>
     <header>
       <h1>מדיניות ביטולים והחזרים כספיים</h1>
@@ -367,6 +367,12 @@ def cancel_policy_page() -> HTMLResponse:
         <li>ב. בהודעה מסודרת במסרון ישירות לנציג החברה</li>
       </ul>
     </section>
+    <section>
+      <h2>7. יצירת קשר</h2>
+      <p>Contact</p>
+      <p>Phone number 0526780739</p>
+      <p>Michael</p>
+    </section>
   </main>
 </body></html>"""
     return HTMLResponse(content=html)
@@ -379,7 +385,7 @@ def privacy_policy_page() -> HTMLResponse:
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>מדיניות פרטיות</title><style>{_POLICY_CSS}</style></head>
 <body>
-  <a class="back" href="javascript:history.back()">&#8594; חזרה</a>
+  <a class="back" href="/" onclick="if(window.history.length > 1){{history.back(); return false;}}">&#8594; חזרה</a>
   <main>
     <header>
       <h1>תקנון תנאי שימוש ומדיניות פרטיות</h1>
@@ -434,6 +440,12 @@ def privacy_policy_page() -> HTMLResponse:
     <section>
       <h2>8. סמכות שיפוט ודין תקף</h2>
       <p>על תקנון זה יחולו דיני מדינת ישראל בלבד. סמכות השיפוט הבלעדית בכל סכסוך הנובע משימוש בפאנל תהא נתונה לבתי המשפט המוסמכים במחוז תל אביב-יפו.</p>
+    </section>
+    <section>
+      <h2>9. יצירת קשר</h2>
+      <p>Contact</p>
+      <p>Phone number 0526780739</p>
+      <p>Michael</p>
     </section>
   </main>
 </body></html>"""

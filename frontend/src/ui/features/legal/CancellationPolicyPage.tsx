@@ -1,16 +1,24 @@
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
+import { Paths } from "../../navigation/paths";
 
 export function CancellationPolicyPage() {
   const navigate = useNavigate();
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate(Paths.root);
+  };
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "transparent", color: "#111827" }}>
       <Button
         type="default"
         icon={<ArrowRightOutlined />}
-        onClick={() => navigate(-1)}
+        onClick={handleBack}
         style={{
           position: "fixed",
           top: 20,

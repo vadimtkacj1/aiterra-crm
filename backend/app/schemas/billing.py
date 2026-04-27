@@ -97,6 +97,7 @@ class BillingInstructionOut(BaseModel):
     currency: str
     description: str | None
     lineItems: list[BillingLineItemOut] | None = None
+    paymentUrl: str | None = None
 
 
 class BillingInstructionIn(BaseModel):

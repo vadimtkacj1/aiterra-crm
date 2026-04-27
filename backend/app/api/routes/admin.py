@@ -785,6 +785,7 @@ def get_billing_instruction(
         currency=instruction.currency,
         description=instruction.description,
         lineItems=parse_stored_line_items(instruction.line_items_json),
+        paymentUrl=instruction.payment_url,
     )
 
 
@@ -928,6 +929,7 @@ def _sync_account_billing_instruction(
         currency=instruction.currency,
         description=instruction.description,
         lineItems=parse_stored_line_items(instruction.line_items_json),
+        paymentUrl=instruction.payment_url,
     )
 
 

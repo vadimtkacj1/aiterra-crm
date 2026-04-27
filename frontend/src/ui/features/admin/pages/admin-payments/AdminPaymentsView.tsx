@@ -1,5 +1,6 @@
-import { FolderOpenOutlined, ShoppingOutlined } from "@ant-design/icons";
+import { CheckOutlined, CopyOutlined, FolderOpenOutlined, LinkOutlined, ShoppingOutlined } from "@ant-design/icons";
 import { Button, Card, Empty, Flex, Form, Input, Modal, Spin, Typography } from "antd";
+import { useState } from "react";
 import { AdminPaymentsLibraryDrawer } from "./AdminPaymentsLibraryDrawer";
 import { InvoiceComposerCard } from "./InvoiceComposerCard";
 import { RecipientStepCard } from "./RecipientStepCard";
@@ -8,6 +9,15 @@ import { useAdminPaymentsPage } from "./useAdminPaymentsPage";
 /** Admin payments & invoices — layout only; logic lives in `useAdminPaymentsPage` and `adminPaymentsFormModel`. */
 export function AdminPaymentsPage() {
   const p = useAdminPaymentsPage();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (!p.paymentLinkModal) return;
+    void navigator.clipboard.writeText(p.paymentLinkModal).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <Spin spinning={p.loadingUsers}>
@@ -168,6 +178,45 @@ export function AdminPaymentsPage() {
                 </Button>
               </Flex>
             </Form>
+
+            <Modal
+              title={
+                <Flex align="center" gap={8}>
+                  <LinkOutlined style={{ color: p.token.colorPrimary }} />
+                  {p.t("admin.payments.payLinkModalTitle")}
+                </Flex>
+              }
+              open={Boolean(p.paymentLinkModal)}
+              onCancel={() => { p.setPaymentLinkModal(null); setCopied(false); }}
+              footer={
+                <Flex justify="flex-end" gap={8}>
+                  <Button onClick={() => { p.setPaymentLinkModal(null); setCopied(false); }}>
+                    {p.t("common.cancel")}
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={copied ? <CheckOutlined /> : <CopyOutlined />}
+                    onClick={handleCopy}
+                  >
+                    {copied ? p.t("admin.payments.payLinkCopied") : p.t("admin.payments.payLinkCopy")}
+                  </Button>
+                </Flex>
+              }
+            >
+              <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+                {p.t("admin.payments.payLinkModalHint")}
+              </Typography.Paragraph>
+              <Input
+                readOnly
+                value={p.paymentLinkModal ?? ""}
+                addonAfter={
+                  <a href={p.paymentLinkModal ?? "#"} target="_blank" rel="noopener noreferrer">
+                    <LinkOutlined />
+                  </a>
+                }
+                style={{ fontFamily: "monospace", fontSize: 13 }}
+              />
+            </Modal>
 
             <Modal
               title={p.t("admin.payments.saveTemplateModalTitle")}

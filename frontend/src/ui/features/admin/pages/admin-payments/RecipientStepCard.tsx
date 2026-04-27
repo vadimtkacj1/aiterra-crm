@@ -1,6 +1,8 @@
-import { Alert, Button, Card, Flex, Form, Select, Spin, Tag, Typography } from "antd";
+import { CheckOutlined, CopyOutlined, LinkOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Flex, Form, Input, Select, Spin, Tag, Tooltip, Typography } from "antd";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
+import { useState } from "react";
 import type { User } from "../../../../../domain/User";
 import type { AccountBillingInstruction, UserBusinessMeta } from "../../../../../services/AdminService";
 import { SectionStep } from "./billingUi";
@@ -36,6 +38,27 @@ export function RecipientStepCard({
   clientLiveBilling,
   importLiveBillingIntoForm,
 }: Props) {
+  const [copied, setCopied] = useState(false);
+
+  const hasActivePayment =
+    clientLiveBilling != null &&
+    (clientLiveBilling.chargeType === "one_time" || clientLiveBilling.chargeType === "monthly") &&
+    userMeta?.accountId != null;
+
+  const paymentUrl = hasActivePayment
+    ? clientLiveBilling!.paymentUrl?.startsWith("http")
+      ? clientLiveBilling!.paymentUrl
+      : `${window.location.origin}/a/${userMeta!.accountId}/billing/checkout`
+    : null;
+
+  const handleCopy = () => {
+    if (!paymentUrl) return;
+    void navigator.clipboard.writeText(paymentUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <Card
       variant="borderless"
@@ -122,6 +145,50 @@ export function RecipientStepCard({
         <Button type="link" onClick={importLiveBillingIntoForm} style={{ paddingLeft: 0, marginTop: 4 }}>
           {t("admin.payments.importClientBilling")}
         </Button>
+      ) : null}
+
+      {paymentUrl ? (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "12px 14px",
+            borderRadius: 10,
+            background: token.colorInfoBg,
+            border: `1px solid ${token.colorInfoBorder}`,
+          }}
+        >
+          <Flex align="center" gap={6} style={{ marginBottom: 8 }}>
+            <LinkOutlined style={{ color: token.colorInfo, fontSize: 13 }} />
+            <Typography.Text strong style={{ fontSize: 12, color: token.colorInfo }}>
+              {t("admin.payments.payLinkLabel")}
+            </Typography.Text>
+          </Flex>
+          <Flex gap={8} align="center">
+            <Input
+              readOnly
+              value={paymentUrl}
+              size="small"
+              style={{ fontFamily: "monospace", fontSize: 12, flex: 1 }}
+            />
+            <Tooltip title={copied ? t("admin.payments.payLinkCopied") : t("admin.payments.payLinkCopy")}>
+              <Button
+                size="small"
+                icon={copied ? <CheckOutlined /> : <CopyOutlined />}
+                type={copied ? "default" : "primary"}
+                onClick={handleCopy}
+              />
+            </Tooltip>
+            <Tooltip title={t("admin.payments.payLinkOpen")}>
+              <Button
+                size="small"
+                icon={<LinkOutlined />}
+                href={paymentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            </Tooltip>
+          </Flex>
+        </div>
       ) : null}
     </Card>
   );

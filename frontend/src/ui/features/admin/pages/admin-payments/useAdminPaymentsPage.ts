@@ -44,6 +44,7 @@ export function useAdminPaymentsPage() {
   const [saveTemplateTitle, setSaveTemplateTitle] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [paymentLinkModal, setPaymentLinkModal] = useState<string | null>(null);
   const [form] = Form.useForm<AdminPaymentsFormValues>();
 
   const [userMeta, setUserMeta] = useState<UserBusinessMeta | null>(null);
@@ -277,16 +278,20 @@ export function useAdminPaymentsPage() {
     }
 
     try {
-      await services.admin.setAccountBillingInstruction(accountId, {
+      const result = await services.admin.setAccountBillingInstruction(accountId, {
         chargeType,
         amount: chargeType === "none" ? null : parsed.amount,
         currency: values.currency ?? "USD",
         description: values.description?.trim() || null,
         lineItems: parsed.lineItems,
       });
-      message.success(t("admin.payments.createdSuccess"));
       if (chargeType !== "none") {
-        message.info(t("admin.payments.createdDownloadHint"), 5);
+        const shareableUrl = result.paymentUrl?.startsWith("http")
+          ? result.paymentUrl
+          : `${window.location.origin}/a/${accountId}/billing/checkout`;
+        setPaymentLinkModal(shareableUrl);
+      } else {
+        message.success(t("admin.payments.createdSuccess"));
       }
       try {
         const bi = await services.admin.getAccountBillingInstruction(accountId);
@@ -388,5 +393,7 @@ export function useAdminPaymentsPage() {
     onSaveTemplateOk,
     shellRadius: SHELL_RADIUS,
     shellShadow: SHELL_SHADOW,
+    paymentLinkModal,
+    setPaymentLinkModal,
   };
 }

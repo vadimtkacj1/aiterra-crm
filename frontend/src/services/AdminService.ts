@@ -92,6 +92,7 @@ export interface AccountBillingInstruction {
   currency: string;
   description: string | null;
   lineItems?: BillingLineItem[] | null;
+  paymentUrl?: string | null;
 }
 
 /** Saved invoice definition — no client until applied (POST …/apply/:accountId). */

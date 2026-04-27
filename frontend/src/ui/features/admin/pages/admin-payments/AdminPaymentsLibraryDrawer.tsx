@@ -1,4 +1,5 @@
 import {
+  CheckOutlined,
   DeleteOutlined,
   DownloadOutlined,
   FileTextOutlined,
@@ -13,6 +14,8 @@ import {
   Drawer,
   Empty,
   Flex,
+  Input,
+  Modal,
   Popconfirm,
   Space,
   Spin,
@@ -21,6 +24,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
+import { useState } from "react";
 import type { FormInstance } from "antd/es/form";
 import type { TFunction } from "i18next";
 import type { AccountBillingInstruction, AdminService, BillingHistoryWithAccountRow, InvoiceTemplateRow, UserBusinessMeta } from "../../../../../services/AdminService";
@@ -80,6 +84,26 @@ export function AdminPaymentsLibraryDrawer({
   applyTemplateToSelectedClient,
   loadInvoiceTemplates,
 }: Props) {
+  const [linkModal, setLinkModal] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const openLinkModal = (row: BillingHistoryWithAccountRow) => {
+    const raw = row.paymentUrl;
+    const url = raw?.startsWith("http")
+      ? raw
+      : `${window.location.origin}/a/${row.accountId}/billing/checkout`;
+    setLinkModal(url);
+    setCopied(false);
+  };
+
+  const handleCopy = () => {
+    if (!linkModal) return;
+    void navigator.clipboard.writeText(linkModal).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <Drawer
       title={t("admin.payments.libraryDrawerTitle")}
@@ -186,14 +210,11 @@ export function AdminPaymentsLibraryDrawer({
                     />
                   </Tooltip>
                   {r.paymentUrl ? (
-                    <Tooltip title={t("admin.payments.historyOpenPayment")}>
+                    <Tooltip title={t("admin.payments.payLinkCopy")}>
                       <Button
                         size="small"
-                        type="link"
-                        href={r.paymentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         icon={<LinkOutlined />}
+                        onClick={() => openLinkModal(r)}
                       />
                     </Tooltip>
                   ) : null}
@@ -433,6 +454,39 @@ export function AdminPaymentsLibraryDrawer({
           },
         ]}
       />
+      <Modal
+        title={
+          <Flex align="center" gap={8}>
+            <LinkOutlined />
+            {t("admin.payments.payLinkModalTitle")}
+          </Flex>
+        }
+        open={Boolean(linkModal)}
+        onCancel={() => { setLinkModal(null); setCopied(false); }}
+        footer={
+          <Flex justify="flex-end" gap={8}>
+            <Button onClick={() => { setLinkModal(null); setCopied(false); }}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="primary"
+              icon={copied ? <CheckOutlined /> : <LinkOutlined />}
+              onClick={handleCopy}
+            >
+              {copied ? t("admin.payments.payLinkCopied") : t("admin.payments.payLinkCopy")}
+            </Button>
+          </Flex>
+        }
+      >
+        <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+          {t("admin.payments.payLinkModalHint")}
+        </Typography.Paragraph>
+        <Input
+          readOnly
+          value={linkModal ?? ""}
+          style={{ fontFamily: "monospace", fontSize: 13 }}
+        />
+      </Modal>
     </Drawer>
   );
 }

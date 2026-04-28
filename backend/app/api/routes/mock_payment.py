@@ -370,6 +370,7 @@ def cancel_policy_page() -> HTMLResponse:
     <section>
       <h2>7. יצירת קשר</h2>
       <p>טלפון: 0526780739</p>
+      <p>כתובת: אפעל 4 חולון</p>
       <p>מיכאל</p>
     </section>
   </main>
@@ -443,6 +444,7 @@ def privacy_policy_page() -> HTMLResponse:
     <section>
       <h2>9. יצירת קשר</h2>
       <p>טלפון: 0526780739</p>
+      <p>כתובת: אפעל 4 חולון</p>
       <p>מיכאל</p>
     </section>
   </main>

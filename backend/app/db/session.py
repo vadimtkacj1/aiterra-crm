@@ -85,9 +85,16 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("account_billing_instructions", "payment_plan_id", "VARCHAR(255)")
         _ensure_column("account_billing_instructions", "line_items_json", "TEXT")
         _ensure_column("account_billing_instructions", "subscription_status", "VARCHAR(32)")
+        _ensure_column("account_billing_instructions", "installment_months", "INTEGER")
+        _ensure_column("account_billing_instructions", "installment_total_amount", "FLOAT")
         _ensure_column("billing_instruction_history", "payment_doc_id", "VARCHAR(255)")
         _ensure_column("billing_instruction_history", "payment_url", "VARCHAR(2048)")
         _ensure_column("billing_instruction_history", "payment_recurring_id", "VARCHAR(255)")
+        _ensure_column("billing_instruction_history", "installment_months", "INTEGER")
+        _ensure_column("billing_instruction_history", "installment_total_amount", "FLOAT")
+        _ensure_column("invoice_templates", "installment_months", "INTEGER")
+        _ensure_column("contracts", "pdf_base64", "TEXT")
+        _ensure_column("contracts", "signature_png_base64", "TEXT")
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

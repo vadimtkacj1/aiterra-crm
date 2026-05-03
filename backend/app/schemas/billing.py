@@ -4,6 +4,13 @@ from typing import Literal
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
 
+def monthly_amount_for_installment_plan(total: float, months: int) -> float:
+    """Equal recurring charge per month in major currency units (two decimals)."""
+    if months < 2:
+        raise ValueError("installment_months_invalid")
+    return round(float(total) / float(months), 2)
+
+
 class PaymentRecord(BaseModel):
     id: str
     date: str
@@ -20,6 +27,9 @@ class SubscriptionRecord(BaseModel):
     renewsAt: str
     amount: float
     currency: str
+    """When set, `amount` is the monthly installment and this is the full contract total."""
+    installmentTotalAmount: float | None = None
+    installmentMonths: int | None = None
 
 
 class BillingLineItemOut(BaseModel):
@@ -66,6 +76,8 @@ class PendingPaymentAction(BaseModel):
     summary: str
     payUrl: str | None = None
     lineItems: list[BillingLineItemOut] | None = None
+    installmentTotalAmount: float | None = None
+    installmentMonths: int | None = None
     """True when payment doc is open and the account has a saved Z-Credit token — user can pay in-app."""
     payWithSavedCardAvailable: bool = False
 
@@ -98,6 +110,8 @@ class BillingInstructionOut(BaseModel):
     description: str | None
     lineItems: list[BillingLineItemOut] | None = None
     paymentUrl: str | None = None
+    installmentMonths: int | None = None
+    installmentTotalAmount: float | None = None
 
 
 class BillingInstructionIn(BaseModel):
@@ -106,6 +120,8 @@ class BillingInstructionIn(BaseModel):
     currency: str = Field(default="ILS", max_length=8)
     description: str | None = Field(default=None, max_length=500)
     lineItems: list[BillingLineItemIn] | None = None
+    """Split a total contract across N equal monthly charges (monthly only; no line items)."""
+    splitAcrossMonths: int | None = Field(default=None, ge=2, le=60)
 
     @model_validator(mode="after")
     def line_items_sum_matches_amount(self) -> "BillingInstructionIn":
@@ -113,6 +129,12 @@ class BillingInstructionIn(BaseModel):
             return self
         if self.amount is None or self.amount <= 0:
             raise ValueError("amount required when charge type is not none")
+        if self.splitAcrossMonths is not None:
+            if self.chargeType != "monthly":
+                raise ValueError("split_across_months_only_for_monthly")
+            if self.lineItems:
+                raise ValueError("split_installments_no_line_items")
+            return self
         if self.lineItems:
             total = round(sum(li.amount for li in self.lineItems), 2)
             target = round(float(self.amount), 2)
@@ -130,9 +152,16 @@ class InvoiceTemplateCreate(BaseModel):
     currency: str = Field(default="ILS", max_length=8)
     description: str | None = Field(default=None, max_length=500)
     lineItems: list[BillingLineItemIn] | None = None
+    splitAcrossMonths: int | None = Field(default=None, ge=2, le=60)
 
     @model_validator(mode="after")
     def line_items_sum_matches_amount(self) -> "InvoiceTemplateCreate":
+        if self.splitAcrossMonths is not None:
+            if self.chargeType != "monthly":
+                raise ValueError("split_across_months_only_for_monthly")
+            if self.lineItems:
+                raise ValueError("split_installments_no_line_items")
+            return self
         if self.lineItems:
             total = round(sum(li.amount for li in self.lineItems), 2)
             target = round(float(self.amount), 2)
@@ -150,6 +179,7 @@ class InvoiceTemplateOut(BaseModel):
     description: str | None
     lineItems: list[BillingLineItemOut] | None = None
     createdAt: str
+    installmentMonths: int | None = None
 
 
 class BillingHistoryOut(BaseModel):
@@ -161,6 +191,8 @@ class BillingHistoryOut(BaseModel):
     currency: str
     description: str | None
     lineItems: list[BillingLineItemOut] | None = None
+    installmentMonths: int | None = None
+    installmentTotalAmount: float | None = None
     paymentDocId: str | None = None
     paymentUrl: str | None = None
     paymentRecurringId: str | None = None
@@ -180,6 +212,23 @@ class BillingHistoryWithAccountOut(BillingHistoryOut):
     accountId: int
     accountName: str = ""
     ownerEmail: str | None = None
+
+
+# ── Checkout contract signature ───────────────────────────────────────────────
+
+
+class ContractAcceptanceRequest(BaseModel):
+    paymentActionId: str = Field(..., min_length=1, max_length=255)
+    signaturePngBase64: str = Field(
+        ...,
+        min_length=32,
+        description="PNG image as data URL or raw base64",
+    )
+
+
+class ContractAcceptanceResponse(BaseModel):
+    id: int
+    createdAt: str
 
 
 # ── Saved card / Z-Credit token ───────────────────────────────────────────────

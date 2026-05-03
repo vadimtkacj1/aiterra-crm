@@ -11,6 +11,7 @@ class UserOut(BaseModel):
     email: str
     displayName: str
     role: str
+    accountId: int | None = None
 
 
 class LoginResponse(BaseModel):

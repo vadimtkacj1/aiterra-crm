@@ -4,12 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.core.settings import settings
 from app.db.session import SessionLocal
-from app.models.account import Account
-from app.models.integration_meta import MetaIntegration
-from app.models.membership import AccountMembership
-from app.models.user import User
-from app.services.meta_graph import fetch_meta_ad_accounts, normalize_meta_ad_account_id
-from app.services.security import hash_password
+from app.models.core import Account, AccountMembership, User
+from app.models.integrations import MetaIntegration
+from app.services.meta.graph import fetch_meta_ad_accounts, normalize_meta_ad_account_id
+from app.services.auth.security import hash_password
 
 logger = logging.getLogger(__name__)
 

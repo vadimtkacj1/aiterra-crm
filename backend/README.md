@@ -19,6 +19,23 @@ Default seeded admin (from `.env`):
 - Email: `admin@example.com`
 - Password: `Admin123!`
 
+### Backend tests (pytest)
+
+Tests are split by the usual pyramid:
+
+- **`tests/unit/`** — isolated checks (pure logic, helpers, schemas, services with mocks). Fast, no real DB or HTTP server.
+- **`tests/integration/`** — FastAPI app with `TestClient`, in-memory SQLite, and DB overrides so routes and persistence work together.
+
+`pytest.ini` sets `testpaths` to those two folders. Use the project venv so dev dependencies (pytest and a compatible **`httpx`** version for Starlette `TestClient`; `httpx` 0.28+ is incompatible) do not clash with other tools:
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-dev.txt
+pytest
+```
+
 ## Frontend (Vite + React) — run (dev)
 
 ```bash

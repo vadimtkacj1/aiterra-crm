@@ -8,3 +8,4 @@ passlib[bcrypt]
 python-multipart
 httpx
 reportlab
+APScheduler>=3.10,<4

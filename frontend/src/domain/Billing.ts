@@ -18,6 +18,8 @@ export interface SubscriptionRecord {
   renewsAt: string;
   amount: number;
   currency: string;
+  installmentTotalAmount?: number | null;
+  installmentMonths?: number | null;
 }
 
 export interface OfferRecord {

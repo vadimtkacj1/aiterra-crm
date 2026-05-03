@@ -10,4 +10,6 @@ export type AdminPaymentsFormValues = {
   description?: string;
   useBreakdown: boolean;
   lineItems?: LineFormRow[];
+  /** Monthly only: split contract total into N equal recurring charges (2–60). */
+  splitAcrossMonths?: number | null;
 };

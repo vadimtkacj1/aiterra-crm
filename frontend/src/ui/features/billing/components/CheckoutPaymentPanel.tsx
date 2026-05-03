@@ -1,18 +1,15 @@
 import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Divider, Flex, Typography } from "antd";
+import { Button, Divider, Flex, Typography } from "antd";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 
 interface Props {
   total: string;
   intent: "savedCard" | "hosted";
-  agreed: boolean;
   loading: boolean;
-  onAgreeChange: (checked: boolean) => void;
   onPay: () => void;
 }
 
-export function CheckoutPaymentPanel({ total, intent, agreed, loading, onAgreeChange, onPay }: Props) {
+export function CheckoutPaymentPanel({ total, intent, loading, onPay }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -69,30 +66,14 @@ export function CheckoutPaymentPanel({ total, intent, agreed, loading, onAgreeCh
         </div>
       </Flex>
 
-      <Checkbox
-        checked={agreed}
-        onChange={(e) => onAgreeChange(e.target.checked)}
-        style={{ alignItems: "flex-start" }}
-      >
-        <Typography.Text style={{ fontSize: 13, lineHeight: 1.55, color: "#475569" }}>
-          {intent === "hosted" ? (
-            <>
-              {t("billing.checkoutConsentHosted")}{" "}
-              <Link to="/cancel-policy">{t("billing.checkoutCancelPolicyLink")}</Link>{" "}
-              {t("billing.checkoutAnd")}{" "}
-              <Link to="/privacy-policy">{t("billing.checkoutPrivacyPolicyLink")}</Link>.
-            </>
-          ) : (
-            t("billing.checkoutConsentSaved")
-          )}
-        </Typography.Text>
-      </Checkbox>
+      <Typography.Paragraph type="secondary" style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>
+        {t("billing.checkoutPayNote")}
+      </Typography.Paragraph>
 
       <Button
         type="primary"
         size="large"
         icon={intent === "savedCard" ? <CreditCardOutlined /> : <WalletOutlined />}
-        disabled={!agreed}
         loading={loading}
         onClick={onPay}
         style={{ height: 48, borderRadius: 10, fontWeight: 600, fontSize: 15, boxShadow: "none" }}

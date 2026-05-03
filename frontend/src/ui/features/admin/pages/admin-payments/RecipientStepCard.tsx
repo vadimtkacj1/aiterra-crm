@@ -3,8 +3,8 @@ import { Alert, Button, Card, Flex, Form, Input, Select, Spin, Tag, Tooltip, Typ
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
 import { useState } from "react";
-import type { User } from "../../../../../domain/User";
-import type { AccountBillingInstruction, UserBusinessMeta } from "../../../../../services/AdminService";
+import type { User } from "@/domain/User";
+import type { AccountBillingInstruction, UserBusinessMeta } from "@/services/admin/AdminService";
 import { SectionStep } from "./billingUi";
 
 type Props = {

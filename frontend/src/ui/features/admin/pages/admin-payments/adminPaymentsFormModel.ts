@@ -3,8 +3,26 @@
  * so the page hook stays mostly orchestration + UI wiring.
  */
 
-import type { InvoiceTemplateCreateInput } from "../../../../../services/AdminService";
+import type { InvoiceTemplateCreateInput } from "@/services/admin/AdminService";
 import type { AdminPaymentsFormValues, LineFormRow } from "./types";
+
+/** Live API stores per-month `amount` for installment plans; the form edits contract total. */
+export function billingInstructionAmountForForm(bi: {
+  chargeType: string;
+  amount: number | null;
+  installmentMonths?: number | null;
+  installmentTotalAmount?: number | null;
+}): number | undefined {
+  if (
+    bi.chargeType === "monthly" &&
+    bi.installmentMonths != null &&
+    bi.installmentMonths >= 2 &&
+    bi.installmentTotalAmount != null
+  ) {
+    return bi.installmentTotalAmount;
+  }
+  return bi.amount ?? undefined;
+}
 
 export type FormMessage = { level: "error" | "warning"; key: string };
 
@@ -50,6 +68,13 @@ export function buildInvoiceTemplatePayload(values: AdminPaymentsFormValues): Te
   if (chargeType !== "one_time" && chargeType !== "monthly") {
     return { ok: false, message: { level: "warning", key: "admin.payments.templateNeedCharge" } };
   }
+  const rawSplit = values.splitAcrossMonths;
+  const splitN =
+    chargeType === "monthly" && typeof rawSplit === "number" && rawSplit >= 2 ? Math.min(60, Math.floor(rawSplit)) : 0;
+  const splitActive = splitN >= 2;
+  if (splitActive && values.useBreakdown) {
+    return { ok: false, message: { level: "error", key: "admin.payments.splitNoLines" } };
+  }
   const parsed = parseAmountAndLines(values);
   if (!parsed.ok) return parsed;
   return {
@@ -59,22 +84,40 @@ export function buildInvoiceTemplatePayload(values: AdminPaymentsFormValues): Te
       amount: parsed.amount,
       currency: values.currency ?? "USD",
       description: values.description?.trim() || null,
-      lineItems: parsed.lineItems,
+      lineItems: splitActive ? undefined : parsed.lineItems,
+      splitAcrossMonths: splitActive ? splitN : undefined,
     },
   };
 }
 
 export type SubmitBillingParseResult =
-  | { ok: true; amount: number | null; lineItems: { code: string; label: string; amount: number }[] | undefined }
+  | {
+      ok: true;
+      amount: number | null;
+      lineItems: { code: string; label: string; amount: number }[] | undefined;
+      splitAcrossMonths?: number | undefined;
+    }
   | { ok: false; message: FormMessage };
 
 /** For setAccountBillingInstruction after form submit (chargeType may be none). */
 export function parseBillingInstructionFromSubmit(values: AdminPaymentsFormValues): SubmitBillingParseResult {
   const chargeType = values.chargeType;
   if (chargeType === "none") {
-    return { ok: true, amount: null, lineItems: undefined };
+    return { ok: true, amount: null, lineItems: undefined, splitAcrossMonths: undefined };
+  }
+  const rawSplit = values.splitAcrossMonths;
+  const splitN =
+    chargeType === "monthly" && typeof rawSplit === "number" && rawSplit >= 2 ? Math.min(60, Math.floor(rawSplit)) : 0;
+  const splitActive = splitN >= 2;
+  if (splitActive && values.useBreakdown) {
+    return { ok: false, message: { level: "error", key: "admin.payments.splitNoLines" } };
   }
   const parsed = parseAmountAndLines(values);
   if (!parsed.ok) return parsed;
-  return { ok: true, amount: parsed.amount, lineItems: parsed.lineItems };
+  return {
+    ok: true,
+    amount: parsed.amount,
+    lineItems: splitActive ? undefined : parsed.lineItems,
+    splitAcrossMonths: splitActive ? splitN : undefined,
+  };
 }

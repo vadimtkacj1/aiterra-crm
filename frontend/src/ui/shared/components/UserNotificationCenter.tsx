@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../app/AppProviders";
-import type { PendingPaymentAction } from "../../../services/interfaces/IBillingService";
+import type { PendingPaymentAction } from "@/services/billing/IBillingService";
 import { appLocaleFromLanguage, billingShell, formatInvoiceMoney } from "../../features/billing/components/billingUtils";
-import type { CheckoutLocationState } from "../../features/billing/pages/PaymentCheckoutPage";
+import type { CheckoutLocationState } from "@/ui/features/billing/checkout/checkoutTypes";
 import { accountPath } from "../../navigation/paths";
 
 function checkoutIntent(p: PendingPaymentAction): "savedCard" | "hosted" | null {

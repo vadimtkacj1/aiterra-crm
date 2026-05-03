@@ -1,6 +1,6 @@
 import { Divider, Flex, Typography } from "antd";
 import { useTranslation } from "react-i18next";
-import type { PendingPaymentAction } from "../../../../services/interfaces/IBillingService";
+import type { PendingPaymentAction } from "@/services/billing/IBillingService";
 
 function formatMoney(amount: number, currency: string): string {
   const cur = (currency || "ILS").length === 3 ? currency.toUpperCase() : "ILS";

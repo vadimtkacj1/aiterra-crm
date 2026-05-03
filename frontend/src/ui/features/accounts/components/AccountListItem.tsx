@@ -1,7 +1,7 @@
 import { FacebookOutlined, WalletOutlined } from "@ant-design/icons";
 import { Button, Flex, Space, Tag, Typography, theme } from "antd";
 import { useTranslation } from "react-i18next";
-import type { Account } from "../../../../services/interfaces/IAccountService";
+import type { Account } from "@/services/accounts/IAccountService";
 
 interface Props {
   account: Account;

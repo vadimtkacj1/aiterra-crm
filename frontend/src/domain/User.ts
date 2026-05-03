@@ -7,4 +7,5 @@ export interface User {
   email: string;
   displayName: string;
   role: UserRole;
+  accountId?: number | null;
 }

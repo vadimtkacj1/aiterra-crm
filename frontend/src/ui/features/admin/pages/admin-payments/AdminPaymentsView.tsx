@@ -1,7 +1,8 @@
-import { CheckOutlined, CopyOutlined, FolderOpenOutlined, LinkOutlined, ShoppingOutlined } from "@ant-design/icons";
+import { CheckOutlined, CopyOutlined, LinkOutlined } from "@ant-design/icons";
 import { Button, Card, Empty, Flex, Form, Input, Modal, Spin, Typography } from "antd";
 import { useState } from "react";
 import { AdminPaymentsLibraryDrawer } from "./AdminPaymentsLibraryDrawer";
+import { AdminPaymentsPageHeader } from "./AdminPaymentsPageHeader";
 import { InvoiceComposerCard } from "./InvoiceComposerCard";
 import { RecipientStepCard } from "./RecipientStepCard";
 import { useAdminPaymentsPage } from "./useAdminPaymentsPage";
@@ -22,56 +23,14 @@ export function AdminPaymentsPage() {
   return (
     <Spin spinning={p.loadingUsers}>
       <Flex vertical gap={18} style={{ maxWidth: 1024, margin: "0 auto", paddingBottom: 20 }}>
-        <div
-          style={{
-            borderRadius: p.shellRadius,
-            padding: "18px 20px",
-            background: p.token.colorBgContainer,
-            border: `1px solid ${p.token.colorBorderSecondary}`,
-            boxShadow: p.shellShadow,
-          }}
-        >
-          <Flex gap={18} align="flex-start" wrap="wrap" justify="space-between">
-            <Flex gap={18} align="flex-start" wrap="wrap" style={{ flex: "1 1 280px", minWidth: 0 }}>
-              <div
-                style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 12,
-                  background: p.token.colorBgContainer,
-                  border: `1px solid ${p.token.colorPrimaryBorder}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: p.token.colorPrimary,
-                  flexShrink: 0,
-                }}
-              >
-                <ShoppingOutlined style={{ fontSize: 22 }} />
-              </div>
-              <div style={{ minWidth: 0, flex: "1 1 240px" }}>
-                <Typography.Title level={3} style={{ margin: "0 0 6px", fontWeight: 700, letterSpacing: "-0.01em" }}>
-                  {p.t("admin.payments.title")}
-                </Typography.Title>
-                <Typography.Paragraph
-                  type="secondary"
-                  style={{ marginBottom: 0, fontSize: 13, lineHeight: 1.5, maxWidth: 720 }}
-                >
-                  {p.t("admin.payments.introShort")}
-                </Typography.Paragraph>
-              </div>
-            </Flex>
-            <Button
-              type="default"
-              icon={<FolderOpenOutlined />}
-              onClick={() => p.setLibraryOpen(true)}
-              loading={p.loadingUsers}
-              style={{ flexShrink: 0, alignSelf: "flex-start", marginTop: 2 }}
-            >
-              {p.t("admin.payments.libraryDrawerTrigger")}
-            </Button>
-          </Flex>
-        </div>
+        <AdminPaymentsPageHeader
+          t={p.t}
+          token={p.token}
+          shellRadius={p.shellRadius}
+          shellShadow={p.shellShadow}
+          loadingUsers={p.loadingUsers}
+          onOpenLibrary={() => p.setLibraryOpen(true)}
+        />
 
         {p.users.length === 0 && !p.loadingUsers ? (
           <Card
@@ -94,6 +53,7 @@ export function AdminPaymentsPage() {
                 currency: "USD",
                 useBreakdown: true,
                 lineItems: [],
+                splitAcrossMonths: undefined,
               }}
               onFinish={(values) => void p.onFormFinish(values)}
             >
@@ -118,6 +78,7 @@ export function AdminPaymentsPage() {
                 token={p.token}
                 shellRadius={p.shellRadius}
                 shellShadow={p.shellShadow}
+                form={p.form}
                 chargeTypeW={p.chargeTypeW}
                 useBreakdownW={Boolean(p.useBreakdownW)}
                 currencyW={p.currencyW}
@@ -128,33 +89,7 @@ export function AdminPaymentsPage() {
                 presetServerOnly={p.presetServerOnly}
               />
 
-              <AdminPaymentsLibraryDrawer
-                t={p.t}
-                open={p.libraryOpen}
-                onClose={() => p.setLibraryOpen(false)}
-                afterOpenChange={(open) => {
-                  if (open) void p.loadAllBillingHistory();
-                }}
-                admin={p.services.admin}
-                message={p.message}
-                form={p.form}
-                userMeta={p.userMeta}
-                allBillingRows={p.allBillingRows}
-                allBillingLoading={p.allBillingLoading}
-                revokingId={p.revokingId}
-                deletingId={p.deletingId}
-                setRevokingId={p.setRevokingId}
-                setDeletingId={p.setDeletingId}
-                setClientLiveBilling={p.setClientLiveBilling}
-                loadAllBillingHistory={p.loadAllBillingHistory}
-                downloadRowPdf={p.downloadRowPdf}
-                invoiceTemplates={p.invoiceTemplates}
-                templatesLoading={p.templatesLoading}
-                billBlockedForAdmin={p.billBlockedForAdmin}
-                loadTemplateIntoForm={p.loadTemplateIntoForm}
-                applyTemplateToSelectedClient={p.applyTemplateToSelectedClient}
-                loadInvoiceTemplates={p.loadInvoiceTemplates}
-              />
+              <AdminPaymentsLibraryDrawer model={p.libraryDrawer} />
 
               <Flex
                 justify={p.selectedUser ? "flex-end" : "space-between"}

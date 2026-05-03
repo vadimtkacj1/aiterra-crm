@@ -20,10 +20,12 @@ export const Paths = {
   google: "/a/:accountId/google",
   billing: "/a/:accountId/billing",
   billingCheckout: "/a/:accountId/billing/checkout",
+  contracts: "/a/:accountId/contracts",
   admin: "/admin",
   adminStatistics: "/admin/statistics",
   adminUsers: "/admin/users",
   adminPayments: "/admin/payments",
+  adminContracts: "/admin/contracts",
   adminMetaBudget: "/admin/meta-budget",
   adminAudit: "/admin/audit",
   login: "/login",
@@ -39,7 +41,10 @@ export const Paths = {
 
 export type AppPath = (typeof Paths)[keyof typeof Paths];
 
-export function accountPath(accountId: string, section: "meta" | "google" | "billing" | "settings"): string {
+export function accountPath(
+  accountId: string,
+  section: "meta" | "google" | "billing" | "contracts" | "settings",
+): string {
   return `/a/${accountId}/${section}`;
 }
 

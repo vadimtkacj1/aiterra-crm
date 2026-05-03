@@ -3,6 +3,7 @@ import { useApp } from "../../app/AppProviders";
 import { AdminLayout } from "../features/admin/pages/AdminLayout";
 import { AccountSelectPage } from "../pages/accounts";
 import { AccountBillingPageRoute } from "../pages/a/[accountId]/billing";
+import { AccountContractsPageRoute } from "../pages/a/[accountId]/contracts";
 import { GoogleAnalyticsPage } from "../pages/a/[accountId]/google";
 import { MetaAnalyticsPage } from "../pages/a/[accountId]/meta";
 import { MetaCampaignDeepDivePage } from "../pages/a/[accountId]/meta/campaigns/[campaignId]";
@@ -10,6 +11,7 @@ import { SettingsPage } from "../pages/a/[accountId]/settings";
 import { AdminIndexRedirect } from "../pages/admin";
 import { AdminMetaBudgetPage } from "../pages/admin/meta-budget";
 import { AdminPaymentsPage } from "../pages/admin/payments";
+import { AdminContractsPage } from "../pages/admin/contracts";
 import { AdminAuditPage } from "../pages/admin/audit";
 import { AdminStatisticsPage } from "../pages/admin/statistics";
 import { AdminUsersPage } from "../pages/admin/users";
@@ -22,6 +24,7 @@ import { PrivacyPolicyPage } from "../pages/privacy-policy";
 import { TakanonRedirect } from "../pages/takanon";
 import { LegacySettingsRedirect } from "../pages/settings";
 import { AccountBillingCheckoutPageRoute } from "../pages/a/[accountId]/billing/checkout";
+import { ContractSignPage } from "../pages/contracts/sign/[token]";
 import { MainLayout } from "../layouts/MainLayout";
 import { Paths } from "../navigation/paths";
 import { ProtectedAdminRoute } from "../shared/components/ProtectedAdminRoute";
@@ -42,6 +45,7 @@ export function AppRoutes() {
       <Route path={Paths.terms} element={<TermsPage />} />
       <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />
       <Route path={Paths.privacyPolicy} element={<PrivacyPolicyPage />} />
+      <Route path="/contracts/sign/:token" element={<ContractSignPage />} />
       <Route path={Paths.takanon} element={<TakanonRedirect />} />
       <Route
         element={
@@ -62,6 +66,7 @@ export function AppRoutes() {
           path={Paths.billing}
           element={<AccountBillingPageRoute />}
         />
+        <Route path={Paths.contracts} element={<AccountContractsPageRoute />} />
         <Route
           path={Paths.billingCheckout}
           element={<AccountBillingCheckoutPageRoute />}
@@ -79,6 +84,7 @@ export function AppRoutes() {
           <Route path="audit" element={<AdminAuditPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="payments" element={<AdminPaymentsPage />} />
+          <Route path="contracts" element={<AdminContractsPage />} />
           <Route path="meta-budget" element={<AdminMetaBudgetPage />} />
         </Route>
       </Route>

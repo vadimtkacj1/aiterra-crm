@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import logoUrl from "../../../../assets/logo-black.svg";
-import type { Account } from "../../../../services/interfaces/IAccountService";
+import type { Account } from "@/services/accounts/IAccountService";
 import { accountPath, defaultAccountSection } from "../../../navigation/paths";
 import { AccountListItem } from "./AccountListItem";
 

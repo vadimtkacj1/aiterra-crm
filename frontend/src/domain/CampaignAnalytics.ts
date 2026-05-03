@@ -1,10 +1,8 @@
-/** Розбір actions з Meta Insights. */
 export interface ActionMetricRow {
   actionType: string;
   value: number;
 }
 
-/** Щоденна точка (time-series) з Meta account insights. */
 export interface DailyMetricRow {
   date: string;
   impressions: number;
@@ -17,7 +15,6 @@ export interface DailyMetricRow {
   cpm: number;
 }
 
-/** Billing transaction from Meta ad account. */
 export interface MetaBillingTransaction {
   id: string;
   time: string;
@@ -27,7 +24,6 @@ export interface MetaBillingTransaction {
   txType: string;
 }
 
-/** Ad account billing summary from Meta. */
 export interface MetaAccountBilling {
   accountName: string;
   currency: string;
@@ -39,7 +35,6 @@ export interface MetaAccountBilling {
   transactions: MetaBillingTransaction[];
 }
 
-/** Campaign objective type returned from Meta API. */
 export type CampaignObjective =
   | "LEAD_GENERATION"
   | "CONVERSIONS"
@@ -52,10 +47,8 @@ export type CampaignObjective =
   | "MESSAGES"
   | string;
 
-/** Campaign delivery status from Meta. */
 export type CampaignStatus = "ACTIVE" | "PAUSED" | "DELETED" | "ARCHIVED" | string;
 
-/** Агрегированные метрики рекламной кампании (Meta / Google). */
 export interface CampaignSummaryRow {
   campaignId: string;
   campaignName: string;
@@ -64,15 +57,12 @@ export interface CampaignSummaryRow {
   spend: number;
   conversions: number;
   ctr: number;
-  // Campaign metadata
   objective?: CampaignObjective;
   status?: CampaignStatus;
-  // Goal-specific metrics
   leads?: number;
   purchases?: number;
   purchaseValue?: number;
   roas?: number;
-  // Reach / engagement metrics
   reach?: number;
   frequency?: number;
   cpc?: number;
@@ -94,13 +84,9 @@ export interface CampaignSummaryRow {
 
 export interface CampaignAnalyticsSnapshot {
   currency: string;
-  /** Fallback label if `periodI18nKey` is not set (e.g. API response). */
   periodLabel: string;
-  /** i18n key for the period line when using localized mock/API contracts. */
   periodI18nKey?: string;
-  /** ISO timestamp of when the data was fetched from Meta API. */
   updatedAt?: string;
-  /** Daily time-series from Meta account insights (last 30 days). */
   dailyBreakdown?: DailyMetricRow[];
   totals: {
     impressions: number;
@@ -127,13 +113,10 @@ export interface CampaignAnalyticsSnapshot {
     videoViews?: number;
     costPerInlineLinkClick?: number;
     costPerUniqueClick?: number;
-    /** Present in some mocks; API totals usually omit per-action breakdown. */
     actionBreakdown?: ActionMetricRow[];
   };
   rows: CampaignSummaryRow[];
 }
-
-// ── Ad / Creative level ───────────────────────────────────────────────────────
 
 export interface AdCreative {
   adId: string;

@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { getAutoTableFinalY } from "./jspdfAutotable";
 
 export interface InvoicePdfLineItem {
   code?: string;
@@ -19,6 +20,8 @@ export interface InvoicePdfInput {
   lineItems?: InvoicePdfLineItem[] | null;
   createdAt?: string;
   note?: string;
+  installmentMonths?: number;
+  installmentTotalAmount?: number;
 }
 
 function formatMoney(amount: number, currency: string): string {
@@ -65,7 +68,15 @@ export function downloadInvoicePdf(input: InvoicePdfInput): void {
       ["Account ID", String(input.accountId ?? "—")],
       ["Customer", input.customerName || "—"],
       ["Description", input.description || "—"],
-      ["Total", totalText],
+      ...(input.installmentMonths != null &&
+      input.installmentMonths >= 2 &&
+      input.installmentTotalAmount != null
+        ? [
+            ["Installment plan", `${input.installmentMonths} months`],
+            ["Contract total", formatMoney(input.installmentTotalAmount, input.currency)],
+            ["Per month (recurring)", totalText],
+          ]
+        : [["Total", totalText]]),
     ],
     theme: "grid",
     headStyles: { fillColor: [31, 41, 55], fontSize: 9 },
@@ -74,8 +85,7 @@ export function downloadInvoicePdf(input: InvoicePdfInput): void {
   });
 
   autoTable(doc, {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    startY: (doc as any).lastAutoTable.finalY + 8,
+    startY: getAutoTableFinalY(doc, 55) + 8,
     head: [["Item", "Code", "Amount"]],
     body: items.map((li) => [li.label, li.code || "—", formatMoney(li.amount, input.currency)]),
     theme: "striped",

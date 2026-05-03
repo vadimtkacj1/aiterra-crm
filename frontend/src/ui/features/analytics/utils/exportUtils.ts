@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { getAutoTableFinalY } from "@/ui/shared/utils/jspdfAutotable";
 import html2canvas from "html2canvas";
 import type { CampaignSummaryRow, AdCreative } from "../../../../domain/CampaignAnalytics";
 
@@ -459,8 +460,7 @@ export function exportCampaignDetailPdf(
     alternateRowStyles: { fillColor: [245, 248, 255] },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  currentY = (doc as any).lastAutoTable.finalY + 8;
+  currentY = getAutoTableFinalY(doc, currentY + 28) + 8;
 
   // Ad creatives table
   if (ads.length) {

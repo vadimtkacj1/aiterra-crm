@@ -21,9 +21,11 @@ import {
   Tooltip,
   Typography,
 } from "antd";
+import type { FormInstance } from "antd/es/form";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
 import { SectionStep, formatMoney } from "./billingUi";
+import type { AdminPaymentsFormValues } from "./types";
 import { BILLING_CURRENCIES } from "./types";
 
 type Props = {
@@ -31,6 +33,7 @@ type Props = {
   token: GlobalToken;
   shellRadius: number;
   shellShadow: string;
+  form: FormInstance<AdminPaymentsFormValues>;
   chargeTypeW: "none" | "one_time" | "monthly" | undefined;
   useBreakdownW: boolean | undefined;
   currencyW: string;
@@ -127,6 +130,7 @@ export function InvoiceComposerCard({
   token,
   shellRadius,
   shellShadow,
+  form,
   chargeTypeW,
   useBreakdownW,
   currencyW,
@@ -136,6 +140,14 @@ export function InvoiceComposerCard({
   presetBundle,
   presetServerOnly,
 }: Props) {
+  const splitM = Form.useWatch("splitAcrossMonths", form);
+  const amtW = Form.useWatch("amount", form);
+  const splitN = typeof splitM === "number" && splitM >= 2 ? Math.min(60, Math.floor(splitM)) : 0;
+  const perPreview =
+    chargeTypeW === "monthly" && splitN >= 2 && typeof amtW === "number" && amtW > 0
+      ? Math.round((amtW / splitN) * 100) / 100
+      : null;
+
   return (
     <div
       style={{
@@ -183,7 +195,11 @@ export function InvoiceComposerCard({
               {t("admin.payments.sectionAmounts")}
             </Typography.Text>
             <Form.Item name="useBreakdown" noStyle>
-              <Radio.Group size="small" optionType="button">
+              <Radio.Group
+                size="small"
+                optionType="button"
+                disabled={chargeTypeW === "monthly" && splitN >= 2}
+              >
                 <Radio.Button value={false}>{t("admin.payments.itemizedOff")}</Radio.Button>
                 <Radio.Button value={true}>{t("admin.payments.itemizedOn")}</Radio.Button>
               </Radio.Group>
@@ -196,7 +212,22 @@ export function InvoiceComposerCard({
               <Col xs={24} sm={14} md={12}>
                 <Form.Item
                   name="amount"
-                  label={t("admin.form.billingAmount")}
+                  label={
+                    chargeTypeW === "monthly" && splitN >= 2
+                      ? t("admin.payments.splitContractTotalLabel")
+                      : chargeTypeW === "monthly"
+                        ? t("admin.payments.monthlyRecurringAmountLabel")
+                        : t("admin.form.billingAmount")
+                  }
+                  extra={
+                    perPreview != null
+                      ? t("admin.payments.splitPreviewHelp", {
+                          perMonth: formatMoney(perPreview, currencyW),
+                          months: splitN,
+                          total: formatMoney(amtW as number, currencyW),
+                        })
+                      : undefined
+                  }
                   rules={[{ required: true, type: "number", min: 0.01, message: t("admin.form.billingAmountRequired") }]}
                   style={{ marginBottom: 0 }}
                 >
@@ -217,6 +248,24 @@ export function InvoiceComposerCard({
                   />
                 </Form.Item>
               </Col>
+              {chargeTypeW === "monthly" ? (
+                <Col xs={24} sm={10} md={8}>
+                  <Form.Item
+                    name="splitAcrossMonths"
+                    label={t("admin.payments.splitMonthsLabel")}
+                    tooltip={t("admin.payments.splitMonthsHint")}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <InputNumber
+                      min={2}
+                      max={60}
+                      precision={0}
+                      placeholder={t("admin.payments.splitMonthsPlaceholder")}
+                      style={{ width: "100%" }}
+                    />
+                  </Form.Item>
+                </Col>
+              ) : null}
             </Row>
           ) : null}
 

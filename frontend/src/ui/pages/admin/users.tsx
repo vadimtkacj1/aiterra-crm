@@ -1,2 +1,2 @@
-export { AdminUsersPage } from "../../features/admin/pages/AdminUsersPage";
+export { AdminUsersPage } from "../../features/admin/pages/users/AdminUsersPage";
 

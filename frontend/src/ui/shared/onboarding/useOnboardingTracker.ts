@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import type { AuthSession } from "../../../services/interfaces/IAuthService";
+import type { AuthSession } from "@/services/auth/IAuthService";
 import { Paths } from "../../navigation/paths";
 import { loadOnboarding, saveOnboarding, type OnboardingStored } from "./onboardingStorage";
 

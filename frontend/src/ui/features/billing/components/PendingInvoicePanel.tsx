@@ -1,7 +1,7 @@
 import { FileTextOutlined, LoadingOutlined, ReloadOutlined, SyncOutlined, WalletOutlined } from "@ant-design/icons";
 import { Button, Flex, Popover, Typography, theme } from "antd";
 import { useTranslation } from "react-i18next";
-import type { PendingPaymentAction } from "../../../../services/interfaces/IBillingService";
+import type { PendingPaymentAction } from "@/services/billing/IBillingService";
 import { appLocaleFromLanguage, billingShell, formatInvoiceMoney } from "./billingUtils";
 
 interface Props {
@@ -176,6 +176,16 @@ export function PendingInvoicePanel({ payment, onRefresh, onCheckout }: Props) {
                   {t("billing.pendingLineItemsTrigger", { count: lines.length })}
                 </Typography.Link>
               </Popover>
+            ) : payment.installmentMonths != null &&
+              payment.installmentMonths >= 2 &&
+              payment.installmentTotalAmount != null ? (
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {t("billing.installmentPlanSubtitle", {
+                  perMonth: formatInvoiceMoney(payment.amount, payment.currency, locale),
+                  total: formatInvoiceMoney(payment.installmentTotalAmount, payment.currency, locale),
+                  months: payment.installmentMonths,
+                })}
+              </Typography.Text>
             ) : (
               <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                 {t("billing.invoiceSubtitle")}

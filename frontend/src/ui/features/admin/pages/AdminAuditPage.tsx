@@ -2,7 +2,7 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { App, Button, Table, Typography } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { AdminAuditLogRow } from "../../../../services/AdminService";
+import type { AdminAuditLogRow } from "@/services/admin/AdminService";
 import { useApp } from "../../../../app/AppProviders";
 
 export function AdminAuditPage() {

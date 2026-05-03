@@ -3,9 +3,9 @@ import { App, Alert, Button, Card, Flex, Space } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-import type { CheckoutLocationState } from "./PaymentCheckoutPage";
+import type { CheckoutLocationState } from "../checkout/checkoutTypes";
 import type { MetaAccountBilling } from "../../../../domain/CampaignAnalytics";
-import type { BillingOverview, PendingPaymentAction } from "../../../../services/interfaces/IBillingService";
+import type { BillingOverview, PendingPaymentAction } from "@/services/billing/IBillingService";
 import { useApp } from "../../../../app/AppProviders";
 import { useAccountLayoutOutlet } from "../../../layouts/accountLayoutContext";
 import { PageHeader } from "../../../shared/components/PageHeader";
@@ -150,7 +150,12 @@ export function BillingPage() {
         <MetaBillingCard metaBilling={metaBilling} metaLoading={metaLoading} appLocale={appLocale} />
 
         {!isAdmin && (
-          <PaymentsSection overview={overview} loading={loading} appLocale={appLocale} />
+          <PaymentsSection
+            overview={overview}
+            loading={loading}
+            appLocale={appLocale}
+            accountId={accountId ?? "0"}
+          />
         )}
       </Flex>
     </UserContentLayout>

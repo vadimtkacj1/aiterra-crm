@@ -2,7 +2,7 @@ import { HistoryOutlined, ReloadOutlined } from "@ant-design/icons";
 import { App, Button, Card, Table } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { AdminAccountRow, MetaTopupRecord } from "../../../../services/AdminService";
+import type { AdminAccountRow, MetaTopupRecord } from "@/services/admin/AdminService";
 import { useApp } from "../../../../app/AppProviders";
 
 export function MetaPaymentPanel() {

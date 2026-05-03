@@ -12,18 +12,38 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import { Line, Pie } from "@ant-design/plots";
-import dayjs from "dayjs";
 import { App, Button, Card, Col, Row, Skeleton, Space, Typography } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import type { AdminPaymentStats, AdminStats } from "../../../../services/AdminService";
-import { useApp } from "../../../../app/AppProviders";
-import { Paths } from "../../../navigation/paths";
-import { downloadBlob } from "../../../shared/utils/downloadBlob";
-import { usePlotPalette } from "../../analytics/chart/analyticsPlotTheme";
+import { useApp } from "@/app/AppProviders";
+import type { AdminPaymentStats, AdminStats } from "@/services/admin/AdminService";
+import { usePlotPalette } from "@/ui/features/analytics/chart/analyticsPlotTheme";
+import {
+  buildCurrencyPieData,
+  buildRevenueLineChartData,
+  formatRevenueSummary,
+  getAdminStatsPeriodRange,
+  type AdminStatsPeriod,
+} from "@/ui/features/admin/utils/adminStatsData";
+import { Paths } from "@/ui/navigation/paths";
+import { downloadBlob } from "@/ui/shared/utils/downloadBlob";
 
-type Period = "week" | "month" | "year";
+type Period = AdminStatsPeriod;
+
+/** @ant-design/plots Line tooltip datum (seriesField + yField). */
+type LineSeriesTooltipDatum = { series?: string; value?: number };
+
+/** @ant-design/plots Pie tooltip datum (colorField + angleField). */
+type PieSliceTooltipDatum = { type?: string; value?: number };
+
+function lineSeriesTooltipFormatter(d: LineSeriesTooltipDatum): { name: string; value: number } {
+  return { name: d.series ?? "", value: d.value ?? 0 };
+}
+
+function pieSliceTooltipFormatter(d: PieSliceTooltipDatum): { name: string; value: number } {
+  return { name: d.type ?? "", value: d.value ?? 0 };
+}
 
 export function AdminStatsPanel() {
   const { t } = useTranslation();
@@ -37,28 +57,7 @@ export function AdminStatsPanel() {
   const [exporting, setExporting] = useState<"pdf" | "users" | "billing" | null>(null);
   const [period, setPeriod] = useState<Period>("week");
 
-  const periodRange = useMemo((): { startDate: string; endDate: string; groupBy: "day" | "month" } => {
-    const today = dayjs();
-    if (period === "week") {
-      return {
-        startDate: today.startOf("week").format("YYYY-MM-DD"),
-        endDate: today.format("YYYY-MM-DD"),
-        groupBy: "day",
-      };
-    }
-    if (period === "month") {
-      return {
-        startDate: today.startOf("month").format("YYYY-MM-DD"),
-        endDate: today.format("YYYY-MM-DD"),
-        groupBy: "day",
-      };
-    }
-    return {
-      startDate: today.startOf("year").format("YYYY-MM-DD"),
-      endDate: today.format("YYYY-MM-DD"),
-      groupBy: "month",
-    };
-  }, [period]);
+  const periodRange = useMemo(() => getAdminStatsPeriodRange(period), [period]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,14 +83,7 @@ export function AdminStatsPanel() {
     void load();
   }, [load]);
 
-  const revenueText = useMemo(() => {
-    if (!paymentStats?.currencies?.length) return "0.00";
-    const parts = paymentStats.currencies
-      .filter((x) => x.paidAmount > 0)
-      .slice(0, 3)
-      .map((x) => `${x.paidAmount.toFixed(2)} ${x.currency}`);
-    return parts.length ? parts.join(" + ") : "0.00";
-  }, [paymentStats]);
+  const revenueText = useMemo(() => formatRevenueSummary(paymentStats?.currencies), [paymentStats]);
 
   const periodButtons: { key: Period; label: string }[] = [
     { key: "week", label: t("admin.stats.thisWeek") },
@@ -114,21 +106,12 @@ export function AdminStatsPanel() {
   }, [stats, paymentStats, revenueText, t]);
 
   const revenueLineData = useMemo(() => {
-    if (!paymentStats?.buckets?.length) return [];
     const paidLabel = t("admin.stats.paid");
     const unpaidLabel = t("admin.stats.unpaid");
-    return paymentStats.buckets.slice(0, 24).flatMap((b) => [
-      { label: b.label, series: paidLabel, value: b.paidCount },
-      { label: b.label, series: unpaidLabel, value: b.unpaidCount },
-    ]);
+    return buildRevenueLineChartData(paymentStats, paidLabel, unpaidLabel);
   }, [paymentStats, t]);
 
-  const pieData = useMemo(() => {
-    if (!paymentStats?.currencies?.length) return [];
-    return paymentStats.currencies
-      .filter((c) => c.paidAmount > 0)
-      .map((c) => ({ type: c.currency, value: parseFloat(c.paidAmount.toFixed(2)) }));
-  }, [paymentStats]);
+  const pieData = useMemo(() => buildCurrencyPieData(paymentStats), [paymentStats]);
 
   const onDownloadPdf = async () => {
     setExporting("pdf");
@@ -294,9 +277,7 @@ export function AdminStatsPanel() {
                   },
                 }}
                 axis={{ x: { title: false }, y: { title: false } }}
-                tooltip={{
-                  formatter: (d: any) => ({ name: d?.series ?? "", value: d?.value ?? 0 }),
-                }}
+                tooltip={{ formatter: lineSeriesTooltipFormatter }}
               />
             ) : (
               <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -334,9 +315,7 @@ export function AdminStatsPanel() {
                       },
                     }}
                     axis={{ x: { title: false }, y: { title: false } }}
-                    tooltip={{
-                      formatter: (d: any) => ({ name: d?.series ?? "", value: d?.value ?? 0 }),
-                    }}
+                    tooltip={{ formatter: lineSeriesTooltipFormatter }}
                   />
                 ) : (
                   <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -370,9 +349,7 @@ export function AdminStatsPanel() {
                     legend={{ position: "right" }}
                     label={{ type: "inner", offset: "-30%", content: "{percentage}" }}
                     scale={{ color: { range: palette } }}
-                    tooltip={{
-                      formatter: (d: any) => ({ name: d?.type ?? "", value: d?.value ?? 0 }),
-                    }}
+                    tooltip={{ formatter: pieSliceTooltipFormatter }}
                   />
                 ) : (
                   <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>

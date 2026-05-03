@@ -1,9 +1,18 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Env } from "../config/Env";
 import type { User } from "../domain/User";
-import type { AuthSession, CreateUserInput, LoginCredentials, UpdateUserInput } from "../services/interfaces/IAuthService";
-import type { AppServices } from "../services/AppServices";
-import { createAppServices } from "../services/createAppServices";
+import type { AuthSession, CreateUserInput, LoginCredentials, UpdateUserInput } from "@/services/auth/IAuthService";
+import type { AppServices } from "@/services/app/AppServices";
+import { createAppServices } from "@/services/app/createAppServices";
 
 interface AppContextValue {
   services: AppServices;
@@ -11,12 +20,9 @@ interface AppContextValue {
   isAdmin: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  /** Cached user list — fetched once when an admin session is active. */
   users: User[];
   usersLoading: boolean;
-  /** Force a refresh of the cached user list (e.g. after create/update). */
   refreshUsers: () => Promise<void>;
-  /** @deprecated Use `users` + `refreshUsers` instead. */
   listUsers: () => Promise<User[]>;
   createUser: (input: CreateUserInput) => Promise<User>;
   updateUser: (userId: string, input: UpdateUserInput) => Promise<User>;
@@ -54,7 +60,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
       const rows = await services.auth.listUsers();
       setUsers(rows);
     } catch {
-      // caller can show its own error; don't swallow silently in production
     } finally {
       setUsersLoading(false);
       fetchingRef.current = false;
@@ -63,7 +68,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   const isAdmin = session?.user.role === "admin";
 
-  // Load user list once when an admin logs in.
   useEffect(() => {
     if (isAdmin) {
       void refreshUsers();

@@ -1,6 +1,7 @@
 import {
   AppstoreOutlined,
   BarChartOutlined,
+  ContainerOutlined,
   CreditCardOutlined,
   FacebookOutlined,
   FileTextOutlined,
@@ -60,6 +61,11 @@ export function MainLayout() {
       }
       if (!isAdmin) {
         items.push({ key: accountPath(layoutAccountId, "billing"), icon: <WalletOutlined />, label: t("layout.menuBilling") });
+        items.push({
+          key: accountPath(layoutAccountId, "contracts"),
+          icon: <FileTextOutlined />,
+          label: t("layout.menuContracts"),
+        });
       }
     }
     if (isAdmin) {
@@ -68,6 +74,7 @@ export function MainLayout() {
         { key: Paths.adminAudit, icon: <SafetyCertificateOutlined />, label: t("admin.audit.menuTitle") },
         { key: Paths.adminUsers, icon: <TeamOutlined />, label: t("admin.userListTitle") },
         { key: Paths.adminPayments, icon: <FileTextOutlined />, label: t("admin.payments.title") },
+        { key: Paths.adminContracts, icon: <ContainerOutlined />, label: t("admin.contracts.title") },
         { key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t("admin.topup.title") },
       );
     }

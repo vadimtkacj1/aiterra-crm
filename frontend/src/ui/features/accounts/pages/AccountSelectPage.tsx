@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../../../../app/AppProviders";
-import type { Account } from "../../../../services/interfaces/IAccountService";
+import type { Account } from "@/services/accounts/IAccountService";
 import { accountPath, defaultAccountSection, Paths } from "../../../navigation/paths";
 import { UserContentLayout } from "../../../shared/components/UserContentLayout";
 import { AccountList } from "../components/AccountList";

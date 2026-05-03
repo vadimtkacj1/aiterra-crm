@@ -1,107 +1,57 @@
-import { App, Form, theme } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { App, theme } from "antd";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type {
-  AccountBillingInstruction,
-  BillingHistoryWithAccountRow,
-  InvoiceTemplateCreateInput,
-  InvoiceTemplateRow,
-  UserBusinessMeta,
-} from "../../../../../services/AdminService";
-import { useApp } from "../../../../../app/AppProviders";
-import { downloadInvoicePdf } from "../../../../shared/utils/invoicePdf";
+import { useApp } from "@/app/AppProviders";
+import type { BillingHistoryWithAccountRow, InvoiceTemplateCreateInput } from "@/services/admin/AdminService";
+import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
 import {
   buildInvoiceTemplatePayload,
   parseBillingInstructionFromSubmit,
-  type FormMessage,
 } from "./adminPaymentsFormModel";
-import type { AdminPaymentsFormValues, LineFormRow } from "./types";
-
-const SHELL_RADIUS = 16;
-const SHELL_SHADOW = "0 1px 2px rgba(15,23,42,0.04), 0 10px 36px rgba(15,23,42,0.07)";
-
-function showFormMessage(
-  message: ReturnType<typeof App.useApp>["message"],
-  t: (k: string) => string,
-  m: FormMessage,
-) {
-  if (m.level === "warning") message.warning(t(m.key));
-  else message.error(t(m.key));
-}
+import {
+  ADMIN_PAYMENTS_SHELL_RADIUS,
+  ADMIN_PAYMENTS_SHELL_SHADOW,
+  showAdminPaymentsFormMessage,
+} from "./adminPaymentsPageUi";
+import type { AdminPaymentsLibraryDrawerModel } from "./adminPaymentsLibraryTypes";
+import type { AdminPaymentsFormValues } from "./types";
+import { useAdminPaymentsComposerSession } from "./useAdminPaymentsComposerSession";
+import { useAdminPaymentsRemoteLists } from "./useAdminPaymentsRemoteLists";
 
 export function useAdminPaymentsPage() {
   const { t } = useTranslation();
   const { token } = theme.useToken();
   const { message } = App.useApp();
   const { services, users, usersLoading: loadingUsers } = useApp();
-  const [allBillingRows, setAllBillingRows] = useState<BillingHistoryWithAccountRow[]>([]);
-  const [allBillingLoading, setAllBillingLoading] = useState(false);
+
+  const lists = useAdminPaymentsRemoteLists(services.admin);
+  const session = useAdminPaymentsComposerSession(t, services.admin, message, users);
+
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [invoiceTemplates, setInvoiceTemplates] = useState<InvoiceTemplateRow[]>([]);
-  const [templatesLoading, setTemplatesLoading] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [saveTemplateTitle, setSaveTemplateTitle] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [paymentLinkModal, setPaymentLinkModal] = useState<string | null>(null);
-  const [form] = Form.useForm<AdminPaymentsFormValues>();
-
-  const [userMeta, setUserMeta] = useState<UserBusinessMeta | null>(null);
-  const [metaLoading, setMetaLoading] = useState(false);
-  const [clientLiveBilling, setClientLiveBilling] = useState<AccountBillingInstruction | null>(null);
-
-  const userIdW = Form.useWatch("userId", form);
-  const lineItemsW = Form.useWatch("lineItems", form);
-  const useBreakdownW = Form.useWatch("useBreakdown", form);
-  const chargeTypeW = Form.useWatch("chargeType", form);
-  const currencyW = Form.useWatch("currency", form) ?? "USD";
-
-  const loadAllBillingHistory = useCallback(async () => {
-    setAllBillingLoading(true);
-    try {
-      const rows = await services.admin.listAllBillingHistory();
-      setAllBillingRows(rows);
-    } catch {
-      setAllBillingRows([]);
-    } finally {
-      setAllBillingLoading(false);
-    }
-  }, [services.admin]);
-
-  const loadInvoiceTemplates = useCallback(async () => {
-    setTemplatesLoading(true);
-    try {
-      const rows = await services.admin.listInvoiceTemplates();
-      setInvoiceTemplates(rows);
-    } catch {
-      setInvoiceTemplates([]);
-    } finally {
-      setTemplatesLoading(false);
-    }
-  }, [services.admin]);
-
-  useEffect(() => {
-    void loadInvoiceTemplates();
-  }, [loadInvoiceTemplates]);
 
   const buildTemplatePayloadFromForm = (): InvoiceTemplateCreateInput | null => {
-    const values = form.getFieldsValue();
+    const values = session.form.getFieldsValue();
     const r = buildInvoiceTemplatePayload(values);
     if (!r.ok) {
-      showFormMessage(message, t, r.message);
+      showAdminPaymentsFormMessage(message, t, r.message);
       return null;
     }
     return r.data;
   };
 
   const applyTemplateToSelectedClient = async (templateId: number) => {
-    const accountId = userMeta?.accountId;
+    const accountId = session.userMeta?.accountId;
     if (accountId == null) {
       message.error(t("admin.payments.noBusiness"));
       return;
     }
-    const picked = users.find((u) => String(u.id) === userIdW);
+    const picked = users.find((u) => String(u.id) === session.userIdW);
     if (picked?.role === "admin") {
       message.error(t("admin.payments.cannotBillAdmin"));
       return;
@@ -109,127 +59,15 @@ export function useAdminPaymentsPage() {
     try {
       await services.admin.applyInvoiceTemplate(templateId, accountId);
       message.success(t("admin.payments.templateApplied"));
-      const bi = await services.admin.getAccountBillingInstruction(accountId);
-      setClientLiveBilling(bi);
-      const hasLines = Boolean(bi.lineItems && bi.lineItems.length > 0);
-      form.setFieldsValue({
-        chargeType: bi.chargeType,
-        amount: bi.amount ?? undefined,
-        currency: bi.currency || "USD",
-        description: bi.description ?? undefined,
-        useBreakdown: hasLines || bi.chargeType === "none" ? hasLines : true,
-        lineItems: hasLines
-          ? bi.lineItems!.map((li) => ({
-              code: li.code,
-              label: li.label,
-              amount: li.amount,
-            }))
-          : [],
-      });
-      await loadAllBillingHistory();
+      await session.refreshBillingFormForAccount(accountId);
+      await lists.loadAllBillingHistory();
     } catch (e) {
       message.error(e instanceof Error ? e.message : t("errors.generic"));
     }
   };
 
-  const loadTemplateIntoForm = (tpl: InvoiceTemplateRow) => {
-    const hasLines = Boolean(tpl.lineItems && tpl.lineItems.length > 0);
-    form.setFieldsValue({
-      chargeType: tpl.chargeType,
-      amount: hasLines ? undefined : tpl.amount,
-      currency: tpl.currency || "USD",
-      description: tpl.description ?? undefined,
-      useBreakdown: hasLines,
-      lineItems: hasLines
-        ? tpl.lineItems!.map((li) => ({
-            code: li.code ?? "",
-            label: li.label,
-            amount: li.amount,
-          }))
-        : [],
-    });
-    message.success(t("admin.payments.templateLoaded"));
-  };
-
-  const linesRunningTotal = useMemo(() => {
-    if (!useBreakdownW || !Array.isArray(lineItemsW)) return null;
-    const rows = lineItemsW.filter(
-      (r: LineFormRow | undefined) =>
-        r && String(r.label ?? "").trim() && r.amount != null && Number(r.amount) > 0,
-    );
-    if (!rows.length) return 0;
-    return Math.round(rows.reduce((s, r) => s + Number(r!.amount), 0) * 100) / 100;
-  }, [lineItemsW, useBreakdownW]);
-
-  const onUserChange = async (userId: string) => {
-    setUserMeta(null);
-    setClientLiveBilling(null);
-    if (!userId) return;
-    setMetaLoading(true);
-    try {
-      const meta = await services.admin.getUserBusinessMeta(userId);
-      setUserMeta(meta);
-      if (meta.accountId != null) {
-        try {
-          const bi = await services.admin.getAccountBillingInstruction(meta.accountId);
-          setClientLiveBilling(bi);
-        } catch {
-          setClientLiveBilling(null);
-        }
-      }
-    } catch {
-      message.error(t("admin.editMetaLoadError"));
-    } finally {
-      setMetaLoading(false);
-    }
-  };
-
-  const importLiveBillingIntoForm = () => {
-    const bi = clientLiveBilling;
-    if (!bi) return;
-    const hasLines = Boolean(bi.lineItems && bi.lineItems.length > 0);
-    form.setFieldsValue({
-      chargeType: bi.chargeType,
-      amount: bi.amount ?? undefined,
-      currency: bi.currency || "USD",
-      description: bi.description ?? undefined,
-      useBreakdown: hasLines || bi.chargeType === "none" ? hasLines : true,
-      lineItems: hasLines
-        ? bi.lineItems!.map((li) => ({
-            code: li.code,
-            label: li.label,
-            amount: li.amount,
-          }))
-        : [],
-    });
-    message.success(t("admin.payments.importClientBillingOk"));
-  };
-
-  const presetBundle = () => {
-    form.setFieldsValue({
-      useBreakdown: true,
-      lineItems: [
-        { code: "server", label: t("admin.payments.lineServer"), amount: undefined },
-        { code: "domain", label: t("admin.payments.lineDomain"), amount: undefined },
-        { code: "tokens", label: t("admin.payments.lineTokens"), amount: undefined },
-      ],
-    });
-  };
-
-  const presetServerOnly = () => {
-    form.setFieldsValue({
-      useBreakdown: true,
-      lineItems: [{ code: "server", label: t("admin.payments.lineServer"), amount: undefined }],
-    });
-  };
-
-  const selectedUser = users.find((u) => String(u.id) === userIdW);
-  const selectedIsAdmin = selectedUser?.role === "admin";
-  const billBlockedForAdmin = Boolean(selectedIsAdmin && chargeTypeW && chargeTypeW !== "none");
-  const canSaveTemplate = chargeTypeW === "one_time" || chargeTypeW === "monthly";
-
   const openSaveTemplateModal = () => {
-    const v = form.getFieldsValue();
+    const v = session.form.getFieldsValue();
     if (v.chargeType !== "one_time" && v.chargeType !== "monthly") {
       message.warning(t("admin.payments.templateNeedCharge"));
       return;
@@ -237,29 +75,34 @@ export function useAdminPaymentsPage() {
     setSaveTemplateOpen(true);
   };
 
-  const downloadRowPdf = (row: BillingHistoryWithAccountRow) => {
-    const amt = row.amount ?? 0;
-    downloadInvoicePdf({
-      invoiceId: `admin_hist_${row.accountId}_${row.id}`,
-      amount: amt,
-      currency: row.currency,
-      status: row.paymentStatus,
-      description: row.description,
-      chargeType: row.chargeType,
-      accountId: row.accountId,
-      customerName: row.ownerEmail || row.accountName || undefined,
-      lineItems: row.lineItems?.map((li) => ({ code: li.code ?? "", label: li.label, amount: li.amount })),
-      createdAt: row.createdAt,
-      note: "Downloaded from admin invoices list.",
-    });
-  };
+  const downloadRowPdf = useCallback(
+    (row: BillingHistoryWithAccountRow) => {
+      const amt = row.amount ?? 0;
+      downloadInvoicePdf({
+        invoiceId: `admin_hist_${row.accountId}_${row.id}`,
+        amount: amt,
+        currency: row.currency,
+        status: row.paymentStatus,
+        description: row.description,
+        chargeType: row.chargeType,
+        accountId: row.accountId,
+        customerName: row.ownerEmail || row.accountName || undefined,
+        lineItems: row.lineItems?.map((li) => ({ code: li.code ?? "", label: li.label, amount: li.amount })),
+        createdAt: row.createdAt,
+        installmentMonths: row.installmentMonths ?? undefined,
+        installmentTotalAmount: row.installmentTotalAmount ?? undefined,
+        note: "Downloaded from admin invoices list.",
+      });
+    },
+    [],
+  );
 
   const onFormFinish = async (values: AdminPaymentsFormValues) => {
     if (!values.userId || String(values.userId).trim() === "") {
       message.error(t("admin.payments.selectUserRequired"));
       return;
     }
-    const accountId = userMeta?.accountId;
+    const accountId = session.userMeta?.accountId;
     if (accountId == null) {
       message.error(t("admin.payments.noBusiness"));
       return;
@@ -273,7 +116,7 @@ export function useAdminPaymentsPage() {
 
     const parsed = parseBillingInstructionFromSubmit(values);
     if (!parsed.ok) {
-      showFormMessage(message, t, parsed.message);
+      showAdminPaymentsFormMessage(message, t, parsed.message);
       return;
     }
 
@@ -284,6 +127,7 @@ export function useAdminPaymentsPage() {
         currency: values.currency ?? "USD",
         description: values.description?.trim() || null,
         lineItems: parsed.lineItems,
+        splitAcrossMonths: parsed.splitAcrossMonths ?? null,
       });
       if (chargeType !== "none") {
         const shareableUrl = result.paymentUrl?.startsWith("http")
@@ -293,28 +137,8 @@ export function useAdminPaymentsPage() {
       } else {
         message.success(t("admin.payments.createdSuccess"));
       }
-      try {
-        const bi = await services.admin.getAccountBillingInstruction(accountId);
-        setClientLiveBilling(bi);
-        const hasLines = Boolean(bi.lineItems && bi.lineItems.length > 0);
-        form.setFieldsValue({
-          chargeType: bi.chargeType,
-          amount: bi.amount ?? undefined,
-          currency: bi.currency || "USD",
-          description: bi.description ?? undefined,
-          useBreakdown: hasLines || bi.chargeType === "none" ? hasLines : true,
-          lineItems: hasLines
-            ? bi.lineItems!.map((li) => ({
-                code: li.code,
-                label: li.label,
-                amount: li.amount,
-              }))
-            : [],
-        });
-      } catch {
-        /* ignore */
-      }
-      await loadAllBillingHistory();
+      await session.refreshBillingFormForAccount(accountId);
+      await lists.loadAllBillingHistory();
     } catch (e) {
       message.error(e instanceof Error ? e.message : t("errors.generic"));
     }
@@ -334,13 +158,40 @@ export function useAdminPaymentsPage() {
       message.success(t("admin.payments.templateSaved"));
       setSaveTemplateOpen(false);
       setSaveTemplateTitle("");
-      await loadInvoiceTemplates();
+      await lists.loadInvoiceTemplates();
     } catch (e) {
       message.error(e instanceof Error ? e.message : t("errors.generic"));
       return Promise.reject(e);
     } finally {
       setSavingTemplate(false);
     }
+  };
+
+  const libraryDrawer: AdminPaymentsLibraryDrawerModel = {
+    t,
+    open: libraryOpen,
+    onClose: () => setLibraryOpen(false),
+    afterOpenChange: (open) => {
+      if (open) void lists.loadAllBillingHistory();
+    },
+    admin: services.admin,
+    message,
+    userMeta: session.userMeta,
+    allBillingRows: lists.allBillingRows,
+    allBillingLoading: lists.allBillingLoading,
+    revokingId,
+    deletingId,
+    setRevokingId,
+    setDeletingId,
+    refreshBillingFormForAccount: session.refreshBillingFormForAccount,
+    loadAllBillingHistory: lists.loadAllBillingHistory,
+    downloadRowPdf,
+    invoiceTemplates: lists.invoiceTemplates,
+    templatesLoading: lists.templatesLoading,
+    billBlockedForAdmin: session.billBlockedForAdmin,
+    loadTemplateIntoForm: session.loadTemplateIntoForm,
+    applyTemplateToSelectedClient,
+    loadInvoiceTemplates: lists.loadInvoiceTemplates,
   };
 
   return {
@@ -350,15 +201,15 @@ export function useAdminPaymentsPage() {
     services,
     users,
     loadingUsers,
-    form,
-    allBillingRows,
-    allBillingLoading,
+    form: session.form,
+    allBillingRows: lists.allBillingRows,
+    allBillingLoading: lists.allBillingLoading,
     revokingId,
     deletingId,
     setRevokingId,
     setDeletingId,
-    invoiceTemplates,
-    templatesLoading,
+    invoiceTemplates: lists.invoiceTemplates,
+    templatesLoading: lists.templatesLoading,
     saveTemplateOpen,
     setSaveTemplateOpen,
     saveTemplateTitle,
@@ -366,34 +217,35 @@ export function useAdminPaymentsPage() {
     savingTemplate,
     libraryOpen,
     setLibraryOpen,
-    userMeta,
-    metaLoading,
-    clientLiveBilling,
-    setClientLiveBilling,
-    userIdW,
-    chargeTypeW,
-    useBreakdownW,
-    currencyW,
-    loadAllBillingHistory,
-    loadInvoiceTemplates,
+    userMeta: session.userMeta,
+    metaLoading: session.metaLoading,
+    clientLiveBilling: session.clientLiveBilling,
+    setClientLiveBilling: session.setClientLiveBilling,
+    userIdW: session.userIdW,
+    chargeTypeW: session.chargeTypeW,
+    useBreakdownW: session.useBreakdownW,
+    currencyW: session.currencyW,
+    loadAllBillingHistory: lists.loadAllBillingHistory,
+    loadInvoiceTemplates: lists.loadInvoiceTemplates,
     applyTemplateToSelectedClient,
-    loadTemplateIntoForm,
-    linesRunningTotal,
-    onUserChange,
-    importLiveBillingIntoForm,
-    presetBundle,
-    presetServerOnly,
-    selectedUser,
-    selectedIsAdmin,
-    billBlockedForAdmin,
-    canSaveTemplate,
+    loadTemplateIntoForm: session.loadTemplateIntoForm,
+    linesRunningTotal: session.linesRunningTotal,
+    onUserChange: session.onUserChange,
+    importLiveBillingIntoForm: session.importLiveBillingIntoForm,
+    presetBundle: session.presetBundle,
+    presetServerOnly: session.presetServerOnly,
+    selectedUser: session.selectedUser,
+    selectedIsAdmin: session.selectedIsAdmin,
+    billBlockedForAdmin: session.billBlockedForAdmin,
+    canSaveTemplate: session.canSaveTemplate,
     openSaveTemplateModal,
     downloadRowPdf,
     onFormFinish,
     onSaveTemplateOk,
-    shellRadius: SHELL_RADIUS,
-    shellShadow: SHELL_SHADOW,
+    shellRadius: ADMIN_PAYMENTS_SHELL_RADIUS,
+    shellShadow: ADMIN_PAYMENTS_SHELL_SHADOW,
     paymentLinkModal,
     setPaymentLinkModal,
+    libraryDrawer,
   };
 }

@@ -15,12 +15,17 @@ Public routes (no auth — token-gated):
 
 from __future__ import annotations
 
+import base64
+import logging
+import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user, require_account_member, require_admin
+from app.api.routes.admin import common
+from app.core.settings import settings
 from app.db.session import get_db
 from app.models.contracts import Contract, ContractPaymentStage
 from app.models.core import User
@@ -32,8 +37,10 @@ from app.schemas.contract import (
     ContractSignRequest,
     ContractStageOut,
 )
+from app.services.email.smtp_mail import send_signed_contract_pdf
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ─── helpers ─────────────────────────────────────────────────────────────────
@@ -75,6 +82,8 @@ def _contract_out(c: Contract) -> ContractOut:
         signToken=c.sign_token,
         signedAt=c.signed_at,
         signerName=c.signer_name,
+        signerPosition=c.signer_position,
+        signedCopyEmail=c.signed_copy_email,
         signaturePngBase64=c.signature_png_base64,
         pdfBase64=c.pdf_base64,
         createdAt=c.created_at,
@@ -95,6 +104,11 @@ def _contract_public_out(c: Contract) -> ContractPublicOut:
         pdfBase64=c.pdf_base64,
         stages=[_stage_out(s) for s in c.stages],
     )
+
+
+def _attachment_filename(contract_id: int, title: str) -> str:
+    slug = re.sub(r"[^\w\-]+", "_", title.strip())[:50].strip("_") or "contract"
+    return f"contract_{contract_id}_{slug}.pdf"
 
 
 def _contract_member_out(c: Contract) -> ContractMemberOut:
@@ -222,6 +236,17 @@ def void_contract(
     return _contract_out(c)
 
 
+@router.delete("/admin/contracts/{contract_id}", status_code=204)
+def delete_contract(
+    contract_id: int,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+) -> None:
+    c = _get_or_404(db, contract_id)
+    db.delete(c)
+    db.commit()
+
+
 # ─── public routes ────────────────────────────────────────────────────────────
 
 
@@ -236,10 +261,47 @@ def get_contract_public(
     return _contract_public_out(c)
 
 
+def _queue_signed_contract_email(
+    to_email: str | None,
+    contract_id: int,
+    title: str,
+    signer_name: str,
+    pdf_bytes: bytes | None,
+    locale: str | None = None,
+) -> None:
+    if not to_email or not settings.smtp_host:
+        return
+
+    lang = (locale or "en").lower()[:2]
+    if lang == "he":
+        subject = f"חוזה נחתם: {title}"
+        body_text = (
+            f"החוזה \"{title}\" נחתם על ידי {signer_name}.\n\n"
+            + ("קובץ ה-PDF של החוזה מצורף.\n\n" if pdf_bytes else "")
+            + "Aiterra CRM"
+        )
+    else:
+        subject = f"Signed contract: {title}"
+        body_text = (
+            f"The contract \"{title}\" has been signed by {signer_name}.\n\n"
+            + ("The contract PDF is attached.\n\n" if pdf_bytes else "")
+            + "Aiterra CRM"
+        )
+
+    send_signed_contract_pdf(
+        to_email,
+        subject,
+        body_text,
+        pdf_bytes,
+        _attachment_filename(contract_id, title),
+    )
+
+
 @router.post("/contracts/{token}/sign", response_model=ContractPublicOut)
 def sign_contract(
     token: str,
     body: ContractSignRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> ContractPublicOut:
     c = _get_by_token_or_404(db, token)
@@ -250,11 +312,42 @@ def sign_contract(
         raise HTTPException(status_code=409, detail="already_signed")
     # draft and pending_signature — both allow signing (Send is optional workflow step)
 
+    signed_at = datetime.now(timezone.utc)
+    prior_pdf_b64 = c.pdf_base64
+
+    owner_email, _ = common.account_owner_contact(db, c.account_id)
+    recipient_raw = str(body.recipientEmail).strip() if body.recipientEmail else None
+    delivery_email = recipient_raw or owner_email
+
+    original_pdf_bytes: bytes | None = None
+    if prior_pdf_b64 and prior_pdf_b64.strip():
+        try:
+            original_pdf_bytes = base64.b64decode(prior_pdf_b64.strip())
+        except Exception:
+            pass
+
     c.signature_png_base64 = body.signaturePngBase64
     c.signer_name = body.signerName.strip()
-    c.signed_at = datetime.now(timezone.utc)
+    c.signer_position = body.signerPosition or None
+    c.signed_copy_email = delivery_email
+    c.signed_at = signed_at
     c.status = "signed"
+    # pdf_base64 is left unchanged — original PDF is kept as-is
 
     db.commit()
     db.refresh(c)
+
+    if delivery_email and settings.smtp_host:
+        background_tasks.add_task(
+            _queue_signed_contract_email,
+            delivery_email,
+            c.id,
+            c.title,
+            c.signer_name or "",
+            original_pdf_bytes,
+            body.locale,
+        )
+    elif delivery_email and not settings.smtp_host:
+        logger.info("Signed contract %s; SMTP not configured, skip email to %s", c.id, delivery_email)
+
     return _contract_public_out(c)

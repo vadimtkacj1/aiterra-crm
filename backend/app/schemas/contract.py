@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import AliasChoices, BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator
 
 
 class ContractStageIn(BaseModel):
@@ -61,6 +61,8 @@ class ContractOut(BaseModel):
     signToken: str
     signedAt: datetime | None
     signerName: str | None
+    signerPosition: str | None = None
+    signedCopyEmail: str | None = None
     signaturePngBase64: str | None
     pdfBase64: str | None
     createdAt: datetime
@@ -98,7 +100,14 @@ class ContractMemberOut(BaseModel):
 
 class ContractSignRequest(BaseModel):
     signerName: str
+    signerPosition: str = Field(
+        default="", validation_alias=AliasChoices("signerPosition", "signer_position")
+    )
+    recipientEmail: EmailStr | None = Field(
+        default=None, validation_alias=AliasChoices("recipientEmail", "recipient_email")
+    )
     signaturePngBase64: str
+    locale: str | None = Field(default=None)
 
     @field_validator("signerName")
     @classmethod
@@ -106,6 +115,13 @@ class ContractSignRequest(BaseModel):
         if not v.strip():
             raise ValueError("signerName must not be empty")
         return v
+
+    @field_validator("signerPosition", mode="before")
+    @classmethod
+    def position_str(cls, v: object) -> str:
+        if v is None:
+            return ""
+        return str(v).strip()
 
     @field_validator("signaturePngBase64")
     @classmethod

@@ -95,6 +95,8 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("invoice_templates", "installment_months", "INTEGER")
         _ensure_column("contracts", "pdf_base64", "TEXT")
         _ensure_column("contracts", "signature_png_base64", "TEXT")
+        _ensure_column("contracts", "signer_position", "VARCHAR(255)")
+        _ensure_column("contracts", "signed_copy_email", "VARCHAR(255)")
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

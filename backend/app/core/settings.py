@@ -1,3 +1,4 @@
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -51,6 +52,62 @@ class Settings(BaseSettings):
     zcredit_customer_app_url: str | None = None  # ZCREDIT_CUSTOMER_APP_URL
     zcredit_checkout_local: str = "En"  # He | En | Ru
     zcredit_webhook_secret: str | None = None    # optional shared secret (see webhook route)
+
+    # Optional SMTP — signed contract PDF emailed after /contracts/{token}/sign
+    # Private Email (Namecheap): mail.privateemail.com — either port 587 + TLS, or 465 + SSL (not both).
+    # Env: SMTP_* or EMAIL_* — username must be the full mailbox email; quote password in .env if needed.
+    smtp_host: str | None = Field(default=None, validation_alias=AliasChoices("SMTP_HOST", "EMAIL_HOST"))
+    smtp_port: int = Field(default=587, validation_alias=AliasChoices("SMTP_PORT", "EMAIL_PORT"))
+    smtp_user: str | None = Field(default=None, validation_alias=AliasChoices("SMTP_USER", "EMAIL_USER"))
+    smtp_password: str | None = Field(
+        default=None, validation_alias=AliasChoices("SMTP_PASSWORD", "EMAIL_PASSWORD")
+    )
+    smtp_from: str | None = Field(default=None, validation_alias=AliasChoices("SMTP_FROM", "EMAIL_FROM"))
+    smtp_use_tls: bool = Field(default=True, validation_alias=AliasChoices("SMTP_USE_TLS", "EMAIL_USE_TLS"))
+    smtp_use_ssl: bool = Field(default=False, validation_alias=AliasChoices("SMTP_USE_SSL", "EMAIL_USE_SSL"))
+    # EHLO hostname: some SMTP servers reject default Windows hostnames and return 535. Set to your mail domain.
+    smtp_ehlo_hostname: str | None = Field(
+        default=None, validation_alias=AliasChoices("SMTP_EHLO_HOSTNAME", "EMAIL_EHLO_HOSTNAME")
+    )
+
+    @field_validator("smtp_user", "smtp_from", mode="before")
+    @classmethod
+    def _strip_optional_emailish(cls, v: object) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s else None
+
+    @field_validator("smtp_password", mode="before")
+    @classmethod
+    def _strip_password(cls, v: object) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s else None
+
+    @field_validator("smtp_ehlo_hostname", mode="before")
+    @classmethod
+    def _strip_ehlo(cls, v: object) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s else None
+
+    @property
+    def smtp_local_hostname(self) -> str | None:
+        """FQDN sent with EHLO/HELO. Defaults to mailbox domain from EMAIL_USER."""
+        if self.smtp_ehlo_hostname:
+            return self.smtp_ehlo_hostname
+        u = self.smtp_user or ""
+        if "@" in u:
+            return u.split("@", 1)[1]
+        return None
+
+    @property
+    def smtp_from_effective(self) -> str | None:
+        """Envelope/header From — explicit smtp_from or login user."""
+        return self.smtp_from or self.smtp_user
 
 
 settings = Settings()

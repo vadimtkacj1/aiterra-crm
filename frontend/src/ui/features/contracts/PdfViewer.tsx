@@ -1,84 +1,69 @@
 import * as pdfjs from "pdfjs-dist";
-import type { PDFDocumentProxy } from "pdfjs-dist";
-import { useEffect, useRef, useState } from "react";
+import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { useEffect, useRef } from "react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.mjs",
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
 interface Props {
   base64: string;
   style?: React.CSSProperties;
 }
 
-function PdfPage({ pdf, pageNum, width }: { pdf: PDFDocumentProxy; pageNum: number; width: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendered = useRef(false);
-
-  useEffect(() => {
-    if (rendered.current || !canvasRef.current || width === 0) return;
-    rendered.current = true;
-
-    pdf.getPage(pageNum).then((page) => {
-      const viewport = page.getViewport({ scale: 1 });
-      const scale = width / viewport.width;
-      const scaled = page.getViewport({ scale });
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      canvas.width = scaled.width;
-      canvas.height = scaled.height;
-      page.render({ canvas, viewport: scaled });
-    });
-  }, [pdf, pageNum, width]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ display: "block", width: "100%" }}
-    />
-  );
-}
-
 export function PdfViewer({ base64, style }: Props) {
-  const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
-  const [width, setWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const container = containerRef.current;
+    if (!container) return;
+
+    let cancelled = false;
+    container.innerHTML = '<div style="color:#94a3b8;padding:16px;font-size:13px;text-align:center">טוען מסמך…</div>';
+
+    // Convert base64 → Uint8Array
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
     const task = pdfjs.getDocument({ data: bytes });
-    task.promise.then(setPdf);
-    return () => { task.destroy(); };
+
+    task.promise
+      .then(async (pdf) => {
+        if (cancelled) return;
+        container.innerHTML = "";
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          if (cancelled) break;
+
+          const page = await pdf.getPage(pageNum);
+          if (cancelled) break;
+
+          // clientWidth after paint should be non-zero; fallback to 360 on mobile
+          const w = container.getBoundingClientRect().width || container.clientWidth || 360;
+          const base = page.getViewport({ scale: 1 });
+          const scaled = page.getViewport({ scale: w / base.width });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = scaled.width;
+          canvas.height = scaled.height;
+          canvas.style.display = "block";
+          canvas.style.width = "100%";
+          if (pageNum < pdf.numPages) canvas.style.marginBottom = "4px";
+          container.appendChild(canvas);
+
+          await page.render({ canvas, viewport: scaled }).promise;
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        container.innerHTML =
+          '<div style="color:#ef4444;padding:12px;font-size:13px">שגיאה בטעינת המסמך</div>';
+      });
+
+    return () => {
+      cancelled = true;
+      task.destroy();
+    };
   }, [base64]);
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      setWidth(entries[0]?.contentRect.width ?? 0);
-    });
-    ro.observe(el);
-    setWidth(el.clientWidth);
-    return () => ro.disconnect();
-  }, []);
-
-  if (!pdf || width === 0) {
-    return (
-      <div
-        ref={containerRef}
-        style={{ minHeight: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 13, ...style }}
-      >
-        טוען מסמך…
-      </div>
-    );
-  }
-
-  return (
-    <div ref={containerRef} style={{ display: "flex", flexDirection: "column", gap: 4, ...style }}>
-      {Array.from({ length: pdf.numPages }, (_, i) => (
-        <PdfPage key={i + 1} pdf={pdf} pageNum={i + 1} width={width} />
-      ))}
-    </div>
-  );
+  return <div ref={containerRef} style={{ minHeight: 120, ...style }} />;
 }

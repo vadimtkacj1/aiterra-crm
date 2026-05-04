@@ -18,10 +18,6 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../app/AppProviders";
 import { accountPath, Paths } from "../navigation/paths";
-import { GuidedTourAutoWelcome } from "../shared/onboarding/GuidedTourAutoWelcome";
-import { GuidedTourProvider } from "../shared/onboarding/guidedTourContext";
-import { OnboardingChecklistCard } from "../shared/onboarding/OnboardingChecklistCard";
-import { useOnboardingTracker } from "../shared/onboarding/useOnboardingTracker";
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 import { useLayoutAccount } from "./useLayoutAccount";
@@ -34,7 +30,6 @@ export function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, logout, isAdmin } = useApp();
-  const onboarding = useOnboardingTracker(session, isAdmin);
   const { t } = useTranslation();
 
   const { layoutAccountId, layoutAccountValid, accountOutletCtx } = useLayoutAccount();
@@ -50,45 +45,20 @@ export function MainLayout() {
   const showAccountContext = Boolean(layoutAccountValid && layoutAccountId);
 
   const menuItems = useMemo(() => {
-    const items: { key: string; icon: ReactNode; label: string; tourTarget?: string }[] = [];
+    const items: { key: string; icon: ReactNode; label: string }[] = [];
     if (layoutAccountValid && layoutAccountId) {
       if (accountOutletCtx.totalAccountCount > 1) {
-        items.push({
-          key: Paths.accounts,
-          icon: <AppstoreOutlined />,
-          label: t("layout.menuBusinesses"),
-          tourTarget: "nav-businesses",
-        });
+        items.push({ key: Paths.accounts, icon: <AppstoreOutlined />, label: t("layout.menuBusinesses") });
       }
       if (accountOutletCtx.currentAccount?.hasMeta) {
-        items.push({
-          key: accountPath(layoutAccountId, "meta"),
-          icon: <FacebookOutlined />,
-          label: t("layout.menuMeta"),
-          tourTarget: "nav-meta",
-        });
+        items.push({ key: accountPath(layoutAccountId, "meta"), icon: <FacebookOutlined />, label: t("layout.menuMeta") });
       }
       if (accountOutletCtx.currentAccount?.hasGoogle) {
-        items.push({
-          key: accountPath(layoutAccountId, "google"),
-          icon: <GoogleOutlined />,
-          label: t("layout.menuGoogle"),
-          tourTarget: "nav-google",
-        });
+        items.push({ key: accountPath(layoutAccountId, "google"), icon: <GoogleOutlined />, label: t("layout.menuGoogle") });
       }
       if (!isAdmin) {
-        items.push({
-          key: accountPath(layoutAccountId, "billing"),
-          icon: <WalletOutlined />,
-          label: t("layout.menuBilling"),
-          tourTarget: "nav-billing",
-        });
-        items.push({
-          key: accountPath(layoutAccountId, "contracts"),
-          icon: <FileTextOutlined />,
-          label: t("layout.menuContracts"),
-          tourTarget: "nav-contracts",
-        });
+        items.push({ key: accountPath(layoutAccountId, "billing"), icon: <WalletOutlined />, label: t("layout.menuBilling") });
+        items.push({ key: accountPath(layoutAccountId, "contracts"), icon: <FileTextOutlined />, label: t("layout.menuContracts") });
       }
     }
     if (isAdmin) {
@@ -101,17 +71,11 @@ export function MainLayout() {
         { key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t("admin.topup.title") },
       );
     }
-    items.push({
-      key: Paths.help,
-      icon: <QuestionCircleOutlined />,
-      label: t("help.menuTitle"),
-      tourTarget: "nav-help",
-    });
+    items.push({ key: Paths.help, icon: <QuestionCircleOutlined />, label: t("help.menuTitle") });
     items.push({
       key: layoutAccountValid && layoutAccountId ? accountPath(layoutAccountId, "settings") : Paths.accounts,
       icon: <SettingOutlined />,
       label: t("layout.menuSettings"),
-      tourTarget: "nav-settings",
     });
     return items;
   }, [
@@ -138,7 +102,6 @@ export function MainLayout() {
   const userEmail = session?.user.email ?? "";
 
   return (
-    <GuidedTourProvider isAdmin={isAdmin} showAccountContext={showAccountContext}>
     <Layout style={{ minHeight: "100vh", alignItems: "stretch" }}>
       <AppSidebar
         isMobile={isMobile}
@@ -176,28 +139,9 @@ export function MainLayout() {
             minHeight: "calc(100vh - 56px)",
           }}
         >
-          {!isAdmin && onboarding.state && location.pathname !== Paths.help ? (
-            <OnboardingChecklistCard
-              state={onboarding.state}
-              dismiss={onboarding.dismiss}
-              toggleCollapsed={onboarding.toggleCollapsed}
-              hasMeta={Boolean(accountOutletCtx.currentAccount?.hasMeta)}
-              accountId={layoutAccountValid ? layoutAccountId : undefined}
-            />
-          ) : null}
           <Outlet context={accountOutletCtx} />
         </Content>
       </Layout>
-
-      <GuidedTourAutoWelcome
-        isAdmin={isAdmin}
-        isMobile={isMobile}
-        showAccountContext={showAccountContext}
-        suppressAutoWelcome={location.pathname === Paths.help}
-        onboardingState={onboarding.state}
-        dismissGuidedTour={onboarding.dismissGuidedTour}
-      />
     </Layout>
-    </GuidedTourProvider>
   );
 }

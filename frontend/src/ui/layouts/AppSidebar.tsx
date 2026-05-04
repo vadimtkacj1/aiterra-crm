@@ -13,7 +13,7 @@ interface SidebarProps {
   isMobile: boolean;
   drawerOpen: boolean;
   onDrawerClose: () => void;
-  menuItems: { key: string; icon: ReactNode; label: string; tourTarget?: string }[];
+  menuItems: { key: string; icon: ReactNode; label: string }[];
   selectedKeys: string[];
   onMenuClick: (key: string) => void;
 }
@@ -31,11 +31,7 @@ function SideMenu({
       items={menuItems.map((item) => ({
         key: item.key,
         icon: item.icon,
-        label: item.tourTarget ? (
-          <span data-tour-target={item.tourTarget}>{item.label}</span>
-        ) : (
-          item.label
-        ),
+        label: item.label,
       }))}
       onClick={({ key }) => onMenuClick(key)}
       style={{ borderInlineEnd: "none", background: "transparent" }}

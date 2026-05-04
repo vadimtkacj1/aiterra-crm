@@ -78,6 +78,8 @@ export function ContractSignPage() {
   const [hasSignature, setHasSignature] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  /** Raw base64 PNG of the last submitted signature (public API does not return it). */
+  const [submittedSignaturePng, setSubmittedSignaturePng] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -169,6 +171,7 @@ export function ContractSignPage() {
     try {
       const rawPng = pad.toDataURL("image/png");
       const base64 = rawPng.includes(",") ? rawPng.split(",")[1] : rawPng;
+      setSubmittedSignaturePng(base64!);
       const updated = await submitSignature(token, signerName, recipientEmail, base64!, i18n.language);
       setContract(updated);
       setDone(true);
@@ -354,7 +357,7 @@ export function ContractSignPage() {
               >
                 {renderContractBody(contract.body, {
                   signerName: done ? signerName || contract.signerName : null,
-                  signaturePngBase64: done ? signedPng : null,
+                  signaturePngBase64: done ? submittedSignaturePng : null,
                   signedAt: done ? (contract.signedAt ?? new Date().toISOString()) : null,
                 })}
               </div>

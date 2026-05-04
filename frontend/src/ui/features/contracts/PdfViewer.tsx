@@ -1,7 +1,7 @@
 import * as pdfjs from "pdfjs-dist";
 import { useEffect, useRef } from "react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 interface Props {
   base64: string;

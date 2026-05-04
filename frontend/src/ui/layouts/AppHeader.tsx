@@ -117,6 +117,7 @@ export function AppHeader({
         )}
         {showAccountContext && layoutAccountId ? (
           <div
+            data-tour-target="header-account"
             style={{
               minWidth: 0,
               flex: 1,

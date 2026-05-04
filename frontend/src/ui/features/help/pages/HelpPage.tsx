@@ -4,12 +4,14 @@ import {
   BookOutlined,
   FacebookOutlined,
   LockOutlined,
+  PlayCircleOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
-import { Card, Col, Row, Space, Typography, theme } from "antd";
+import { Button, Card, Col, Row, Space, Typography, theme } from "antd";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { UserContentLayout } from "../../../shared/components/UserContentLayout";
+import { useGuidedTour } from "../../../shared/onboarding/guidedTourContext";
 
 function SectionCard({
   icon,
@@ -68,6 +70,7 @@ export function HelpPage() {
   const { t } = useTranslation();
   const { token } = theme.useToken();
   const accent = token.colorFillAlter;
+  const { startGuidedTour, guidedTourAvailable } = useGuidedTour();
 
   return (
     <UserContentLayout align="start" maxWidth={960}>
@@ -83,6 +86,32 @@ export function HelpPage() {
           {t("help.tipMenu")}
         </Typography.Text>
       </Space>
+
+      {guidedTourAvailable ? (
+        <Card
+          size="small"
+          variant="borderless"
+          style={{
+            marginBottom: 20,
+            borderRadius: token.borderRadiusLG,
+            border: `1px solid ${token.colorBorderSecondary}`,
+            background: token.colorFillAlter,
+          }}
+          styles={{ body: { padding: "14px 16px" } }}
+        >
+          <Space direction="vertical" size={10} style={{ width: "100%" }} align="start">
+            <Typography.Text strong style={{ fontSize: 15 }}>
+              {t("help.runTour")}
+            </Typography.Text>
+            <Typography.Paragraph type="secondary" style={{ margin: 0, fontSize: 14, lineHeight: 1.55, maxWidth: 640 }}>
+              {t("help.runTourSub")}
+            </Typography.Paragraph>
+            <Button type="primary" icon={<PlayCircleOutlined />} onClick={() => startGuidedTour?.()}>
+              {t("tour.start")}
+            </Button>
+          </Space>
+        </Card>
+      ) : null}
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>

@@ -73,7 +73,7 @@ export function AdminStatsPanel() {
       setStats(data);
       setPaymentStats(payments);
     } catch {
-      // silently fail — stats are supplementary
+      // silently fail; stats are supplementary
     } finally {
       setLoading(false);
     }
@@ -281,14 +281,14 @@ export function AdminStatsPanel() {
               />
             ) : (
               <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography.Text type="secondary">—</Typography.Text>
+                <Typography.Text type="secondary">-</Typography.Text>
               </div>
             )}
           </Card>
 
           {/* Bottom row: paid/unpaid counts bar + currency pie */}
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            {/* Views — paid vs unpaid counts per period */}
+            {/* Views: paid vs unpaid counts per period */}
             <Col xs={24} md={12}>
               <Card
                 bordered={false}
@@ -319,7 +319,7 @@ export function AdminStatsPanel() {
                   />
                 ) : (
                   <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Typography.Text type="secondary">—</Typography.Text>
+                    <Typography.Text type="secondary">-</Typography.Text>
                   </div>
                 )}
               </Card>
@@ -353,7 +353,7 @@ export function AdminStatsPanel() {
                   />
                 ) : (
                   <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Typography.Text type="secondary">—</Typography.Text>
+                    <Typography.Text type="secondary">-</Typography.Text>
                   </div>
                 )}
               </Card>

@@ -13,7 +13,7 @@ interface SidebarProps {
   isMobile: boolean;
   drawerOpen: boolean;
   onDrawerClose: () => void;
-  menuItems: { key: string; icon: ReactNode; label: string }[];
+  menuItems: { key: string; icon: ReactNode; label: string; tourTarget?: string }[];
   selectedKeys: string[];
   onMenuClick: (key: string) => void;
 }
@@ -28,7 +28,15 @@ function SideMenu({
       theme="dark"
       mode="inline"
       selectedKeys={selectedKeys}
-      items={menuItems}
+      items={menuItems.map((item) => ({
+        key: item.key,
+        icon: item.icon,
+        label: item.tourTarget ? (
+          <span data-tour-target={item.tourTarget}>{item.label}</span>
+        ) : (
+          item.label
+        ),
+      }))}
       onClick={({ key }) => onMenuClick(key)}
       style={{ borderInlineEnd: "none", background: "transparent" }}
     />
@@ -76,7 +84,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         <div style={{ display: "flex", justifyContent: "center", padding: "8px 12px 20px" }}>
           <SidebarLogo maxWidth={136} />
         </div>
-        <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
@@ -106,7 +114,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 12px 16px" }}>
           <SidebarLogo maxWidth={120} />
         </div>
-        <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>

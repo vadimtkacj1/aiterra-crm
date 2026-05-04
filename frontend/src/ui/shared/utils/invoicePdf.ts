@@ -65,9 +65,9 @@ export function downloadInvoicePdf(input: InvoicePdfInput): void {
       ["Invoice ID", input.invoiceId],
       ["Status", input.status],
       ["Charge type", input.chargeType || "one_time"],
-      ["Account ID", String(input.accountId ?? "—")],
-      ["Customer", input.customerName || "—"],
-      ["Description", input.description || "—"],
+      ["Account ID", String(input.accountId ?? "-")],
+      ["Customer", input.customerName || "-"],
+      ["Description", input.description || "-"],
       ...(input.installmentMonths != null &&
       input.installmentMonths >= 2 &&
       input.installmentTotalAmount != null
@@ -87,7 +87,7 @@ export function downloadInvoicePdf(input: InvoicePdfInput): void {
   autoTable(doc, {
     startY: getAutoTableFinalY(doc, 55) + 8,
     head: [["Item", "Code", "Amount"]],
-    body: items.map((li) => [li.label, li.code || "—", formatMoney(li.amount, input.currency)]),
+    body: items.map((li) => [li.label, li.code || "-", formatMoney(li.amount, input.currency)]),
     theme: "striped",
     headStyles: { fillColor: [37, 99, 235], fontSize: 9 },
     bodyStyles: { fontSize: 9 },

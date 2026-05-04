@@ -87,7 +87,7 @@ export function RecipientStepCard({
             value: String(u.id),
             label:
               u.role === "admin"
-                ? `${u.displayName} (${u.email}) — ${t("admin.roles.admin")}`
+                ? `${u.displayName} (${u.email}, ${t("admin.roles.admin")})`
                 : `${u.displayName} (${u.email})`,
           }))}
           style={{ borderRadius: 10, maxWidth: 640 }}

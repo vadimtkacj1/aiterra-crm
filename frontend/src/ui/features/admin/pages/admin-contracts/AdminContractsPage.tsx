@@ -33,6 +33,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Contract } from "../../../../../domain/Contract";
 import { useApp } from "../../../../../app/AppProviders";
+import { renderContractBody } from "../../../contracts/contractBodyRenderer";
 
 function fmtMoney(amount: number, currency: string) {
   try {
@@ -164,6 +165,23 @@ export function AdminContractsPage() {
     });
   };
 
+  const handleDelete = (c: Contract) => {
+    Modal.confirm({
+      title: t("admin.contracts.deleteConfirmTitle"),
+      content: t("admin.contracts.deleteConfirmContent"),
+      okType: "danger",
+      onOk: async () => {
+        try {
+          await services.admin.deleteContract(c.id);
+          setContracts((prev) => prev.filter((x) => x.id !== c.id));
+          void message.success(t("admin.contracts.deletedSuccess"));
+        } catch (e) {
+          void message.error(e instanceof Error ? e.message : t("errors.generic"));
+        }
+      },
+    });
+  };
+
   const resetCreateForm = () => {
     setCreateOpen(false);
     form.resetFields();
@@ -252,12 +270,12 @@ export function AdminContractsPage() {
       title: t("admin.contracts.columns.signedAt"),
       key: "signedAt",
       render: (_, r) =>
-        r.signedAt ? new Date(r.signedAt).toLocaleDateString() : "—",
+        r.signedAt ? new Date(r.signedAt).toLocaleDateString() : "-",
     },
     {
       title: "",
       key: "actions",
-      width: 160,
+      width: 185,
       render: (_, r) => (
         <Space size={4}>
           <Tooltip title={t("admin.contracts.viewDetail")}>
@@ -296,11 +314,20 @@ export function AdminContractsPage() {
                 type="text"
                 size="small"
                 danger
-                icon={<DeleteOutlined />}
+                icon={<MinusCircleOutlined />}
                 onClick={() => handleVoid(r)}
               />
             </Tooltip>
           )}
+          <Tooltip title={t("admin.contracts.delete")}>
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(r)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -597,8 +624,12 @@ export function AdminContractsPage() {
             </Row>
 
             {detailContract.body && (
-              <div style={{ background: "#f8fafc", borderRadius: 8, padding: "12px 16px", marginBottom: 16, whiteSpace: "pre-wrap", fontSize: 13 }}>
-                {detailContract.body}
+              <div style={{ background: "#f8fafc", borderRadius: 8, padding: "12px 16px", marginBottom: 16, fontSize: 13, lineHeight: 1.8 }}>
+                {renderContractBody(detailContract.body, {
+                  signerName: detailContract.signerName,
+                  signaturePngBase64: detailContract.signaturePngBase64,
+                  signedAt: detailContract.signedAt,
+                })}
               </div>
             )}
 
@@ -654,6 +685,16 @@ export function AdminContractsPage() {
                   <CheckCircleOutlined style={{ color: "#22c55e", marginInlineEnd: 6 }} />
                   {t("admin.contracts.signedBy", { name: detailContract.signerName, date: detailContract.signedAt ? new Date(detailContract.signedAt).toLocaleString() : "" })}
                 </Typography.Text>
+                {detailContract.signerPosition ? (
+                  <Typography.Text type="secondary" style={{ display: "block", marginBottom: 6 }}>
+                    {t("admin.contracts.signedPosition", { position: detailContract.signerPosition })}
+                  </Typography.Text>
+                ) : null}
+                {detailContract.signedCopyEmail ? (
+                  <Typography.Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                    {t("admin.contracts.signedCopyEmail", { email: detailContract.signedCopyEmail })}
+                  </Typography.Text>
+                ) : null}
                 {detailContract.signaturePngBase64 && (
                   <Image
                     src={`data:image/png;base64,${detailContract.signaturePngBase64}`}

@@ -8,6 +8,8 @@ export type OnboardingStored = {
   dismissed: boolean;
   /** User minimized the checklist bar (progress still tracked). */
   collapsed?: boolean;
+  /** Interactive spotlight tour welcome was skipped or completed. */
+  guidedTourDismissed?: boolean;
 };
 
 const STORAGE_PREFIX = "crm_onboarding_v1_";
@@ -20,6 +22,7 @@ function defaultState(): OnboardingStored {
     settings: false,
     dismissed: false,
     collapsed: false,
+    guidedTourDismissed: false,
   };
 }
 

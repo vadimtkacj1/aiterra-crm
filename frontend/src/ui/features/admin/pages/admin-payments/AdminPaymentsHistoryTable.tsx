@@ -78,7 +78,7 @@ export function AdminPaymentsHistoryTable({
             key: "owner",
             width: 160,
             ellipsis: true,
-            render: (_, r) => r.ownerEmail || "—",
+            render: (_, r) => r.ownerEmail || "-",
           },
           {
             title: t("admin.payments.historyColType"),
@@ -96,7 +96,7 @@ export function AdminPaymentsHistoryTable({
             key: "amount",
             width: 132,
             render: (_, r) => {
-              if (r.amount == null) return "—";
+              if (r.amount == null) return "-";
               const main = formatMoney(r.amount, r.currency);
               if (
                 r.chargeType === "monthly" &&

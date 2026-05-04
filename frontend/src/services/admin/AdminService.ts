@@ -314,4 +314,8 @@ export class AdminService {
   async voidContract(id: number): Promise<Contract> {
     return this.http.post<Contract>(`/admin/contracts/${id}/void`, {});
   }
+
+  async deleteContract(id: number): Promise<void> {
+    return this.http.delete(`/admin/contracts/${id}`);
+  }
 }

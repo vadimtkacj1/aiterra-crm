@@ -7,7 +7,7 @@ import type {
 } from "@/services/admin/AdminService";
 export type AdminPaymentsMessageLike = { success: (c: string) => void; error: (c: string) => void };
 
-/** Single prop bag for `AdminPaymentsLibraryDrawer` — avoids long prop drilling from the page hook. */
+/** Single prop bag for `AdminPaymentsLibraryDrawer`; avoids long prop drilling from the page hook. */
 export type AdminPaymentsLibraryDrawerModel = {
   t: TFunction;
   open: boolean;

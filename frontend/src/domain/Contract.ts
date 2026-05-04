@@ -17,6 +17,8 @@ export interface Contract {
   signToken: string;
   signedAt: string | null;
   signerName: string | null;
+  signerPosition?: string | null;
+  signedCopyEmail?: string | null;
   signaturePngBase64: string | null;
   pdfBase64: string | null;
   createdAt: string;

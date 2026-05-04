@@ -286,7 +286,7 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
         key: "status",
         width: 100,
         render: (s: string) => (
-          <Tag color={statusColor(s)}>{(s ?? "—").toUpperCase()}</Tag>
+          <Tag color={statusColor(s)}>{(s ?? "-").toUpperCase()}</Tag>
         ),
         sorter: (a, b) => (a.status ?? "").localeCompare(b.status ?? ""),
       },

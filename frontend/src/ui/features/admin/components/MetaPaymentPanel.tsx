@@ -68,7 +68,7 @@ export function MetaPaymentPanel() {
               dataIndex: "createdAt",
               key: "createdAt",
               width: 180,
-              render: (s: string) => (s ? s.slice(0, 19).replace("T", " ") : "—"),
+              render: (s: string) => (s ? s.slice(0, 19).replace("T", " ") : "-"),
             },
             {
               title: t("admin.topup.colAccount"),
@@ -99,7 +99,7 @@ export function MetaPaymentPanel() {
               dataIndex: "metaError",
               key: "err",
               ellipsis: true,
-              render: (e: string | null) => e || "—",
+              render: (e: string | null) => e || "-",
             },
           ]}
         />

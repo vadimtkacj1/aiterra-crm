@@ -150,7 +150,7 @@ export function MetaCampaignDeepDivePage() {
 
   const tableData = campaign ? [campaign] : [];
 
-  // Columns where every row has value 0 — skip them to avoid noise
+  // Columns where every row has value 0: skip them to avoid noise
   const zeroColumns = useMemo<Set<MetricCol>>(() => {
     if (!campaign) return new Set();
     const numericKey: Partial<Record<MetricCol, keyof CampaignSummaryRow>> = {

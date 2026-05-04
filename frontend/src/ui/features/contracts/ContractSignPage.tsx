@@ -5,6 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import SignaturePad from "signature_pad";
 import type { ContractPublic } from "../../../domain/Contract";
+import { renderContractBody } from "./contractBodyRenderer";
 
 function fmtMoney(amount: number, currency: string) {
   try {
@@ -27,15 +28,29 @@ async function fetchContract(token: string): Promise<ContractPublic> {
   return res.json() as Promise<ContractPublic>;
 }
 
+function isValidEmail(s: string): boolean {
+  const t = s.trim();
+  if (!t) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
+}
+
 async function submitSignature(
   token: string,
   signerName: string,
+  recipientEmail: string,
   signaturePng: string,
+  locale: string,
 ): Promise<ContractPublic> {
   const res = await fetch(`/api/contracts/${token}/sign`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ signerName, signaturePngBase64: signaturePng }),
+    body: JSON.stringify({
+      signerName,
+      signerPosition: "",
+      recipientEmail: recipientEmail.trim(),
+      signaturePngBase64: signaturePng,
+      locale,
+    }),
   });
   if (!res.ok) {
     const data = (await res.json()) as { detail?: string };
@@ -51,13 +66,14 @@ const panelShadow = "0 8px 30px -8px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 
 
 export function ContractSignPage() {
   const { token } = useParams<{ token: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { message } = App.useApp();
 
   const [contract, setContract] = useState<ContractPublic | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [signerName, setSignerName] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -129,7 +145,8 @@ export function ContractSignPage() {
     setHasSignature(false);
   };
 
-  const canSubmit = agreed && signerName.trim().length > 0 && hasSignature;
+  const emailOk = isValidEmail(recipientEmail);
+  const canSubmit = agreed && signerName.trim().length > 0 && emailOk && hasSignature;
 
   const handleSign = async () => {
     if (!token || !contract) return;
@@ -142,13 +159,18 @@ export function ContractSignPage() {
       void message.warning(t("contracts.sign.nameRequired"));
       return;
     }
+    if (!isValidEmail(recipientEmail)) {
+      void message.warning(t("contracts.sign.emailRequired"));
+      return;
+    }
     if (!agreed) return;
 
     setSubmitting(true);
     try {
       const rawPng = pad.toDataURL("image/png");
       const base64 = rawPng.includes(",") ? rawPng.split(",")[1] : rawPng;
-      await submitSignature(token, signerName, base64!);
+      const updated = await submitSignature(token, signerName, recipientEmail, base64!, i18n.language);
+      setContract(updated);
       setDone(true);
     } catch (e) {
       void message.error(e instanceof Error ? e.message : t("errors.generic"));
@@ -189,6 +211,8 @@ export function ContractSignPage() {
   }
 
   if (done || contract.status === "signed") {
+    const pdfHref = contract.pdfBase64 ? `data:application/pdf;base64,${contract.pdfBase64}` : null;
+    const safeName = `${(contract.title || "contract").replace(/[^\w\-]+/g, "_").slice(0, 60) || "contract"}.pdf`;
     return (
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div
@@ -204,12 +228,19 @@ export function ContractSignPage() {
           }}
         >
           <CheckCircleOutlined style={{ fontSize: 56, color: "#16a34a", marginBottom: 20 }} />
-          <Typography.Title level={3} style={{ margin: "0 0 10px" }}>
+          <Typography.Title level={3} style={{ margin: "0 0 24px" }}>
             {t("contracts.sign.successTitle")}
           </Typography.Title>
-          <Typography.Text type="secondary" style={{ fontSize: 15 }}>
-            {t("contracts.sign.successDesc")}
-          </Typography.Text>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {pdfHref ? (
+              <Button type="primary" href={pdfHref} download={safeName} style={{ borderRadius: 10, height: 44 }}>
+                {t("contracts.sign.downloadSignedPdf")}
+              </Button>
+            ) : null}
+            <Button href="/" style={{ borderRadius: 10, height: 44 }}>
+              {t("contracts.sign.backToSite")}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -317,12 +348,15 @@ export function ContractSignPage() {
                   border: "1px solid rgba(15,23,42,.06)",
                   padding: "20px 22px",
                   fontSize: 14,
-                  lineHeight: 1.75,
+                  lineHeight: 1.85,
                   color: "#334155",
-                  whiteSpace: "pre-wrap",
                 }}
               >
-                {contract.body}
+                {renderContractBody(contract.body, {
+                  signerName: done ? signerName || contract.signerName : null,
+                  signaturePngBase64: done ? signedPng : null,
+                  signedAt: done ? (contract.signedAt ?? new Date().toISOString()) : null,
+                })}
               </div>
             )}
 
@@ -410,7 +444,7 @@ export function ContractSignPage() {
                       </span>
                       <Typography.Text style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.5 }}>
                         <strong>{t("contracts.sign.stage")} {i + 1}</strong>
-                        {s.description ? ` — ${s.description}` : ""}
+                        {s.description ? `: ${s.description}` : ""}
                       </Typography.Text>
                     </span>
                     <Typography.Text
@@ -497,6 +531,24 @@ export function ContractSignPage() {
             </div>
 
             <div>
+              <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 8, color: "#334155" }}>
+                {t("contracts.sign.recipientEmail")}
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
+                {t("contracts.sign.recipientEmailHint")}
+              </Typography.Text>
+              <Input
+                size="large"
+                type="email"
+                autoComplete="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder={t("contracts.sign.recipientEmailPlaceholder")}
+                style={{ borderRadius: 10 }}
+              />
+            </div>
+
+            <div>
               <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 4, color: "#334155" }}>
                 {t("contracts.sign.signHere")}
               </Typography.Text>
@@ -549,6 +601,7 @@ export function ContractSignPage() {
                   {t("contracts.sign.completeToSign")}
                 </Typography.Text>
                 {!signerName.trim() && <div>• {t("contracts.sign.needName")}</div>}
+                {!emailOk && <div>• {t("contracts.sign.needEmail")}</div>}
                 {!hasSignature && <div>• {t("contracts.sign.needSignature")}</div>}
                 {!agreed && <div>• {t("contracts.sign.needTerms")}</div>}
               </div>

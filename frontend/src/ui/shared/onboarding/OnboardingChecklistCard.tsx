@@ -1,14 +1,4 @@
-import {
-  BellOutlined,
-  CloseOutlined,
-  DownOutlined,
-  LineChartOutlined,
-  LockOutlined,
-  RocketOutlined,
-  ShopOutlined,
-  UpOutlined,
-  WalletOutlined,
-} from "@ant-design/icons";
+import { CloseOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
 import { Alert, Button, Card, Flex, Progress, Steps, Typography, theme } from "antd";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -91,9 +81,9 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
   if (state.collapsed) {
     return (
       <Alert
+        data-tour-target="quick-start-card"
         type="info"
         showIcon
-        icon={<RocketOutlined />}
         style={{ marginBottom: 16, borderRadius: token.borderRadiusLG }}
         message={
           <Flex align="center" justify="space-between" gap={12} wrap="wrap">
@@ -151,41 +141,26 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
 
   return (
     <Card
+      data-tour-target="quick-start-card"
       size="small"
       style={{
         marginBottom: 20,
         borderRadius: token.borderRadiusLG,
         border: `1px solid ${token.colorBorderSecondary}`,
-        background: `linear-gradient(135deg, ${token.colorFillAlter} 0%, ${token.colorBgContainer} 48%, ${token.colorPrimaryBg} 100%)`,
+        background: token.colorBgContainer,
         boxShadow: "0 2px 8px rgba(15,23,42,0.06)",
       }}
       styles={{ body: { padding: "16px 18px 18px" } }}
       title={
         <Flex align="center" justify="space-between" gap={12} wrap="wrap" style={{ width: "100%" }}>
-          <Flex align="center" gap={10}>
-            <span
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: token.colorPrimaryBg,
-                color: token.colorPrimary,
-              }}
-            >
-              <RocketOutlined style={{ fontSize: 18 }} />
-            </span>
-            <div>
-              <Typography.Text strong style={{ fontSize: 15, display: "block" }}>
-                {t("onboarding.cardTitle")}
-              </Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {t("onboarding.cardSubtitle", { done: String(doneCount), total: String(total) })}
-              </Typography.Text>
-            </div>
-          </Flex>
+          <div>
+            <Typography.Text strong style={{ fontSize: 15, display: "block" }}>
+              {t("onboarding.cardTitle")}
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {t("onboarding.cardSubtitle", { done: String(doneCount), total: String(total) })}
+            </Typography.Text>
+          </div>
           <Flex gap={4}>
             <Button type="text" size="small" icon={<DownOutlined />} aria-label={t("onboarding.minimize")} onClick={toggleCollapsed} />
             <Button type="text" size="small" icon={<CloseOutlined />} aria-label={t("onboarding.dismiss")} onClick={dismiss} />
@@ -216,35 +191,20 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
 
       <Progress percent={percent} status={percent === 100 ? "success" : "active"} style={{ marginBottom: 16 }} />
 
-      <Flex gap={10} wrap="wrap" style={{ marginBottom: 14 }}>
-        <Typography.Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div style={{ marginBottom: 14 }}>
+        <Typography.Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>
           {t("onboarding.legend")}
         </Typography.Text>
-        <Flex gap={14} wrap="wrap" align="center">
-          <Flex align="center" gap={6}>
-            <ShopOutlined />
-            <span style={{ fontSize: 12 }}>{t("onboarding.legendBusiness")}</span>
-          </Flex>
-          <Flex align="center" gap={6}>
-            <WalletOutlined />
-            <span style={{ fontSize: 12 }}>{t("onboarding.legendBilling")}</span>
-          </Flex>
-          {hasMeta ? (
-            <Flex align="center" gap={6}>
-              <LineChartOutlined />
-              <span style={{ fontSize: 12 }}>{t("onboarding.legendMeta")}</span>
-            </Flex>
-          ) : null}
-          <Flex align="center" gap={6}>
-            <LockOutlined />
-            <span style={{ fontSize: 12 }}>{t("onboarding.legendSettings")}</span>
-          </Flex>
-          <Flex align="center" gap={6}>
-            <BellOutlined />
-            <span style={{ fontSize: 12 }}>{t("onboarding.legendBell")}</span>
-          </Flex>
-        </Flex>
-      </Flex>
+        <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.6 }}>
+          {[
+            t("onboarding.legendBusiness"),
+            t("onboarding.legendBilling"),
+            ...(hasMeta ? [t("onboarding.legendMeta")] : []),
+            t("onboarding.legendSettings"),
+            t("onboarding.legendBell"),
+          ].join(" · ")}
+        </Typography.Text>
+      </div>
 
       <Steps direction="vertical" size="small" items={stepItems} />
 

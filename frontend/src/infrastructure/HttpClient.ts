@@ -31,7 +31,7 @@ export class HttpClient {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           const url = String(error.config?.url ?? "");
           const isLoginAttempt = url.includes("/auth/login");
-          // Wrong password returns 401 — must not trigger global logout / hard redirect.
+          // Wrong password returns 401; must not trigger global logout / hard redirect.
           if (!isLoginAttempt) {
             onUnauthorized?.();
           }

@@ -12,7 +12,7 @@ export function readLastVisitedAccountId(): string | null {
 
 export const Paths = {
   accounts: "/accounts",
-  /** @deprecated Use accountPath(id, "settings") — kept for redirects only */
+  /** @deprecated Use accountPath(id, "settings"); kept for redirects only */
   settings: "/settings",
   account: "/a/:accountId",
   meta: "/a/:accountId/meta",

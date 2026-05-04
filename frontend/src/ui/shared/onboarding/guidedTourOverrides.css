@@ -1,0 +1,24 @@
+.crmDriverPopover {
+  max-width: min(420px, calc(100vw - 32px)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.35) !important;
+}
+
+.crmDriverPopover .driver-popover-title {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+}
+
+.crmDriverPopover .driver-popover-description {
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+.crmDriverPopover .driver-popover-footer button {
+  border-radius: 8px !important;
+}
+
+.driver-active-element {
+  outline: 2px solid rgba(59, 130, 246, 0.95) !important;
+  outline-offset: 2px !important;
+}

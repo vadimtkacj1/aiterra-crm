@@ -7,7 +7,7 @@ import { InvoiceComposerCard } from "./InvoiceComposerCard";
 import { RecipientStepCard } from "./RecipientStepCard";
 import { useAdminPaymentsPage } from "./useAdminPaymentsPage";
 
-/** Admin payments & invoices — layout only; logic lives in `useAdminPaymentsPage` and `adminPaymentsFormModel`. */
+/** Admin payments & invoices: layout only; logic lives in `useAdminPaymentsPage` and `adminPaymentsFormModel`. */
 export function AdminPaymentsPage() {
   const p = useAdminPaymentsPage();
   const [copied, setCopied] = useState(false);

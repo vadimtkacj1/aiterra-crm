@@ -1,10 +1,10 @@
 /**
- * PricingPage — דף תמחור / merchant page ציבורי לאישור Z-Credit.
+ * PricingPage: דף תמחור / merchant page ציבורי לאישור Z-Credit.
  *
  * ⚠️  מלא את הפרטים הסמנוים ב-TODO לפני שליחה ל-Z-Credit:
- *    - CONTACT_PHONE   — מספר טלפון
- *    - CONTACT_EMAIL   — כתובת אימייל
- *    - PLAN_PRICE_*    — מחירי תוכניות
+ *    - CONTACT_PHONE: מספר טלפון
+ *    - CONTACT_EMAIL: כתובת אימייל
+ *    - PLAN_PRICE_*: מחירי תוכניות
  */
 
 import {
@@ -33,11 +33,11 @@ const { Title, Paragraph, Text } = Typography;
 
 // ─── TODO: מלא פרטים אלה ───────────────────────────────────────────────────
 const CONTACT_PHONE = "TODO_PHONE"; // לדוגמה: "03-1234567"
-const CONTACT_EMAIL = "TODO@aiterra.co.il"; // כתובת אימייל לעסק
+const CONTACT_EMAIL = "office@aiterra.co.il"; // כתובת אימייל לעסק
 
-const PLAN_PRICE_BASIC = "TODO"; // מחיר בסיסי — לדוגמה: "₪490"
-const PLAN_PRICE_PRO = "TODO"; // מחיר PRO — לדוגמה: "₪990"
-const PLAN_PRICE_ENTERPRISE = "TODO"; // מחיר Enterprise — לדוגמה: "₪1,990"
+const PLAN_PRICE_BASIC = "TODO"; // מחיר בסיסי, לדוגמה: "₪490"
+const PLAN_PRICE_PRO = "TODO"; // מחיר PRO, לדוגמה: "₪990"
+const PLAN_PRICE_ENTERPRISE = "TODO"; // מחיר Enterprise, לדוגמה: "₪1,990"
 // ────────────────────────────────────────────────────────────────────────────
 
 const FEATURES_BASIC = [
@@ -101,7 +101,7 @@ export function PricingPage() {
         </Title>
         <Paragraph style={{ color: "#bfcfe8", fontSize: 18, maxWidth: 640, margin: "0 auto 32px" }}>
           Aiterra CRM מאפשרת לסוכנויות פרסום ועסקים לנהל קמפיינים ב-Meta ו-Google Ads,
-          לנתח ביצועים בזמן אמת ולנהל חיוב לקוחות — הכול במקום אחד.
+          לנתח ביצועים בזמן אמת ולנהל חיוב לקוחות. הכול במקום אחד.
         </Paragraph>
         <Space size={12}>
           <Tag color="blue" style={{ fontSize: 13, padding: "4px 12px" }}>SaaS</Tag>

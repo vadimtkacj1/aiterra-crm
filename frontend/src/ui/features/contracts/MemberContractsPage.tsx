@@ -98,7 +98,7 @@ export function MemberContractsPage() {
               month: "short",
               day: "numeric",
             })
-          : "—",
+          : "-",
     },
     {
       title: t("memberContracts.colAction"),

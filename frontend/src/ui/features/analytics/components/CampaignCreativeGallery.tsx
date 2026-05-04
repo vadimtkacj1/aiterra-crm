@@ -87,7 +87,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
           ]}
         />
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          {ads.length} {ads.length === 1 ? "ad" : "ads"}
+          {ads.length} {ads.length === 1 ? t("meta.creatives.adSingular") : t("meta.creatives.adPlural")}
         </Typography.Text>
       </Flex>
 
@@ -128,7 +128,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                   rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", background: "#1877f2", color: "#fff", borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: "none" }}
                 >
-                  <PlayCircleFilled style={{ fontSize: 20 }} /> Дивитися на Facebook
+                  <PlayCircleFilled style={{ fontSize: 20 }} /> {t("meta.creatives.watchOnFacebook")}
                 </a>
               </div>
             </div>

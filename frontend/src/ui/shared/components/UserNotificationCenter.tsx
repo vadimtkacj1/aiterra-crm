@@ -331,22 +331,24 @@ export function UserNotificationCenter({ accountId }: { accountId: string }) {
       onOpenChange={onOpenChange}
       styles={{ content: { padding: "12px 14px 14px" } }}
     >
-      <Badge count={loading ? 0 : count} size="small" offset={isRtl ? [-2, 2] : [2, 2]} color={token.colorWarning}>
-        <Button
-          type="text"
-          icon={<BellOutlined style={{ fontSize: 18 }} />}
-          aria-label={t("layout.notifications.tooltip")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 40,
-            height: 40,
-            borderRadius: token.borderRadiusLG,
-            color: count > 0 && !loading ? token.colorText : token.colorTextSecondary,
-          }}
-        />
-      </Badge>
+      <span data-tour-target="header-notifications" style={{ display: "inline-flex" }}>
+        <Badge count={loading ? 0 : count} size="small" offset={isRtl ? [-2, 2] : [2, 2]} color={token.colorWarning}>
+          <Button
+            type="text"
+            icon={<BellOutlined style={{ fontSize: 18 }} />}
+            aria-label={t("layout.notifications.tooltip")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 40,
+              height: 40,
+              borderRadius: token.borderRadiusLG,
+              color: count > 0 && !loading ? token.colorText : token.colorTextSecondary,
+            }}
+          />
+        </Badge>
+      </span>
     </Popover>
   );
 }

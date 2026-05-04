@@ -53,13 +53,13 @@ export function AdminAuditPage() {
         scroll={{ x: 900 }}
         columns={[
           { title: t("admin.audit.columns.time"), dataIndex: "createdAt", key: "createdAt", width: 200 },
-          { title: t("admin.audit.columns.admin"), key: "admin", width: 220, render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "—") },
+          { title: t("admin.audit.columns.admin"), key: "admin", width: 220, render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-") },
           { title: t("admin.audit.columns.action"), dataIndex: "action", key: "action", width: 200 },
           {
             title: t("admin.audit.columns.resource"),
             key: "resource",
             width: 180,
-            render: (_, r) => [r.resourceType, r.resourceId].filter(Boolean).join(" ") || "—",
+            render: (_, r) => [r.resourceType, r.resourceId].filter(Boolean).join(" ") || "-",
           },
           { title: t("admin.audit.columns.detail"), dataIndex: "detail", key: "detail", ellipsis: true },
         ]}

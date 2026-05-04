@@ -1,5 +1,5 @@
 /**
- * Pure form parsing for admin payments — keeps validation rules in one place
+ * Pure form parsing for admin payments; keeps validation rules in one place
  * so the page hook stays mostly orchestration + UI wiring.
  */
 

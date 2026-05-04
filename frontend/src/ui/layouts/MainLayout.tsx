@@ -18,6 +18,8 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../app/AppProviders";
 import { accountPath, Paths } from "../navigation/paths";
+import { GuidedTourAutoWelcome } from "../shared/onboarding/GuidedTourAutoWelcome";
+import { GuidedTourProvider } from "../shared/onboarding/guidedTourContext";
 import { OnboardingChecklistCard } from "../shared/onboarding/OnboardingChecklistCard";
 import { useOnboardingTracker } from "../shared/onboarding/useOnboardingTracker";
 import { AppHeader } from "./AppHeader";
@@ -48,23 +50,44 @@ export function MainLayout() {
   const showAccountContext = Boolean(layoutAccountValid && layoutAccountId);
 
   const menuItems = useMemo(() => {
-    const items: { key: string; icon: ReactNode; label: string }[] = [];
+    const items: { key: string; icon: ReactNode; label: string; tourTarget?: string }[] = [];
     if (layoutAccountValid && layoutAccountId) {
       if (accountOutletCtx.totalAccountCount > 1) {
-        items.push({ key: Paths.accounts, icon: <AppstoreOutlined />, label: t("layout.menuBusinesses") });
+        items.push({
+          key: Paths.accounts,
+          icon: <AppstoreOutlined />,
+          label: t("layout.menuBusinesses"),
+          tourTarget: "nav-businesses",
+        });
       }
       if (accountOutletCtx.currentAccount?.hasMeta) {
-        items.push({ key: accountPath(layoutAccountId, "meta"), icon: <FacebookOutlined />, label: t("layout.menuMeta") });
+        items.push({
+          key: accountPath(layoutAccountId, "meta"),
+          icon: <FacebookOutlined />,
+          label: t("layout.menuMeta"),
+          tourTarget: "nav-meta",
+        });
       }
       if (accountOutletCtx.currentAccount?.hasGoogle) {
-        items.push({ key: accountPath(layoutAccountId, "google"), icon: <GoogleOutlined />, label: t("layout.menuGoogle") });
+        items.push({
+          key: accountPath(layoutAccountId, "google"),
+          icon: <GoogleOutlined />,
+          label: t("layout.menuGoogle"),
+          tourTarget: "nav-google",
+        });
       }
       if (!isAdmin) {
-        items.push({ key: accountPath(layoutAccountId, "billing"), icon: <WalletOutlined />, label: t("layout.menuBilling") });
+        items.push({
+          key: accountPath(layoutAccountId, "billing"),
+          icon: <WalletOutlined />,
+          label: t("layout.menuBilling"),
+          tourTarget: "nav-billing",
+        });
         items.push({
           key: accountPath(layoutAccountId, "contracts"),
           icon: <FileTextOutlined />,
           label: t("layout.menuContracts"),
+          tourTarget: "nav-contracts",
         });
       }
     }
@@ -78,11 +101,17 @@ export function MainLayout() {
         { key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t("admin.topup.title") },
       );
     }
-    items.push({ key: Paths.help, icon: <QuestionCircleOutlined />, label: t("help.menuTitle") });
+    items.push({
+      key: Paths.help,
+      icon: <QuestionCircleOutlined />,
+      label: t("help.menuTitle"),
+      tourTarget: "nav-help",
+    });
     items.push({
       key: layoutAccountValid && layoutAccountId ? accountPath(layoutAccountId, "settings") : Paths.accounts,
       icon: <SettingOutlined />,
       label: t("layout.menuSettings"),
+      tourTarget: "nav-settings",
     });
     return items;
   }, [
@@ -109,6 +138,7 @@ export function MainLayout() {
   const userEmail = session?.user.email ?? "";
 
   return (
+    <GuidedTourProvider isAdmin={isAdmin} showAccountContext={showAccountContext}>
     <Layout style={{ minHeight: "100vh", alignItems: "stretch" }}>
       <AppSidebar
         isMobile={isMobile}
@@ -158,6 +188,16 @@ export function MainLayout() {
           <Outlet context={accountOutletCtx} />
         </Content>
       </Layout>
+
+      <GuidedTourAutoWelcome
+        isAdmin={isAdmin}
+        isMobile={isMobile}
+        showAccountContext={showAccountContext}
+        suppressAutoWelcome={location.pathname === Paths.help}
+        onboardingState={onboarding.state}
+        dismissGuidedTour={onboarding.dismissGuidedTour}
+      />
     </Layout>
+    </GuidedTourProvider>
   );
 }

@@ -8,7 +8,7 @@ export type { OnboardingStored } from "./onboardingStorage";
 
 function mergeVisits(pathname: string, prev: OnboardingStored): OnboardingStored {
   const next = { ...prev };
-  if (pathname === Paths.accounts || /^\/a\/\d+\//.test(pathname)) {
+  if (pathname === Paths.accounts) {
     next.business = true;
   }
   if (pathname.includes("/billing")) {
@@ -65,5 +65,15 @@ export function useOnboardingTracker(session: AuthSession | null, isAdmin: boole
     };
   }, [userId]);
 
-  return { state, dismiss, toggleCollapsed };
+  const dismissGuidedTour = useMemo(() => {
+    return () => {
+      if (!userId) return;
+      const base = loadOnboarding(userId);
+      const next = { ...base, guidedTourDismissed: true };
+      saveOnboarding(userId, next);
+      setState(next);
+    };
+  }, [userId]);
+
+  return { state, dismiss, toggleCollapsed, dismissGuidedTour };
 }

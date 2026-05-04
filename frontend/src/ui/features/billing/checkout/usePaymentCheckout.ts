@@ -5,7 +5,6 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
 import type { PendingPaymentAction } from "@/services/billing/IBillingService";
 import { accountPath } from "@/ui/navigation/paths";
-import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
 import type { CheckoutLocationState } from "./checkoutTypes";
 
 export function usePaymentCheckout() {
@@ -102,33 +101,12 @@ export function usePaymentCheckout() {
         return;
       }
 
-      downloadInvoicePdf({
-        invoiceId: payment.id,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: "pending_payment",
-        description: payment.summary,
-        chargeType: payment.flow,
-        accountId,
-        lineItems: payment.lineItems ?? undefined,
-        note: "Generated at checkout start. Final paid status is confirmed by webhook.",
-      });
       window.open(payment.payUrl, "_blank", "noopener,noreferrer");
       goBack();
     } else {
       setLoading(true);
       try {
         const res = await services.billing.payOpenInvoice(accountId);
-        downloadInvoicePdf({
-          invoiceId: payment.id,
-          amount: payment.amount,
-          currency: payment.currency,
-          status: res.status,
-          description: payment.summary,
-          chargeType: payment.flow,
-          accountId,
-          lineItems: payment.lineItems ?? undefined,
-        });
         if (res.status === "paid") {
           void message.success(t("billing.payWithCardSuccess"));
         } else {

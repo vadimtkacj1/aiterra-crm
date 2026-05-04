@@ -138,8 +138,8 @@ export function exportCampaignListPdf(
 
   const body = rows.map((r) => [
     r.campaignName,
-    r.status ?? "—",
-    (r.objective ?? "—").replace(/_/g, " "),
+    r.status ?? "-",
+    (r.objective ?? "-").replace(/_/g, " "),
     r.spend.toFixed(2),
     (r.leads ?? 0).toLocaleString(),
     (r.purchases ?? 0).toLocaleString(),
@@ -216,7 +216,7 @@ export function exportCampaignDetailCsv(
       "Ad Name", `Spend (${currency})`, resultCol, "CTR %", "Impressions", "Clicks", `Cost / ${resultCol}`,
     ].join(","));
     for (const ad of ads) {
-      const cpr = ad.results > 0 ? (ad.spend / ad.results).toFixed(2) : "—";
+      const cpr = ad.results > 0 ? (ad.spend / ad.results).toFixed(2) : "-";
       sections.push([
         safeCell(ad.adName),
         ad.spend.toFixed(2),
@@ -299,7 +299,7 @@ export function exportCampaignDetailPdf(
 
     const adsRows = ads
       .map((ad) => {
-        const cpr = ad.results > 0 ? (ad.spend / ad.results).toFixed(2) : "—";
+        const cpr = ad.results > 0 ? (ad.spend / ad.results).toFixed(2) : "-";
         return `
           <tr>
             <td style="padding:8px 10px;border-top:1px solid #e5e7eb">${ad.adName}</td>
@@ -361,7 +361,7 @@ export function exportCampaignDetailPdf(
           </tr>
         </thead>
         <tbody>
-          ${adsRows || `<tr><td colspan="7" style="padding:10px;color:#6b7280;border-top:1px solid #e5e7eb">—</td></tr>`}
+          ${adsRows || `<tr><td colspan="7" style="padding:10px;color:#6b7280;border-top:1px solid #e5e7eb">-</td></tr>`}
         </tbody>
       </table>
 
@@ -476,7 +476,7 @@ export function exportCampaignDetailPdf(
       startY: currentY,
       head: [["Ad Name", `Spend (${currency})`, resultCol, "CTR %", "Impressions", "Clicks", `Cost / ${resultCol}`]],
       body: ads.map((ad) => {
-        const cpr = ad.results > 0 ? (ad.spend / ad.results).toFixed(2) : "—";
+        const cpr = ad.results > 0 ? (ad.spend / ad.results).toFixed(2) : "-";
         return [
           ad.adName,
           ad.spend.toFixed(2),

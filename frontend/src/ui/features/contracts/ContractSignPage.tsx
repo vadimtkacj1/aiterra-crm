@@ -5,6 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import SignaturePad from "signature_pad";
 import type { ContractPublic } from "../../../domain/Contract";
+import { PdfViewer } from "./PdfViewer";
 import { renderContractBody } from "./contractBodyRenderer";
 
 function fmtMoney(amount: number, currency: string) {
@@ -392,16 +393,9 @@ export function ContractSignPage() {
                     {t("contracts.sign.openPdf")}
                   </Button>
                 </div>
-                <iframe
-                  src={`data:application/pdf;base64,${contract.pdfBase64}`}
-                  style={{
-                    width: "100%",
-                    height: "80vh",
-                    minHeight: 600,
-                    border: "1px solid rgba(15,23,42,.1)",
-                    borderRadius: 12,
-                  }}
-                  title="contract-pdf"
+                <PdfViewer
+                  base64={contract.pdfBase64}
+                  style={{ border: "1px solid rgba(15,23,42,.1)", borderRadius: 12, overflow: "hidden" }}
                 />
               </div>
             )}

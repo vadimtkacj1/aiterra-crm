@@ -267,6 +267,7 @@ def _queue_signed_contract_email(
     title: str,
     signer_name: str,
     pdf_bytes: bytes | None,
+    signature_png_bytes: bytes | None = None,
     locale: str | None = None,
 ) -> None:
     if not to_email or not settings.smtp_host:
@@ -293,6 +294,7 @@ def _queue_signed_contract_email(
         subject,
         body_text,
         pdf_bytes,
+        signature_png_bytes,
         _attachment_filename(contract_id, title),
     )
 
@@ -328,6 +330,14 @@ def sign_contract(
         except Exception:
             pass
 
+    signature_png_bytes: bytes | None = None
+    sig_b64 = body.signaturePngBase64
+    if sig_b64 and sig_b64.strip():
+        try:
+            signature_png_bytes = base64.b64decode(sig_b64.strip())
+        except Exception:
+            pass
+
     c.signature_png_base64 = body.signaturePngBase64
     c.signer_name = body.signerName.strip()
     c.signer_position = body.signerPosition or None
@@ -348,6 +358,7 @@ def sign_contract(
                 c.title,
                 c.signer_name or "",
                 original_pdf_bytes,
+                signature_png_bytes,
                 body.locale,
             )
     elif to_addresses and not settings.smtp_host:

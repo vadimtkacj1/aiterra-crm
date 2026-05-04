@@ -6,6 +6,7 @@ import logging
 import smtplib
 import ssl
 from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -19,10 +20,12 @@ def send_signed_contract_pdf(
     subject: str,
     body_text: str,
     pdf_bytes: bytes | None,
+    signature_png_bytes: bytes | None,
     attachment_filename: str,
 ) -> bool:
     """
-    Send email, optionally with a PDF attachment. Returns True if sent, False on misconfiguration or failure.
+    Send email with optional PDF and signature image attachments.
+    Returns True if sent, False on misconfiguration or failure.
     """
     mail_from = settings.smtp_from_effective
     if not settings.smtp_host or not mail_from:
@@ -41,6 +44,11 @@ def send_signed_contract_pdf(
         part = MIMEApplication(pdf_bytes, _subtype="pdf")
         part.add_header("Content-Disposition", "attachment", filename=attachment_filename)
         msg.attach(part)
+
+    if signature_png_bytes:
+        img = MIMEImage(signature_png_bytes, _subtype="png")
+        img.add_header("Content-Disposition", "attachment", filename="signature.png")
+        msg.attach(img)
 
     if not settings.smtp_user or not settings.smtp_password:
         logger.warning("SMTP host set but EMAIL_USER / EMAIL_PASSWORD missing — cannot log in")

@@ -42,9 +42,7 @@ export function PdfViewer({ base64, style }: Props) {
         if (!canvas) break;
         canvas.width = scaled.width;
         canvas.height = scaled.height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) break;
-        await page.render({ canvasContext: ctx, viewport: scaled }).promise;
+        await page.render({ canvas, viewport: scaled }).promise;
       }
     });
 

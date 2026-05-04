@@ -1,8 +1,7 @@
 import * as pdfjs from "pdfjs-dist";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { useEffect, useRef } from "react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface Props {
   base64: string;
@@ -19,10 +18,18 @@ export function PdfViewer({ base64, style }: Props) {
     let cancelled = false;
     container.innerHTML = '<div style="color:#94a3b8;padding:16px;font-size:13px;text-align:center">טוען מסמך…</div>';
 
-    // Convert base64 → Uint8Array
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    // Strip data-URL prefix if present, remove whitespace
+    const raw = (base64.includes(",") ? base64.split(",")[1] : base64).replace(/\s/g, "");
+    let bytes: Uint8Array;
+    try {
+      const binary = atob(raw);
+      bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    } catch (e) {
+      console.error("[PdfViewer] atob failed:", e);
+      container.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:13px">שגיאה בטעינת המסמך</div>';
+      return;
+    }
 
     const task = pdfjs.getDocument({ data: bytes });
 
@@ -53,7 +60,8 @@ export function PdfViewer({ base64, style }: Props) {
           await page.render({ canvas, viewport: scaled }).promise;
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.error("[PdfViewer] render error:", err);
         if (cancelled) return;
         container.innerHTML =
           '<div style="color:#ef4444;padding:12px;font-size:13px">שגיאה בטעינת המסמך</div>';

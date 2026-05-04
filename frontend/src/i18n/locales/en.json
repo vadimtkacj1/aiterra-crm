@@ -860,6 +860,7 @@
       "total": "Total due",
       "totalLabel": "Total amount",
       "attachedPdf": "Attached document",
+      "openPdf": "Open in new tab →",
       "yourName": "Your full name",
       "yourNamePlaceholder": "Enter your full name as on ID",
       "yourPosition": "Your role / title",

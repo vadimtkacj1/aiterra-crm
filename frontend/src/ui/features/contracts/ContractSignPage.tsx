@@ -214,8 +214,17 @@ export function ContractSignPage() {
   }
 
   if (done || contract.status === "signed") {
-    const pdfHref = contract.pdfBase64 ? `data:application/pdf;base64,${contract.pdfBase64}` : null;
     const safeName = `${(contract.title || "contract").replace(/[^\w\-]+/g, "_").slice(0, 60) || "contract"}.pdf`;
+    const downloadPdf = () => {
+      if (!contract.pdfBase64) return;
+      const bytes = Uint8Array.from(atob(contract.pdfBase64), (c) => c.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = safeName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    };
     return (
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div
@@ -235,8 +244,8 @@ export function ContractSignPage() {
             {t("contracts.sign.successTitle")}
           </Typography.Title>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {pdfHref ? (
-              <Button type="primary" href={pdfHref} download={safeName} style={{ borderRadius: 10, height: 44 }}>
+            {contract.pdfBase64 ? (
+              <Button type="primary" onClick={downloadPdf} style={{ borderRadius: 10, height: 44 }}>
                 {t("contracts.sign.downloadSignedPdf")}
               </Button>
             ) : null}
@@ -365,14 +374,30 @@ export function ContractSignPage() {
 
             {contract.pdfBase64 && (
               <div style={{ marginBottom: 24 }}>
-                <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
-                  {t("contracts.sign.attachedPdf")}
-                </Typography.Text>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    {t("contracts.sign.attachedPdf")}
+                  </Typography.Text>
+                  <Button
+                    size="small"
+                    type="link"
+                    style={{ padding: 0, fontSize: 12 }}
+                    onClick={() => {
+                      const bytes = Uint8Array.from(atob(contract.pdfBase64!), (c) => c.charCodeAt(0));
+                      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+                      window.open(url, "_blank");
+                      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+                    }}
+                  >
+                    {t("contracts.sign.openPdf")}
+                  </Button>
+                </div>
                 <iframe
                   src={`data:application/pdf;base64,${contract.pdfBase64}`}
                   style={{
                     width: "100%",
-                    height: 480,
+                    height: "80vh",
+                    minHeight: 600,
                     border: "1px solid rgba(15,23,42,.1)",
                     borderRadius: 12,
                   }}

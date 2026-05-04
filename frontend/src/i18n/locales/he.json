@@ -891,7 +891,7 @@
       "successTitle": "החוזה נחתם!",
       "successDesc": "השם, התפקיד והחתימה נוספו ל‑PDF (כאשר התבנית תומכת בכך). ניתן לסגור דף זה.",
       "emailNotice": "אם דוא\"ל מוגדר בשרת, עותק של ה‑PDF החתום נשלח לכתובת שהזנתם.",
-      "downloadSignedPdf": "הורדת PDF חתום",
+      "downloadSignedPdf": "הורדת PDF",
       "backToSite": "חזרה לאתר",
       "notFound": "החוזה לא נמצא",
       "alreadySigned": "החוזה כבר נחתם"

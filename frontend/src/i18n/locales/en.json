@@ -889,7 +889,7 @@
       "successTitle": "Contract signed!",
       "successDesc": "Your name, role, and signature have been added to the PDF (when the template supports it). You may close this page.",
       "emailNotice": "If email is configured on the server, a copy of the signed PDF is sent to the address you entered.",
-      "downloadSignedPdf": "Download signed PDF",
+      "downloadSignedPdf": "Download PDF",
       "backToSite": "Back to site",
       "notFound": "Contract not found",
       "alreadySigned": "This contract has already been signed"

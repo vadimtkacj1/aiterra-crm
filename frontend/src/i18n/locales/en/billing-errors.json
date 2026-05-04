@@ -1,0 +1,9 @@
+{
+  "billing": {
+    "errors": {
+      "noOpenInvoice": "No open invoice for this business.",
+      "noSavedCard": "Save a card on file first, then pay the invoice.",
+      "invoiceNotOpen": "This invoice is already paid or cannot be charged anymore."
+    }
+  }
+}

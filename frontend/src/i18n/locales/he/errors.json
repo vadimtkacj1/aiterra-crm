@@ -1,0 +1,14 @@
+{
+  "errors": {
+    "invalidCredentials": "אימייל או סיסמה שגויים",
+    "adminCannotSaveCard": "מנהלים לא יכולים להוסיף כרטיס כאן. התחבר כמשתמש העסק או בקש מהלקוח להוסיף כרטיס.",
+    "forbidden": "אין הרשאה",
+    "emailTaken": "האימייל כבר רשום",
+    "validation": "נא למלא את כל השדות הנדרשים",
+    "generic": "אירעה שגיאה",
+    "apiNotConfigured": "כתובת ה-API לא הוגדרה. הגדר את VITE_API_BASE_URL בסביבת ההרצה.",
+    "invalidCurrentPassword": "הסיסמה הנוכחית שגויה.",
+    "passwordTooShort": "הסיסמה החדשה חייבת להכיל לפחות 8 תווים.",
+    "passwordUnchanged": "הסיסמה החדשה חייבת להיות שונה מהנוכחית."
+  }
+}

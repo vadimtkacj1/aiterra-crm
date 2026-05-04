@@ -1,0 +1,14 @@
+{
+  "errors": {
+    "invalidCredentials": "Invalid email or password",
+    "adminCannotSaveCard": "Administrators cannot add a card here. Sign in as the business user, or ask the client to add their card.",
+    "forbidden": "You do not have permission",
+    "emailTaken": "This email is already registered",
+    "validation": "Please fill in all required fields",
+    "generic": "Something went wrong",
+    "apiNotConfigured": "API base URL is not configured. Set VITE_API_BASE_URL in your environment.",
+    "invalidCurrentPassword": "Current password is incorrect.",
+    "passwordTooShort": "New password must be at least 8 characters.",
+    "passwordUnchanged": "New password must be different from your current password."
+  }
+}

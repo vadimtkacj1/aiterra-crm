@@ -1,0 +1,16 @@
+{
+  "memberContracts": {
+    "title": "חוזים",
+    "subtitle": "הסכמים ולוח תשלומים לעסק זה.",
+    "empty": "אין חוזים עדיין. כשהסוכנות תשלח חוזה, הוא יופיע כאן.",
+    "loadError": "לא ניתן לטעון חוזים. נסו שוב.",
+    "colTitle": "כותרת",
+    "colTotal": "סה״כ",
+    "colStages": "תשלומים",
+    "colStatus": "סטטוס",
+    "colSigned": "נחתם",
+    "colAction": "פעולות",
+    "actionSign": "סקירה וחתימה",
+    "actionView": "פתיחה"
+  }
+}

@@ -1,21 +1,35 @@
 .crmDriverPopover {
-  max-width: min(420px, calc(100vw - 32px)) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.35) !important;
+  max-width: min(300px, calc(100vw - 24px)) !important;
+  min-width: 220px !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22) !important;
 }
 
 .crmDriverPopover .driver-popover-title {
-  font-size: 17px !important;
-  font-weight: 700 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  padding-right: 28px !important;
 }
 
 .crmDriverPopover .driver-popover-description {
-  font-size: 14px !important;
-  line-height: 1.55 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.crmDriverPopover .driver-popover-footer {
+  margin-top: 10px !important;
+}
+
+.crmDriverPopover .driver-popover-progress-text {
+  font-size: 12px !important;
 }
 
 .crmDriverPopover .driver-popover-footer button {
-  border-radius: 8px !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-size: 12px !important;
 }
 
 .driver-active-element {

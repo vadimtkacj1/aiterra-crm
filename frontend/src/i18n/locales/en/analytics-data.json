@@ -1,0 +1,65 @@
+{
+  "analytics": {
+    "table": {
+      "campaigns": "Campaigns",
+      "campaign": "Campaign",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "ctr": "CTR %",
+      "spend": "Spend",
+      "conversions": "Conversions",
+      "reach": "Reach",
+      "frequency": "Frequency",
+      "cpc": "CPC",
+      "cpm": "CPM",
+      "inlineLinkClicks": "Inline link clicks",
+      "inlineLinkClickCtr": "Inline link CTR %",
+      "costPerInlineLinkClick": "Cost / inline link click",
+      "uniqueClicks": "Unique clicks",
+      "uniqueCtr": "Unique CTR %",
+      "costPerUniqueClick": "Cost / unique click",
+      "outboundClicks": "Outbound clicks",
+      "linkClicks": "Link clicks (actions)",
+      "landingPageViews": "Landing page views",
+      "postEngagement": "Post engagement",
+      "videoViews": "Video / view content",
+      "actionsDetail": "Actions (Meta breakdown)",
+      "noActionsDetail": "No action breakdown for this row in the selected period.",
+      "moreMetrics": "More metrics & actions",
+      "rowCount": "{{count}} campaigns"
+    },
+    "stats": {
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "spend": "Spend",
+      "conversions": "Conversions",
+      "reach": "Reach",
+      "frequency": "Frequency",
+      "cpc": "CPC",
+      "cpm": "CPM",
+      "inlineLinkClicks": "Inline link clicks",
+      "uniqueClicks": "Unique clicks",
+      "landingPageViews": "Landing page views",
+      "postEngagement": "Post engagement",
+      "videoViews": "Video / view content"
+    },
+    "empty": {
+      "title": "No data for this period",
+      "description": "Either nothing was spent or delivered in this date range, or the ad account returned no rows yet. This page only exists for businesses with Meta linked. If the list should not be empty, ask your administrator to confirm the integration, then refresh.",
+      "nextSteps": "Try a wider date range, clear search and set the status filter to “All”, then refresh. If it stays empty right after a new link, wait briefly for data to sync. The CRM guide explains how Meta fits in when it is enabled.",
+      "openHelp": "Open CRM guide"
+    },
+    "chart": {
+      "spendByCampaign": "Spend by campaign",
+      "performancePerCampaign": "Impressions / Clicks / Conversions per campaign",
+      "clicksBreakdown": "Clicks breakdown per campaign",
+      "reachFrequency": "Reach & Frequency per campaign",
+      "ctrPerCampaign": "CTR per campaign",
+      "costMetrics": "Cost metrics per campaign",
+      "engagementPerCampaign": "Engagement per campaign",
+      "actionBreakdown": "Action breakdown (all campaigns)",
+      "actions": "Actions",
+      "dailyTrend": "Daily trend: Spend / Impressions / Clicks"
+    }
+  }
+}

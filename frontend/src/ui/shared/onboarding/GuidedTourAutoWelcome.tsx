@@ -73,33 +73,33 @@ export function GuidedTourAutoWelcome({
       closable={false}
       centered
       maskClosable={false}
-      width="min(520px, 94vw)"
+      width="min(420px, 92vw)"
       styles={{
         root: { padding: 0 },
         container: {
-          borderRadius: token.borderRadiusLG * 2,
+          borderRadius: token.borderRadiusLG * 1.5,
           overflow: "hidden",
           boxShadow: token.boxShadowSecondary,
           border: `1px solid ${token.colorBorderSecondary}`,
         },
-        body: { padding: "28px 28px 24px" },
-        mask: { backdropFilter: "blur(6px)" },
+        body: { padding: "20px 20px 16px" },
+        mask: { backdropFilter: "blur(4px)" },
       }}
     >
-      <Typography.Title level={4} style={{ margin: "0 0 4px", color: token.colorTextHeading }}>
+      <Typography.Title level={5} style={{ margin: "0 0 2px", color: token.colorTextHeading }}>
         {t("tour.welcomeTitle")}
       </Typography.Title>
-      <Typography.Text type="secondary" style={{ display: "block", marginBottom: 18, fontSize: 14 }}>
+      <Typography.Text type="secondary" style={{ display: "block", marginBottom: 12, fontSize: 13 }}>
         {t("tour.welcomeBrand")}
       </Typography.Text>
-      <Typography.Paragraph style={{ marginBottom: 22, fontSize: 15, lineHeight: 1.6, color: token.colorText }}>
+      <Typography.Paragraph style={{ marginBottom: 16, fontSize: 14, lineHeight: 1.55, color: token.colorText }}>
         {isMobile ? t("tour.welcomeBodyMobile") : t("tour.welcomeBodyDesktop")}
       </Typography.Paragraph>
-      <Flex gap={12} justify="flex-end" wrap="wrap">
-        <Button size="large" onClick={onSkip}>
+      <Flex gap={10} justify="flex-end" wrap="wrap">
+        <Button onClick={onSkip}>
           {t("tour.skip")}
         </Button>
-        <Button type="primary" size="large" onClick={onPrimary}>
+        <Button type="primary" onClick={onPrimary}>
           {isMobile ? t("tour.gotIt") : t("tour.start")}
         </Button>
       </Flex>

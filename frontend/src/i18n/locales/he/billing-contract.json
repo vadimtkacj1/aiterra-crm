@@ -1,0 +1,33 @@
+{
+  "billing": {
+    "contract": {
+      "stepWizardSign": "הסכמה",
+      "stepWizardPay": "תשלום",
+      "stepTitle": "סקירה וחתימה",
+      "stepIntro": "קראו את הסיכום והתנאים, ואז חתמו דיגיטלית. התשלום יתבצע רק בשלב הבא.",
+      "pdfPreviewLabel": "תצוגה מקדימה",
+      "pdfTitle": "הסכם תשלום",
+      "paymentSection": "סכום לתשלום",
+      "amountLine": "סה״כ: {{amount}}",
+      "pdfFooter": "חשבון עסק #{{accountId}} · נוצר לתשלום",
+      "localizedTermsLabel": "תנאים (טקסט מלא)",
+      "clause1": "אתם מאשרים חיוב של הסכום המוצג עבור השירות או החשבונית המפורטים בתשלום זה.",
+      "clause2": "חיובים חוזרים (אם קיימים) יבוצעו לפי התוכנית ומחזור החיוב שצוין בהזמנה, עד לביטול בהתאם למדיניות הביטולים.",
+      "clause3": "התשלומים מעובדים אצל ספק הסליקה; פרטי כרטיס עשויים לעבור טוקניזציה במערכותיו.",
+      "clause4": "אתם מאשרים שיש לכם הרשאה להשתמש באמצעי התשלום שתספקו.",
+      "clause5": "החזרים, ביטולים ומחלוקות לפי מדיניות הביטולים ומדיניות הפרטיות המופיעות במערכת.",
+      "enClause1": "You authorize the charge of the amount shown for the service or invoice described in this checkout.",
+      "enClause2": "Any recurring charges follow the stated plan and billing cycle until cancelled in line with the published cancellation policy.",
+      "enClause3": "Payments are processed by the payment provider; card data may be tokenized on their systems.",
+      "enClause4": "You confirm you are authorized to use the payment method you provide.",
+      "enClause5": "Refunds, cancellations, and disputes are governed by the cancellation and privacy policies available in the app.",
+      "signatureLabel": "חתימתכם",
+      "signatureHint": "חתמו בתיבה (עכבר, אצבע או עט).",
+      "clearSignature": "נקה",
+      "readCheckbox": "קראתי ואני מסכים/ה לתנאים לעיל.",
+      "continueToPayment": "המשך לתשלום",
+      "savedOk": "ההסכמה נשמרה. אפשר להמשיך לתשלום.",
+      "savedFail": "לא ניתן לשמור את החתימה. נסו שוב."
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "admin": {
+    "stats": {
+      "title": "סטטיסטיקת מערכת",
+      "users": "סה\"כ משתמשים",
+      "admins": "מנהלי מערכת",
+      "regularUsers": "משתמשים רגילים",
+      "accounts": "חשבונות",
+      "campaigns": "קמפיינים מעוקבים",
+      "metaConnectedHint": "Meta Marketing API מחובר ופעיל",
+      "revenue": "סכום ששולם",
+      "paid": "שולם",
+      "unpaid": "לא שולם",
+      "paymentsChart": "הכנסות",
+      "filterYear": "שנה",
+      "thisWeek": "השבוע",
+      "thisMonth": "החודש",
+      "thisYear": "השנה",
+      "views": "פעילות חשבוניות",
+      "categoryProportion": "הכנסות לפי מטבע",
+      "downloadExecutivePdf": "דוח PDF למנהלים",
+      "exportUsersCsv": "ייצוא משתמשים (CSV)",
+      "exportBillingCsv": "ייצוא חיובים (CSV)",
+      "exportPdfOk": "הקובץ הורד.",
+      "exportCsvOk": "הקובץ הורד.",
+      "exportFail": "ההורדה נכשלה. נסו שוב."
+    }
+  }
+}

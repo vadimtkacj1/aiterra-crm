@@ -1,0 +1,65 @@
+{
+  "analytics": {
+    "table": {
+      "campaigns": "קמפיינים",
+      "campaign": "קמפיין",
+      "impressions": "חשיפות",
+      "clicks": "קליקים",
+      "ctr": "CTR %",
+      "spend": "הוצאה",
+      "conversions": "המרות",
+      "reach": "הגעה",
+      "frequency": "תדירות",
+      "cpc": "CPC",
+      "cpm": "CPM",
+      "inlineLinkClicks": "קליקים לקישור פנימי",
+      "inlineLinkClickCtr": "CTR קישור פנימי %",
+      "costPerInlineLinkClick": "עלות לקליק קישור פנימי",
+      "uniqueClicks": "קליקים ייחודיים",
+      "uniqueCtr": "CTR ייחודי %",
+      "costPerUniqueClick": "עלות לקליק ייחודי",
+      "outboundClicks": "קליקים יוצאים",
+      "linkClicks": "קליקי קישור (פעולות)",
+      "landingPageViews": "צפיות בדף נחיתה",
+      "postEngagement": "מעורבות בפוסט",
+      "videoViews": "צפיות בווידאו / תוכן",
+      "actionsDetail": "פעולות (פירוט Meta)",
+      "noActionsDetail": "אין פירוט פעולות לשורה זו בתקופה שנבחרה.",
+      "moreMetrics": "מדדים נוספים ופעולות",
+      "rowCount": "{{count}} קמפיינים"
+    },
+    "stats": {
+      "impressions": "חשיפות",
+      "clicks": "קליקים",
+      "spend": "הוצאה",
+      "conversions": "המרות",
+      "reach": "הגעה",
+      "frequency": "תדירות",
+      "cpc": "CPC",
+      "cpm": "CPM",
+      "inlineLinkClicks": "קליקים לקישור פנימי",
+      "uniqueClicks": "קליקים ייחודיים",
+      "landingPageViews": "צפיות בדף נחיתה",
+      "postEngagement": "מעורבות בפוסט",
+      "videoViews": "צפיות בווידאו / תוכן"
+    },
+    "empty": {
+      "title": "אין נתונים לתקופה זו",
+      "description": "או שלא הייתה הוצאה/תוצאות בטווח התאריכים, או שלא חזרו שורות מהחשבון המפרסם. הדף קיים רק לעסקים עם Meta מקושר. אם הרשימה לא אמורה להיות ריקה, בקשו מהמנהל לוודא את האינטגרציה ואז לרענן.",
+      "nextSteps": "לנסות טווח תאריכים רחב יותר, לנקות חיפוש ולהגדיר מסנן סטטוס ל«הכל», ואז לרענן. אם אחרי קישור חדש זה נשאר ריק, לחכות רגע לסנכרון נתונים. במדריך ה‑CRM מוסבר איך Meta משתלב כשהוא מופעל.",
+      "openHelp": "פתיחת מדריך CRM"
+    },
+    "chart": {
+      "spendByCampaign": "הוצאה לפי קמפיין",
+      "performancePerCampaign": "חשיפות / קליקים / המרות לפי קמפיין",
+      "clicksBreakdown": "פירוט קליקים לפי קמפיין",
+      "reachFrequency": "הגעה ותדירות לפי קמפיין",
+      "ctrPerCampaign": "CTR לפי קמפיין",
+      "costMetrics": "מדדי עלות לפי קמפיין",
+      "engagementPerCampaign": "מעורבות לפי קמפיין",
+      "actionBreakdown": "פירוט פעולות (כל הקמפיינים)",
+      "actions": "פעולות",
+      "dailyTrend": "טרנד יומי: הוצאה / חשיפות / קליקים"
+    }
+  }
+}

@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../app/AppProviders";
 import { accountPath, Paths } from "../navigation/paths";
+import { GuidedTourProvider } from "../shared/onboarding/guidedTourContext";
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 import { useLayoutAccount } from "./useLayoutAccount";
@@ -102,7 +103,8 @@ export function MainLayout() {
   const userEmail = session?.user.email ?? "";
 
   return (
-    <Layout style={{ minHeight: "100vh", alignItems: "stretch" }}>
+    <GuidedTourProvider isAdmin={isAdmin} showAccountContext={showAccountContext}>
+      <Layout style={{ minHeight: "100vh", alignItems: "stretch" }}>
       <AppSidebar
         isMobile={isMobile}
         drawerOpen={drawerOpen}
@@ -143,5 +145,6 @@ export function MainLayout() {
         </Content>
       </Layout>
     </Layout>
+    </GuidedTourProvider>
   );
 }

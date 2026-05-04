@@ -1,0 +1,21 @@
+{
+  "admin": {
+    "metaConnect": {
+      "title": "אינטגרציית Meta Ads",
+      "description": "הדבק טוקן גישה של משתמש מערכת Meta, טען את חשבונות הפרסום ובחר אחד לחיבור.",
+      "alreadyConnected": "Meta Marketing API מחובר ופעיל.",
+      "accessToken": "טוקן גישה",
+      "accessTokenPlaceholder": "EAAxxxxxxxxxxxxxxx",
+      "adAccount": "חשבון פרסום",
+      "adAccountPlaceholder": "טען חשבונות תחילה",
+      "loadAccounts": "טעינה",
+      "connect": "חיבור",
+      "tokenRequired": "הזן טוקן גישה תחילה.",
+      "selectAccount": "בחר חשבון פרסום.",
+      "noAccounts": "לא נמצאו חשבונות פרסום עבור טוקן זה.",
+      "loadAccountsError": "לא ניתן לטעון חשבונות פרסום.",
+      "success": "Meta חובר בהצלחה.",
+      "connectError": "חיבור Meta נכשל."
+    }
+  }
+}

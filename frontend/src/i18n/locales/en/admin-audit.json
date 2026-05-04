@@ -1,0 +1,17 @@
+{
+  "admin": {
+    "audit": {
+      "menuTitle": "Audit & security",
+      "title": "Admin audit log",
+      "subtitle": "Who changed billing, users, and exports (newest first).",
+      "loadError": "Could not load audit log.",
+      "columns": {
+        "time": "Time",
+        "admin": "Administrator",
+        "action": "Action",
+        "resource": "Resource",
+        "detail": "Detail"
+      }
+    }
+  }
+}

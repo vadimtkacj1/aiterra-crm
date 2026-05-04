@@ -1,0 +1,20 @@
+{
+  "analytics": {
+    "period": {
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "last90Days": "Last 90 days",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "thisYear": "This Year"
+    },
+    "meta": {
+      "title": "Meta (Facebook / Instagram) analytics"
+    },
+    "google": {
+      "title": "Google Ads analytics",
+      "description": "Summary of search and Performance Max campaigns. Connect Google Ads API on the server."
+    },
+    "loadError": "Could not load data"
+  }
+}

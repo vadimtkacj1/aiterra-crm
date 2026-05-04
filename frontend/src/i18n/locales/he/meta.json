@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "goalType": {
+      "leads": "לידים",
+      "sales": "מכירות",
+      "engagement": "מעורבות",
+      "traffic": "תנועה",
+      "general": "אחר"
+    },
+    "result": {
+      "leads": "לידים",
+      "purchasesRoas": "רכישות / ROAS",
+      "postEngagement": "מעורבות בפוסט",
+      "videoViews": "צפיות בסרטון",
+      "linkClicks": "קליקים לקישור",
+      "conversions": "המרות",
+      "engagements": "מעורבות"
+    },
+    "panel": {
+      "status": "סטטוס",
+      "objective": "מטרה",
+      "goalType": "סוג מטרה",
+      "result": "תוצאה",
+      "searchPlaceholder": "חיפוש קמפיינים…",
+      "filterAll": "כל הסטטוסים",
+      "filterActive": "פעיל",
+      "filterPaused": "מושהה",
+      "updatedAt": "עודכן ב‑{{time}}",
+      "exportCsv": "ייצוא CSV",
+      "goalMixed": "מטרות מעורבות",
+      "goalMixedValue": "ראו לפי שורה",
+      "portfolioLeads": "לידים ב‑Meta",
+      "portfolioSales": "רכישות · ROAS",
+      "portfolioEngagement": "מעורבות בפוסט",
+      "portfolioVideoViews": "צפיות בסרטון",
+      "portfolioLinkClicks": "קליקים לקישור"
+    },
+    "deepdive": {
+      "backToCampaigns": "כל הקמפיינים",
+      "leads": "לידים",
+      "purchases": "רכישות",
+      "purchaseValue": "ערך רכישות",
+      "costPerLead": "עלות / ליד",
+      "costPerPurchase": "עלות / רכישה",
+      "costPerResult": "עלות / תוצאה",
+      "costPerVideoView": "עלות / צפייה",
+      "costPerEngagement": "עלות / מעורבות",
+      "costPerLinkClick": "עלות / קליק לקישור",
+      "metricsTitle": "מדדי קמפיין",
+      "creativesTitle": "קריאייטיבים",
+      "manageColumns": "ניהול עמודות",
+      "manageColumnsHint": "בחר את המדדים להצגה בטבלה.",
+      "selectAll": "בחר הכל",
+      "resetColumns": "איפוס"
+    },
+    "creatives": {
+      "noAds": "לא נמצאו מודעות לקמפיין זה בתקופה הנבחרת.",
+      "resultsGeneric": "תוצאות",
+      "sortBy": "מיון לפי",
+      "sortSpend": "הוצאה",
+      "sortResults": "תוצאות",
+      "sortCtr": "CTR",
+      "costPerResult": "עלות / תוצאה",
+      "watchOnFacebook": "צפייה בפייסבוק",
+      "adSingular": "מודעה",
+      "adPlural": "מודעות"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "admin": {
+    "contracts": {
+      "title": "Contracts",
+      "create": "New Contract",
+      "createdSuccess": "Contract created",
+      "sentSuccess": "Contract sent to client",
+      "voidedSuccess": "Contract voided",
+      "voidConfirmTitle": "Void this contract?",
+      "voidConfirmContent": "The client will no longer be able to sign it.",
+      "deletedSuccess": "Contract deleted",
+      "deleteConfirmTitle": "Delete this contract?",
+      "deleteConfirmContent": "This action is permanent and cannot be undone.",
+      "delete": "Delete",
+      "send": "Send to client",
+      "void": "Void",
+      "copyLink": "Copy sign link",
+      "linkCopied": "Copied!",
+      "signLink": "Signing link (share with client)",
+      "viewDetail": "View",
+      "signedBy": "Signed by {{name}} on {{date}}",
+      "signedPosition": "Role: {{position}}",
+      "signedCopyEmail": "Signed PDF sent to: {{email}}",
+      "status": {
+        "draft": "Draft",
+        "pending_signature": "Awaiting signature",
+        "signed": "Signed",
+        "voided": "Voided"
+      },
+      "columns": {
+        "account": "Account",
+        "title": "Title",
+        "total": "Total",
+        "stages": "Stages",
+        "status": "Status",
+        "signedAt": "Signed"
+      },
+      "form": {
+        "account": "Client account",
+        "accountPlaceholder": "Search client...",
+        "title": "Contract title",
+        "currency": "Currency",
+        "body": "Contract terms",
+        "bodyPlaceholder": "Enter the contract terms...",
+        "bodyFormatHint": "Line breaks are preserved. The client sees the same paragraphs on the signing page.",
+        "stages": "Payment stages",
+        "addStage": "Add stage",
+        "stageDescription": "Description (e.g. First payment)",
+        "stagesRequired": "Add at least one payment stage",
+        "equalSplitTitle": "Split into equal payments",
+        "equalSplitHint": "Enter the contract total and how many payments (e.g. half now / half later = 2). You can edit each row after applying.",
+        "equalSplitTotal": "Total amount",
+        "equalSplitParts": "Number of payments",
+        "equalSplitApply": "Fill stages",
+        "equalSplitInvalid": "Enter a positive total and at least 2 payments.",
+        "equalSplitApplied": "Payment stages updated",
+        "equalStageLabel": "Payment {{current}} of {{total}}",
+        "pdf": "PDF attachment",
+        "pdfUpload": "Upload PDF",
+        "pdfRemove": "Remove PDF"
+      }
+    }
+  }
+}

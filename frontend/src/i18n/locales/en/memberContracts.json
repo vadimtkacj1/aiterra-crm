@@ -1,0 +1,16 @@
+{
+  "memberContracts": {
+    "title": "Contracts",
+    "subtitle": "Agreements and payment schedules for this business.",
+    "empty": "No contracts yet. When your agency sends a contract, it will appear here.",
+    "loadError": "Could not load contracts. Try again.",
+    "colTitle": "Title",
+    "colTotal": "Total",
+    "colStages": "Payments",
+    "colStatus": "Status",
+    "colSigned": "Signed",
+    "colAction": "Actions",
+    "actionSign": "Review & sign",
+    "actionView": "Open"
+  }
+}

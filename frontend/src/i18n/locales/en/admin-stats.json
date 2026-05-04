@@ -1,0 +1,29 @@
+{
+  "admin": {
+    "stats": {
+      "title": "System Statistics",
+      "users": "Total users",
+      "admins": "Administrators",
+      "regularUsers": "Regular users",
+      "accounts": "Accounts",
+      "campaigns": "Tracked campaigns",
+      "metaConnectedHint": "Meta Marketing API is connected and active",
+      "revenue": "Paid amount",
+      "paid": "Paid",
+      "unpaid": "Unpaid",
+      "paymentsChart": "Revenue",
+      "filterYear": "Year",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "thisYear": "This Year",
+      "views": "Invoice Activity",
+      "categoryProportion": "Revenue by Currency",
+      "downloadExecutivePdf": "Executive PDF",
+      "exportUsersCsv": "Export users (CSV)",
+      "exportBillingCsv": "Export billing (CSV)",
+      "exportPdfOk": "PDF downloaded.",
+      "exportCsvOk": "CSV downloaded.",
+      "exportFail": "Download failed. Try again."
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "admin": {
+    "topup": {
+      "title": "תקציב Meta Ads",
+      "selectAccount": "חשבון לקוח",
+      "selectAccountPlaceholder": "בחר חשבון",
+      "savedCard": "כרטיס שמור",
+      "loadingCard": "בודק כרטיס...",
+      "cardFound": "כרטיס קיים",
+      "noCard": "אין כרטיס. הלקוח צריך להוסיף קודם",
+      "noCardHint": "כרטיסים נוספים רק על ידי הלקוח תחת תשלומים ומנויים (חיוב) בחשבון העסק שלו, לא ממסך הניהול.",
+      "colTopup": "טעינה",
+      "amount": "סכום",
+      "currency": "מטבע",
+      "submit": "חייב כרטיס ושלח ל-Meta",
+      "history": "היסטוריית טעינת Meta (ישן)",
+      "colDate": "תאריך",
+      "colAccount": "חשבון",
+      "colAmount": "סכום",
+      "colStatus": "סטטוס",
+      "colError": "שגיאת Meta",
+      "statusSent": "נשלח ל-Meta",
+      "statusFailed": "נכשל",
+      "statusPending": "ממתין",
+      "successMsg": "{{amount}} {{currency}} נשלח ל-Meta בהצלחה",
+      "failedMsg": "Meta דחה את התשלום",
+      "accountsTitle": "חשבונות לקוחות: סטטוס כרטיס",
+      "colCardStatus": "כרטיס",
+      "colCardDetails": "פרטי כרטיס",
+      "cardConnected": "מחובר",
+      "cardMissing": "לא מחובר",
+      "selectForPayment": "תשלום",
+      "colActions": "פעולות"
+    }
+  }
+}

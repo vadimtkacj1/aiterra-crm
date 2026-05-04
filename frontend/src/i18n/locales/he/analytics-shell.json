@@ -1,0 +1,20 @@
+{
+  "analytics": {
+    "period": {
+      "last7Days": "7 הימים האחרונים",
+      "last30Days": "30 הימים האחרונים",
+      "last90Days": "90 הימים האחרונים",
+      "thisWeek": "השבוע",
+      "thisMonth": "החודש",
+      "thisYear": "השנה"
+    },
+    "meta": {
+      "title": "אנליטיקה של Meta (פייסבוק / אינסטגרם)"
+    },
+    "google": {
+      "title": "אנליטיקה של Google Ads",
+      "description": "סיכום קמפייני חיפוש ו‑Performance Max. חברו את Google Ads API בצד השרת."
+    },
+    "loadError": "לא ניתן לטעון נתונים"
+  }
+}

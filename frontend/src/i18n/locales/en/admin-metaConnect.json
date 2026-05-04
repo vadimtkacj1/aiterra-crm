@@ -1,0 +1,21 @@
+{
+  "admin": {
+    "metaConnect": {
+      "title": "Meta Ads integration",
+      "description": "Paste a Meta System User access token, load your ad accounts, then pick one to connect.",
+      "alreadyConnected": "Meta Marketing API is connected and active.",
+      "accessToken": "Access token",
+      "accessTokenPlaceholder": "EAAxxxxxxxxxxxxxxx",
+      "adAccount": "Ad account",
+      "adAccountPlaceholder": "Load accounts first",
+      "loadAccounts": "Load",
+      "connect": "Connect",
+      "tokenRequired": "Enter the access token first.",
+      "selectAccount": "Select an ad account.",
+      "noAccounts": "No ad accounts found for this token.",
+      "loadAccountsError": "Failed to load ad accounts.",
+      "success": "Meta connected successfully.",
+      "connectError": "Failed to connect Meta."
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "billing": {
+    "contract": {
+      "stepWizardSign": "Agreement",
+      "stepWizardPay": "Payment",
+      "stepTitle": "Review and sign",
+      "stepIntro": "Read the summary and terms, then sign digitally. You will pay on the next step only.",
+      "pdfPreviewLabel": "Document preview",
+      "pdfTitle": "Payment agreement",
+      "paymentSection": "Amount due",
+      "amountLine": "Total: {{amount}}",
+      "pdfFooter": "Business account #{{accountId}} · Generated for checkout",
+      "localizedTermsLabel": "Terms (full text)",
+      "clause1": "You authorize the business to charge the amount shown for the service or invoice described in this checkout.",
+      "clause2": "Recurring charges (if any) follow the plan and billing cycle stated in your order until you cancel as described in the cancellation policy.",
+      "clause3": "Payments are processed by the payment provider; card data may be tokenized on their systems.",
+      "clause4": "You confirm that you are authorized to use the payment method you provide.",
+      "clause5": "For refunds, cancellations, and disputes, the cancellation policy and privacy policy linked in the app apply.",
+      "enClause1": "You authorize the charge of the amount shown for the service or invoice described in this checkout.",
+      "enClause2": "Any recurring charges follow the stated plan and billing cycle until cancelled in line with the published cancellation policy.",
+      "enClause3": "Payments are processed by the payment provider; card data may be tokenized on their systems.",
+      "enClause4": "You confirm you are authorized to use the payment method you provide.",
+      "enClause5": "Refunds, cancellations, and disputes are governed by the cancellation and privacy policies available in the app.",
+      "signatureLabel": "Your signature",
+      "signatureHint": "Sign in the box below (mouse, finger, or stylus).",
+      "clearSignature": "Clear",
+      "readCheckbox": "I have read and accept the terms above.",
+      "continueToPayment": "Continue to payment",
+      "savedOk": "Agreement saved. Proceed to payment.",
+      "savedFail": "Could not save your signature. Try again."
+    }
+  }
+}

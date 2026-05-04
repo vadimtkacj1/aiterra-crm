@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "goalType": {
+      "leads": "Leads",
+      "sales": "Sales",
+      "engagement": "Engagement",
+      "traffic": "Traffic",
+      "general": "Other"
+    },
+    "result": {
+      "leads": "Leads",
+      "purchasesRoas": "Purchases / ROAS",
+      "postEngagement": "Post engagements",
+      "videoViews": "Video views",
+      "linkClicks": "Link clicks",
+      "conversions": "Conversions",
+      "engagements": "Engagements"
+    },
+    "panel": {
+      "status": "Status",
+      "objective": "Objective",
+      "goalType": "Goal type",
+      "result": "Result",
+      "searchPlaceholder": "Search campaigns…",
+      "filterAll": "All statuses",
+      "filterActive": "Active",
+      "filterPaused": "Paused",
+      "updatedAt": "Updated {{time}}",
+      "exportCsv": "Export CSV",
+      "goalMixed": "Mixed campaign goals",
+      "goalMixedValue": "See each row",
+      "portfolioLeads": "On-Facebook leads",
+      "portfolioSales": "Purchases · ROAS",
+      "portfolioEngagement": "Post engagements",
+      "portfolioVideoViews": "Video views",
+      "portfolioLinkClicks": "Link clicks"
+    },
+    "deepdive": {
+      "backToCampaigns": "All campaigns",
+      "leads": "Leads",
+      "purchases": "Purchases",
+      "purchaseValue": "Purchase value",
+      "costPerLead": "Cost / Lead",
+      "costPerPurchase": "Cost / Purchase",
+      "costPerResult": "Cost / Result",
+      "costPerVideoView": "Cost / Video view",
+      "costPerEngagement": "Cost / Engagement",
+      "costPerLinkClick": "Cost / Link click",
+      "metricsTitle": "Campaign metrics",
+      "creativesTitle": "Ad creatives",
+      "manageColumns": "Manage columns",
+      "manageColumnsHint": "Select the metrics to display in the table.",
+      "selectAll": "Select all",
+      "resetColumns": "Reset"
+    },
+    "creatives": {
+      "noAds": "No ads found for this campaign in the selected period.",
+      "resultsGeneric": "Results",
+      "sortBy": "Sort by",
+      "sortSpend": "Spend",
+      "sortResults": "Results",
+      "sortCtr": "CTR",
+      "costPerResult": "Cost / Result",
+      "watchOnFacebook": "Watch on Facebook",
+      "adSingular": "ad",
+      "adPlural": "ads"
+    }
+  }
+}

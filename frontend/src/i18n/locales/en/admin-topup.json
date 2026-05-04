@@ -1,0 +1,36 @@
+{
+  "admin": {
+    "topup": {
+      "title": "Meta Ad Budget",
+      "selectAccount": "Client account",
+      "selectAccountPlaceholder": "Select account",
+      "savedCard": "Saved card",
+      "loadingCard": "Checking card...",
+      "cardFound": "Card on file",
+      "noCard": "No card saved, client must add one first",
+      "noCardHint": "Cards are added only by the client under Payments & subscriptions (billing) for their business account, not from Admin.",
+      "colTopup": "Top-up",
+      "amount": "Amount",
+      "currency": "Currency",
+      "submit": "Charge card & send to Meta",
+      "history": "Meta top-up history (legacy)",
+      "colDate": "Date",
+      "colAccount": "Account",
+      "colAmount": "Amount",
+      "colStatus": "Status",
+      "colError": "Meta error",
+      "statusSent": "Sent to Meta",
+      "statusFailed": "Failed",
+      "statusPending": "Pending",
+      "successMsg": "{{amount}} {{currency}} sent to Meta successfully",
+      "failedMsg": "Meta rejected the payment",
+      "accountsTitle": "Client accounts",
+      "colCardStatus": "Card",
+      "colCardDetails": "Card details",
+      "cardConnected": "Connected",
+      "cardMissing": "Not connected",
+      "selectForPayment": "Select",
+      "colActions": "Actions"
+    }
+  }
+}

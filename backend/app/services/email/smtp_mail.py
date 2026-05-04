@@ -70,11 +70,10 @@ def send_signed_contract_pdf(
         return True
     except smtplib.SMTPAuthenticationError as e:
         logger.error(
-            "SMTP authentication failed for user %s (535). Check: mailbox password in Namecheap "
-            "(webmail login with same user/pass), EMAIL_USER = full address, "
-            "quote EMAIL_PASSWORD in .env; try EMAIL_PORT=465, EMAIL_USE_SSL=true, EMAIL_USE_TLS=false; "
-            "EMAIL_FROM empty so it matches login; set EMAIL_EHLO_HOSTNAME=yourdomain.com if the server "
-            "rejects the PC hostname. Server said: %s",
+            "SMTP authentication failed for user %s (535). Check: correct mailbox password (Zoho: use app "
+            "password if 2FA is on), EMAIL_USER = full address, quote EMAIL_PASSWORD in .env; "
+            "try port 465 + EMAIL_USE_SSL=true + EMAIL_USE_TLS=false; From must match login; "
+            "EMAIL_EHLO_HOSTNAME=yourdomain.com if needed. Server said: %s",
             settings.smtp_user,
             getattr(e, "smtp_error", e),
         )

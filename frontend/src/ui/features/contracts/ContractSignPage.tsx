@@ -540,15 +540,22 @@ export function ContractSignPage() {
               <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
                 {t("contracts.sign.recipientEmailHint")}
               </Typography.Text>
-              <Input
-                size="large"
-                type="email"
-                autoComplete="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder={t("contracts.sign.recipientEmailPlaceholder")}
-                style={{ borderRadius: 10 }}
-              />
+              {/* LTR island: email must not inherit RTL or typing/cursor breaks in Hebrew UI */}
+              <div dir="ltr" lang="en" style={{ direction: "ltr" }}>
+                <Input
+                  size="large"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                  placeholder={t("contracts.sign.recipientEmailPlaceholder")}
+                  style={{ borderRadius: 10, textAlign: "left", unicodeBidi: "plaintext" }}
+                />
+              </div>
             </div>
 
             <div>

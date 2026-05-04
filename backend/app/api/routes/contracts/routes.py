@@ -316,8 +316,10 @@ def sign_contract(
     prior_pdf_b64 = c.pdf_base64
 
     owner_email, _ = common.account_owner_contact(db, c.account_id)
-    recipient_raw = str(body.recipientEmail).strip() if body.recipientEmail else None
-    delivery_email = recipient_raw or owner_email
+    signer_email = str(body.recipientEmail).strip() if body.recipientEmail else None
+
+    # Unique non-empty addresses: always notify owner + optionally copy signer
+    to_addresses = list(dict.fromkeys(e for e in [owner_email, signer_email] if e))
 
     original_pdf_bytes: bytes | None = None
     if prior_pdf_b64 and prior_pdf_b64.strip():
@@ -329,7 +331,7 @@ def sign_contract(
     c.signature_png_base64 = body.signaturePngBase64
     c.signer_name = body.signerName.strip()
     c.signer_position = body.signerPosition or None
-    c.signed_copy_email = delivery_email
+    c.signed_copy_email = signer_email or owner_email
     c.signed_at = signed_at
     c.status = "signed"
     # pdf_base64 is left unchanged — original PDF is kept as-is
@@ -337,17 +339,18 @@ def sign_contract(
     db.commit()
     db.refresh(c)
 
-    if delivery_email and settings.smtp_host:
-        background_tasks.add_task(
-            _queue_signed_contract_email,
-            delivery_email,
-            c.id,
-            c.title,
-            c.signer_name or "",
-            original_pdf_bytes,
-            body.locale,
-        )
-    elif delivery_email and not settings.smtp_host:
-        logger.info("Signed contract %s; SMTP not configured, skip email to %s", c.id, delivery_email)
+    if to_addresses and settings.smtp_host:
+        for addr in to_addresses:
+            background_tasks.add_task(
+                _queue_signed_contract_email,
+                addr,
+                c.id,
+                c.title,
+                c.signer_name or "",
+                original_pdf_bytes,
+                body.locale,
+            )
+    elif to_addresses and not settings.smtp_host:
+        logger.info("Signed contract %s; SMTP not configured, skip email to %s", c.id, to_addresses)
 
     return _contract_public_out(c)

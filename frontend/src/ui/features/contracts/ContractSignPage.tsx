@@ -373,32 +373,58 @@ export function ContractSignPage() {
               </div>
             )}
 
-            {contract.pdfBase64 && (
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    {t("contracts.sign.attachedPdf")}
-                  </Typography.Text>
-                  <Button
-                    size="small"
-                    type="link"
-                    style={{ padding: 0, fontSize: 12 }}
-                    onClick={() => {
-                      const bytes = Uint8Array.from(atob(contract.pdfBase64!), (c) => c.charCodeAt(0));
-                      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-                      window.open(url, "_blank");
-                      setTimeout(() => URL.revokeObjectURL(url), 10_000);
-                    }}
-                  >
-                    {t("contracts.sign.openPdf")}
-                  </Button>
+            {contract.pdfBase64 && (() => {
+              const openPdf = () => {
+                const bytes = Uint8Array.from(atob(contract.pdfBase64!), (c) => c.charCodeAt(0));
+                const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+                window.open(url, "_blank");
+                setTimeout(() => URL.revokeObjectURL(url), 10_000);
+              };
+              const isMobile = window.innerWidth < 768;
+              return (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      {t("contracts.sign.attachedPdf")}
+                    </Typography.Text>
+                    <Button size="small" type="link" style={{ padding: 0, fontSize: 12 }} onClick={openPdf}>
+                      {t("contracts.sign.openPdf")}
+                    </Button>
+                  </div>
+                  {isMobile ? (
+                    <button
+                      onClick={openPdf}
+                      style={{
+                        width: "100%",
+                        padding: "20px 16px",
+                        border: "2px dashed rgba(37,99,235,0.35)",
+                        borderRadius: 12,
+                        background: "linear-gradient(135deg,#eff6ff,#eef2ff)",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 8,
+                        color: "#1d4ed8",
+                        fontSize: 15,
+                        fontWeight: 600,
+                      }}
+                    >
+                      <span style={{ fontSize: 32 }}>📄</span>
+                      {t("contracts.sign.tapToViewPdf")}
+                      <span style={{ fontSize: 12, fontWeight: 400, color: "#64748b" }}>
+                        {t("contracts.sign.tapToViewPdfSub")}
+                      </span>
+                    </button>
+                  ) : (
+                    <PdfViewer
+                      base64={contract.pdfBase64}
+                      style={{ border: "1px solid rgba(15,23,42,.1)", borderRadius: 12, overflow: "hidden" }}
+                    />
+                  )}
                 </div>
-                <PdfViewer
-                  base64={contract.pdfBase64}
-                  style={{ border: "1px solid rgba(15,23,42,.1)", borderRadius: 12, overflow: "hidden" }}
-                />
-              </div>
-            )}
+              );
+            })()}
 
             {stageCount > 0 && (
               <div

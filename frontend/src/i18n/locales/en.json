@@ -861,6 +861,8 @@
       "totalLabel": "Total amount",
       "attachedPdf": "Attached document",
       "openPdf": "Open in new tab →",
+      "tapToViewPdf": "Tap to view document",
+      "tapToViewPdfSub": "Opens in browser",
       "yourName": "Your full name",
       "yourNamePlaceholder": "Enter your full name as on ID",
       "yourPosition": "Your role / title",

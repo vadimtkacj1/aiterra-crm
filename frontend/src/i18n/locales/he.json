@@ -863,6 +863,8 @@
       "totalLabel": "סה\"כ לתשלום",
       "attachedPdf": "מסמך מצורף",
       "openPdf": "פתח בטאב חדש ←",
+      "tapToViewPdf": "לחץ לצפייה במסמך",
+      "tapToViewPdfSub": "נפתח בדפדפן בנפרד",
       "yourName": "שם מלא",
       "yourNamePlaceholder": "כפי שמופיע בתעודה מזהה",
       "yourPosition": "תפקיד",

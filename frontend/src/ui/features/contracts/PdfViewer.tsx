@@ -1,7 +1,15 @@
 import * as pdfjs from "pdfjs-dist";
 import { useEffect, useRef } from "react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+let workerBlobUrl: string | null = null;
+
+async function getWorkerSrc(): Promise<string> {
+  if (workerBlobUrl) return workerBlobUrl;
+  const resp = await fetch("/pdf.worker.min.mjs");
+  const text = await resp.text();
+  workerBlobUrl = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
+  return workerBlobUrl;
+}
 
 interface Props {
   base64: string;
@@ -16,9 +24,9 @@ export function PdfViewer({ base64, style }: Props) {
     if (!container) return;
 
     let cancelled = false;
-    container.innerHTML = '<div style="color:#94a3b8;padding:16px;font-size:13px;text-align:center">טוען מסמך…</div>';
+    container.innerHTML =
+      '<div style="color:#94a3b8;padding:16px;font-size:13px;text-align:center">טוען מסמך…</div>';
 
-    // Strip data-URL prefix if present, remove whitespace
     const raw = (base64.includes(",") ? base64.split(",")[1] : base64).replace(/\s/g, "");
     let bytes: Uint8Array;
     try {
@@ -27,24 +35,29 @@ export function PdfViewer({ base64, style }: Props) {
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     } catch (e) {
       console.error("[PdfViewer] atob failed:", e);
-      container.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:13px">שגיאה בטעינת המסמך</div>';
+      container.innerHTML =
+        '<div style="color:#ef4444;padding:12px;font-size:13px">שגיאה בטעינת המסמך</div>';
       return;
     }
 
-    const task = pdfjs.getDocument({ data: bytes });
+    let task: ReturnType<typeof pdfjs.getDocument> | null = null;
 
-    task.promise
-      .then(async (pdf) => {
+    getWorkerSrc()
+      .then((workerSrc) => {
         if (cancelled) return;
+        pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+        task = pdfjs.getDocument({ data: bytes });
+        return task.promise;
+      })
+      .then(async (pdf) => {
+        if (!pdf || cancelled) return;
         container.innerHTML = "";
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           if (cancelled) break;
-
           const page = await pdf.getPage(pageNum);
           if (cancelled) break;
 
-          // clientWidth after paint should be non-zero; fallback to 360 on mobile
           const w = container.getBoundingClientRect().width || container.clientWidth || 360;
           const base = page.getViewport({ scale: 1 });
           const scaled = page.getViewport({ scale: w / base.width });
@@ -61,7 +74,7 @@ export function PdfViewer({ base64, style }: Props) {
         }
       })
       .catch((err: unknown) => {
-        console.error("[PdfViewer] render error:", err);
+        console.error("[PdfViewer] error:", err);
         if (cancelled) return;
         container.innerHTML =
           '<div style="color:#ef4444;padding:12px;font-size:13px">שגיאה בטעינת המסמך</div>';
@@ -69,7 +82,7 @@ export function PdfViewer({ base64, style }: Props) {
 
     return () => {
       cancelled = true;
-      task.destroy();
+      task?.destroy();
     };
   }, [base64]);
 

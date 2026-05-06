@@ -153,11 +153,7 @@ export function AdminPaymentsHistoryTable({
                     disabled={r.amount == null || r.amount <= 0}
                   />
                 </Tooltip>
-                {r.paymentUrl ? (
-                  <Tooltip title={t("admin.payments.payLinkCopy")}>
-                    <Button size="small" icon={<LinkOutlined />} onClick={() => onOpenPayLink(r)} />
-                  </Tooltip>
-                ) : null}
+                {/* Payment link disabled per request */}
                 {r.recordStatus === "active" ? (
                   <Popconfirm
                     title={t("admin.payments.revokeConfirmTitle")}

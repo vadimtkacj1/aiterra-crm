@@ -14,11 +14,9 @@ export function AdminPaymentsLibraryDrawer({ model }: Props) {
   const [linkModal, setLinkModal] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const openLinkModal = (row: BillingHistoryWithAccountRow) => {
-    const raw = row.paymentUrl;
-    if (!raw || !raw.trim()) return;
-    setLinkModal(raw);
-    setCopied(false);
+  const openLinkModal = (_row: BillingHistoryWithAccountRow) => {
+    // Disabled per request — no payment links shown
+    return;
   };
 
   const handleCopy = () => {

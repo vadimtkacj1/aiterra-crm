@@ -94,8 +94,6 @@ export function ContractSignPage() {
   const { message } = App.useApp();
 
   const [contract, setContract] = useState<ContractPublic | null>(null);
-  const alreadyPaidAmount = contract?.stages.reduce((sum, stage) => (stage.status === "paid" ? sum + stage.amount : sum), 0) ?? 0;
-  const allStagesPaid = contract?.stages.every((stage) => stage.status === "paid") ?? false;
   const nextStage = contract?.stages.find((stage) => stage.status !== "paid") ?? null;
   const nextStageAmountLabel = contract
     ? fmtMoney(nextStage ? nextStage.amount : contract.totalAmount, contract.currency)

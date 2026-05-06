@@ -1,18 +1,3 @@
-"""
-Contract management routes.
-
-Admin routes (require auth + admin role):
-  POST   /api/admin/contracts               — create contract
-  GET    /api/admin/contracts               — list (optional ?account_id=)
-  GET    /api/admin/contracts/{id}          — get with stages
-  POST   /api/admin/contracts/{id}/send     — set status pending_signature
-  POST   /api/admin/contracts/{id}/void     — set status voided
-
-Public routes (no auth — token-gated):
-  GET    /api/contracts/{token}             — get public contract view
-  POST   /api/contracts/{token}/sign        — submit signature
-"""
-
 from __future__ import annotations
 
 import base64
@@ -21,6 +6,7 @@ import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user, require_account_member, require_admin
@@ -28,6 +14,7 @@ from app.api.routes.admin import common
 from app.core.settings import settings
 from app.db.session import get_db
 from app.models.contracts import Contract, ContractPaymentStage
+from app.models.core import Account
 from app.models.core import User
 from app.schemas.contract import (
     ContractCreate,
@@ -38,6 +25,7 @@ from app.schemas.contract import (
     ContractStageOut,
 )
 from app.services.email.smtp_mail import send_signed_contract_pdf
+from app.services import zcredit_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -124,6 +112,16 @@ def _contract_member_out(c: Contract) -> ContractMemberOut:
         createdAt=c.created_at,
         stages=[_stage_out(s) for s in c.stages],
     )
+
+
+class ContractCheckoutOut(BaseModel):
+    status: str
+    message: str
+    gateway: str
+    callbackUrl: str
+    sessionId: str | None = None
+    paymentUrl: str | None = None
+    stage: ContractStageOut
 
 
 # ─── account member (authenticated) ──────────────────────────────────────────
@@ -365,3 +363,44 @@ def sign_contract(
         logger.info("Signed contract %s; SMTP not configured, skip email to %s", c.id, to_addresses)
 
     return _contract_public_out(c)
+
+
+@router.post("/contracts/{token}/checkout", response_model=ContractCheckoutOut)
+def create_contract_checkout(
+    token: str,
+    db: Session = Depends(get_db),
+) -> ContractCheckoutOut:
+    c = _get_by_token_or_404(db, token)
+    if c.status == "voided":
+        raise HTTPException(status_code=410, detail="contract_voided")
+    if c.status != "signed":
+        raise HTTPException(status_code=409, detail="contract_must_be_signed_first")
+    pending = [s for s in c.stages if s.status != "paid"]
+    if not pending:
+        raise HTTPException(status_code=409, detail="contract_already_paid")
+    pending.sort(key=lambda stage: stage.sort_order)
+    stage = pending[0]
+    if stage.amount <= 0:
+        raise HTTPException(status_code=400, detail="invalid_stage_amount")
+
+    account = db.query(Account).filter(Account.id == c.account_id).first()
+    if not account:
+        raise HTTPException(status_code=404, detail="account_not_found")
+
+    callback_url = f"{settings.app_base_url.rstrip('/')}/api/webhooks/zcredit"
+    amount_minor = int(round(float(stage.amount) * 100))
+    session_id, pay_url = zcredit_service.create_invoice(
+        account,
+        amount_minor,
+        c.currency,
+        f"Contract #{c.id} · {stage.description or 'Payment'}",
+    )
+    return ContractCheckoutOut(
+        status="ok",
+        message="Open paymentUrl in the browser to complete payment.",
+        gateway="zcredit",
+        callbackUrl=callback_url,
+        sessionId=session_id,
+        paymentUrl=pay_url,
+        stage=_stage_out(stage),
+    )

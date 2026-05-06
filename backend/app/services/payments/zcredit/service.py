@@ -20,6 +20,7 @@ import logging
 import uuid
 from dataclasses import dataclass
 from typing import Any
+import re
 
 import httpx
 from fastapi import HTTPException
@@ -162,6 +163,15 @@ def _wc_error_message(data: dict[str, Any]) -> str:
     return str(data.get("ReturnMessage") or data.get("message") or "zcredit_error")
 
 
+def _sanitize_additional_text(text: str | None) -> str:
+    """Z-Credit expects alphanumeric AdditionalText; strip everything else."""
+    if not text:
+        return ""
+    sanitized = re.sub(r"[^A-Za-z0-9\s]", " ", text)
+    sanitized = " ".join(sanitized.split())
+    return sanitized[:500].strip()
+
+
 def _create_session_body(
     account: Account,
     *,
@@ -184,7 +194,7 @@ def _create_session_body(
         "NumberOfFailures": 3,
         "PaymentType": "regular",
         "CreateInvoice": "false",
-        "AdditionalText": (description or "")[:500],
+        "AdditionalText": _sanitize_additional_text(description),
         "ShowCart": "true",
         "ThemeColor": "005ebb",
         "Installments": {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "12"},
@@ -265,14 +275,7 @@ def create_invoice(
     description: str,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
-        doc_id = f"mock_inv_{account.id}_{uuid.uuid4().hex[:10]}"
-        pay_url = _mock_payment_url(doc_id)
-        logger.warning(
-            "create_invoice: Z-Credit Web Checkout key not set; mock doc_id=%s pay_url=%s",
-            doc_id,
-            pay_url,
-        )
-        return doc_id, pay_url
+        raise HTTPException(status_code=503, detail="zcredit_not_configured")
 
     if amount_minor <= 0:
         raise HTTPException(status_code=400, detail="invalid_amount")
@@ -475,15 +478,7 @@ def create_subscription(
     first / periodic charge. We store UniqueId in payment_recurring_id for correlation in callbacks.
     """
     if not _is_webcheckout_configured():
-        recurring_id = f"mock_sub_{account.id}_{uuid.uuid4().hex[:10]}"
-        first_doc = f"mock_inv_{account.id}_{uuid.uuid4().hex[:10]}"
-        pay_url = _mock_payment_url(first_doc)
-        logger.warning(
-            "create_subscription: Web Checkout key not set; mock recurring_id=%s pay_url=%s",
-            recurring_id,
-            pay_url,
-        )
-        return recurring_id, "mock_plan", pay_url, first_doc
+        raise HTTPException(status_code=503, detail="zcredit_not_configured")
 
     unique_id = f"sub_{account.id}_{uuid.uuid4().hex[:12]}"
     cur = (currency or "ILS").upper()

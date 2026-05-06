@@ -1,10 +1,3 @@
-"""
-Mock hosted payment — only when Z-Credit Web Checkout is not configured.
-
-  GET  /api/mock-payment/{doc_id}        — HTML checkout simulator
-  POST /api/mock-payment/{doc_id}/confirm — marks invoice paid in DB
-"""
-
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException

@@ -395,6 +395,8 @@ def billing_overview(
             pay_url = instruction.payment_url or (
                 str(inv.payment_url) if inv and getattr(inv, "payment_url", None) else None
             )
+        if pay_url and "/api/mock-payment/" in pay_url:
+            pay_url = None
         first_invoice_open = inv_status == "open"
         assume_open = first_invoice_open or (
             bool(pay_url) and inv_status != "paid"
@@ -458,6 +460,8 @@ def billing_overview(
             pay_url = stored_payment_url or (
                 str(inv.payment_url) if inv and getattr(inv, "payment_url", None) else None
             )
+        if pay_url and "/api/mock-payment/" in pay_url:
+            pay_url = None
         if not pay_url:
             return
         pay_with_card = bool(

@@ -3,7 +3,7 @@ import { App, Button, Card, Empty, Space, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import type { ContractMemberRow } from "../../../domain/Contract";
 import { useApp } from "../../../app/AppProviders";
 import { PageHeader } from "../../shared/components/PageHeader";
@@ -31,6 +31,35 @@ function statusMeta(status: ContractMemberRow["status"]): [string, string] {
   return map[status] ?? ["default", status];
 }
 
+function paymentMeta(contract: ContractMemberRow): [string, string] {
+  const total = contract.totalAmount ?? 0;
+  const paidAmount =
+    contract.stages?.reduce((sum, stage) => (stage.status === "paid" ? sum + stage.amount : sum), 0) ?? 0;
+  const roundedTotal = Math.round((total || 0) * 100);
+  const roundedPaid = Math.round(paidAmount * 100);
+
+  if (roundedPaid <= 0) {
+    return ["error", "memberContracts.paymentStatusUnpaid"];
+  }
+  if (roundedPaid >= roundedTotal) {
+    return ["success", "memberContracts.paymentStatusPaid"];
+  }
+  return ["warning", "memberContracts.paymentStatusPartial"];
+}
+
+function hasUnpaidStage(contract: ContractMemberRow): boolean {
+  return Boolean(contract.stages?.some((stage) => stage.status !== "paid"));
+}
+
+function paidCounts(contract: ContractMemberRow) {
+  const stagesTotal = contract.stages?.length ?? 0;
+  const stagesPaid =
+    contract.stages?.reduce((sum, stage) => (stage.status === "paid" ? sum + 1 : sum), 0) ?? 0;
+  const paidAmount =
+    contract.stages?.reduce((sum, stage) => (stage.status === "paid" ? sum + stage.amount : sum), 0) ?? 0;
+  return { stagesPaid, stagesTotal, paidAmount };
+}
+
 export function MemberContractsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -38,6 +67,7 @@ export function MemberContractsPage() {
   const { accountId } = useParams<{ accountId: string }>();
   const [rows, setRows] = useState<ContractMemberRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payLoadingId, setPayLoadingId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,6 +84,34 @@ export function MemberContractsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const handleContractPay = useCallback(
+    async (contract: ContractMemberRow) => {
+      if (!contract.signToken) return;
+      setPayLoadingId(contract.id);
+      try {
+        const res = await fetch(`/api/contracts/${encodeURIComponent(contract.signToken)}/checkout`, {
+          method: "POST",
+        });
+        if (!res.ok) {
+          const data = (await res.json()) as { detail?: string };
+          throw new Error(data.detail ?? "error");
+        }
+        const payload = await res.json() as { paymentUrl?: string | null };
+        const url = (payload.paymentUrl || "").trim();
+        if (!url) {
+          void message.warning(t("contracts.sign.paymentLinkPending"));
+          return;
+        }
+        window.location.assign(url);
+      } catch (e) {
+        void message.error(e instanceof Error ? e.message : t("errors.generic"));
+      } finally {
+        setPayLoadingId(null);
+      }
+    },
+    [message, t],
+  );
 
   const columns: ColumnsType<ContractMemberRow> = [
     {
@@ -76,6 +134,30 @@ export function MemberContractsPage() {
       key: "stages",
       width: 96,
       render: (_, r) => r.stages?.length ?? 0,
+    },
+    {
+      title: t("memberContracts.colPaymentStatus"),
+      key: "paymentStatus",
+      width: 130,
+      render: (_, r) => {
+        const [color, key] = paymentMeta(r);
+        const { stagesPaid, stagesTotal, paidAmount } = paidCounts(r);
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Tag color={color} style={{ margin: 0, alignSelf: "flex-start" }}>
+              {t(key)}
+            </Tag>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {t("memberContracts.paymentProgress", {
+                paid: stagesPaid,
+                total: stagesTotal,
+                paidAmount: fmtMoney(paidAmount, r.currency),
+                totalAmount: fmtMoney(r.totalAmount, r.currency),
+              })}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: t("memberContracts.colStatus"),
@@ -106,11 +188,28 @@ export function MemberContractsPage() {
       width: 140,
       fixed: "right",
       render: (_, r) => {
-        const canOpenSign = r.status !== "signed" && r.status !== "voided";
+        const payAvailable = hasUnpaidStage(r) && r.status === "signed";
         return (
-          <Link to={`/contracts/sign/${encodeURIComponent(r.signToken)}`}>
-            {canOpenSign ? t("memberContracts.actionSign") : t("memberContracts.actionView")}
-          </Link>
+          <Space size={6}>
+            <Button
+              type="link"
+              size="small"
+              href={`/contracts/sign/${encodeURIComponent(r.signToken)}`}
+              target="_blank"
+            >
+              {t("memberContracts.actionDownload")}
+            </Button>
+            {payAvailable && (
+              <Button
+                type="primary"
+                size="small"
+                loading={payLoadingId === r.id}
+                onClick={() => void handleContractPay(r)}
+              >
+                {t("memberContracts.actionPay")}
+              </Button>
+            )}
+          </Space>
         );
       },
     },

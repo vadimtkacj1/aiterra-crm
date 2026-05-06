@@ -7,10 +7,17 @@
     "colTitle": "כותרת",
     "colTotal": "סה״כ",
     "colStages": "תשלומים",
+    "colPaymentStatus": "סטטוס תשלום",
     "colStatus": "סטטוס",
     "colSigned": "נחתם",
     "colAction": "פעולות",
     "actionSign": "סקירה וחתימה",
-    "actionView": "פתיחה"
+    "actionView": "פתיחה",
+    "actionDownload": "הורדה",
+    "actionPay": "תשלום",
+    "paymentStatusPaid": "שולם",
+    "paymentStatusPartial": "שולם חלקית",
+    "paymentStatusUnpaid": "לא שולם",
+    "paymentProgress": "{{paid}}/{{total}} שולם · {{paidAmount}} / {{totalAmount}}"
   }
 }

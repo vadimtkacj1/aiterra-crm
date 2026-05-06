@@ -15,8 +15,10 @@
       "send": "Send to client",
       "void": "Void",
       "copyLink": "Copy sign link",
+      "copyPaymentLink": "Copy payment link",
       "linkCopied": "Copied!",
       "signLink": "Signing link (share with client)",
+      "paymentLink": "Payment link (share with client)",
       "viewDetail": "View",
       "signedBy": "Signed by {{name}} on {{date}}",
       "signedPosition": "Role: {{position}}",
@@ -28,12 +30,24 @@
         "voided": "Voided"
       },
       "columns": {
+        "contractId": "ID",
         "account": "Account",
         "title": "Title",
         "total": "Total",
         "stages": "Stages",
+        "installments": "Installments",
         "status": "Status",
         "signedAt": "Signed"
+      },
+      "installmentsTag": {
+        "paid": "Paid {{paid}}/{{total}}",
+        "partial": "{{paid}}/{{total}} paid",
+        "unpaid": "Not paid"
+      },
+      "stageStatus": {
+        "pending": "Pending",
+        "invoiced": "Invoiced",
+        "paid": "Paid"
       },
       "form": {
         "account": "Client account",

@@ -1,15 +1,30 @@
 import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from "@ant-design/icons";
-import { Button, Divider, Flex, Typography } from "antd";
+import { Button, Checkbox, Divider, Flex, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface Props {
   total: string;
   intent: "savedCard" | "hosted";
   loading: boolean;
+  consentChecked: boolean;
+  onConsentChange: (checked: boolean) => void;
+  termsUrl: string;
+  privacyUrl: string;
+  cancelUrl: string;
   onPay: () => void;
 }
 
-export function CheckoutPaymentPanel({ total, intent, loading, onPay }: Props) {
+export function CheckoutPaymentPanel({
+  total,
+  intent,
+  loading,
+  consentChecked,
+  onConsentChange,
+  termsUrl,
+  privacyUrl,
+  cancelUrl,
+  onPay,
+}: Props) {
   const { t } = useTranslation();
 
   return (
@@ -70,11 +85,35 @@ export function CheckoutPaymentPanel({ total, intent, loading, onPay }: Props) {
         {t("billing.checkoutPayNote")}
       </Typography.Paragraph>
 
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <Checkbox checked={consentChecked} onChange={(e) => onConsentChange(e.target.checked)}>
+          <Typography.Text style={{ fontSize: 13 }}>
+            {intent === "savedCard" ? t("billing.checkoutConsentSaved") : t("billing.checkoutConsentHosted")}
+          </Typography.Text>
+        </Checkbox>
+        <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.5 }}>
+          {t("billing.checkoutLegal")}{" "}
+          <a href={termsUrl} target="_blank" rel="noreferrer">
+            {t("billing.checkoutTermsLink")}
+          </a>{" "}
+          {t("billing.checkoutAnd")}{" "}
+          <a href={privacyUrl} target="_blank" rel="noreferrer">
+            {t("billing.checkoutPrivacyPolicyLink")}
+          </a>{" "}
+          {t("billing.checkoutAnd")}{" "}
+          <a href={cancelUrl} target="_blank" rel="noreferrer">
+            {t("billing.checkoutCancelPolicyLink")}
+          </a>
+          .
+        </Typography.Text>
+      </div>
+
       <Button
         type="primary"
         size="large"
         icon={intent === "savedCard" ? <CreditCardOutlined /> : <WalletOutlined />}
         loading={loading}
+        disabled={!consentChecked}
         onClick={onPay}
         style={{ height: 48, borderRadius: 10, fontWeight: 600, fontSize: 15, boxShadow: "none" }}
       >

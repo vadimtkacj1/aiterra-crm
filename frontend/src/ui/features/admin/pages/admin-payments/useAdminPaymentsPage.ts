@@ -33,7 +33,6 @@ export function useAdminPaymentsPage() {
   const [saveTemplateTitle, setSaveTemplateTitle] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [paymentLinkModal, setPaymentLinkModal] = useState<string | null>(null);
 
   const buildTemplatePayloadFromForm = (): InvoiceTemplateCreateInput | null => {
     const values = session.form.getFieldsValue();
@@ -121,7 +120,7 @@ export function useAdminPaymentsPage() {
     }
 
     try {
-      const result = await services.admin.setAccountBillingInstruction(accountId, {
+      await services.admin.setAccountBillingInstruction(accountId, {
         chargeType,
         amount: chargeType === "none" ? null : parsed.amount,
         currency: values.currency ?? "USD",
@@ -129,15 +128,16 @@ export function useAdminPaymentsPage() {
         lineItems: parsed.lineItems,
         splitAcrossMonths: parsed.splitAcrossMonths ?? null,
       });
-      if (chargeType !== "none") {
-        const shareableUrl = result.paymentUrl?.startsWith("http")
-          ? result.paymentUrl
-          : `${window.location.origin}/a/${accountId}/billing/checkout`;
-        setPaymentLinkModal(shareableUrl);
-      } else {
-        message.success(t("admin.payments.createdSuccess"));
-      }
-      await session.refreshBillingFormForAccount(accountId);
+      message.success(t("admin.payments.createdSuccess"));
+      session.form.resetFields();
+      session.form.setFieldsValue({
+        chargeType: "none",
+        currency: "USD",
+        useBreakdown: true,
+        lineItems: [],
+        splitAcrossMonths: undefined,
+      });
+      await session.onUserChange("");
       await lists.loadAllBillingHistory();
     } catch (e) {
       message.error(e instanceof Error ? e.message : t("errors.generic"));
@@ -244,8 +244,6 @@ export function useAdminPaymentsPage() {
     onSaveTemplateOk,
     shellRadius: ADMIN_PAYMENTS_SHELL_RADIUS,
     shellShadow: ADMIN_PAYMENTS_SHELL_SHADOW,
-    paymentLinkModal,
-    setPaymentLinkModal,
     libraryDrawer,
   };
 }

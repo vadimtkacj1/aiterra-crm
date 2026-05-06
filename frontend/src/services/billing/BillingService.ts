@@ -4,6 +4,8 @@ import type { HttpClient } from "../../infrastructure/HttpClient";
 import type {
   BillingOverview,
   CardInfo,
+  HostedCheckoutRequest,
+  HostedCheckoutResponse,
   IBillingService,
 } from "./IBillingService";
 
@@ -46,6 +48,12 @@ export class BillingService implements IBillingService {
       `${this.base(accountId)}/billing/pay-invoice`,
       {},
     );
+  }
+
+  createHostedCheckout(body: HostedCheckoutRequest): Promise<HostedCheckoutResponse> {
+    const b = this.env.billingApiUrl;
+    const url = b ? `${b}/checkout` : "/checkout";
+    return this.http.post<HostedCheckoutResponse>(url, body);
   }
 
   submitContractAcceptance(

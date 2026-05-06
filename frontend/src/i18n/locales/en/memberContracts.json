@@ -7,10 +7,17 @@
     "colTitle": "Title",
     "colTotal": "Total",
     "colStages": "Payments",
+    "colPaymentStatus": "Payment status",
     "colStatus": "Status",
     "colSigned": "Signed",
     "colAction": "Actions",
     "actionSign": "Review & sign",
-    "actionView": "Open"
+    "actionView": "Open",
+    "actionDownload": "Download",
+    "actionPay": "Pay",
+    "paymentStatusPaid": "Paid",
+    "paymentStatusPartial": "Partially paid",
+    "paymentStatusUnpaid": "Not paid",
+    "paymentProgress": "{{paid}}/{{total}} paid · {{paidAmount}} / {{totalAmount}}"
   }
 }

@@ -7,6 +7,7 @@ import SignaturePad from "signature_pad";
 import type { ContractPublic } from "../../../domain/Contract";
 import { PdfViewer } from "./PdfViewer";
 import { renderContractBody } from "./contractBodyRenderer";
+import { Paths } from "@/ui/navigation/paths";
 
 function fmtMoney(amount: number, currency: string) {
   try {
@@ -60,6 +61,28 @@ async function submitSignature(
   return res.json() as Promise<ContractPublic>;
 }
 
+interface ContractCheckoutResponse {
+  paymentUrl?: string | null;
+  stage: {
+    id: number;
+    sortOrder: number;
+    description: string;
+    amount: number;
+    status: string;
+  };
+}
+
+async function createContractCheckout(token: string): Promise<ContractCheckoutResponse> {
+  const res = await fetch(`/api/contracts/${token}/checkout`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const data = (await res.json()) as { detail?: string };
+    throw new Error(data.detail ?? "error");
+  }
+  return res.json() as Promise<ContractCheckoutResponse>;
+}
+
 const pageBg =
   "linear-gradient(165deg, #eef2f7 0%, #e2e8f0 38%, #f1f5f9 70%, #f8fafc 100%)";
 const cardShadow = "0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 12px 24px -4px rgba(15, 23, 42, 0.12)";
@@ -71,14 +94,25 @@ export function ContractSignPage() {
   const { message } = App.useApp();
 
   const [contract, setContract] = useState<ContractPublic | null>(null);
+  const alreadyPaidAmount = contract?.stages.reduce((sum, stage) => (stage.status === "paid" ? sum + stage.amount : sum), 0) ?? 0;
+  const allStagesPaid = contract?.stages.every((stage) => stage.status === "paid") ?? false;
+  const nextStage = contract?.stages.find((stage) => stage.status !== "paid") ?? null;
+  const nextStageAmountLabel = contract
+    ? fmtMoney(nextStage ? nextStage.amount : contract.totalAmount, contract.currency)
+    : "";
+  const payButtonLabel = contract
+    ? t("contracts.sign.payStageNow", { amount: nextStageAmountLabel })
+    : t("contracts.sign.payNow");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [signerName, setSignerName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [policiesAgreed, setPoliciesAgreed] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [creatingCheckout, setCreatingCheckout] = useState(false);
   /** Raw base64 PNG of the last submitted signature (public API does not return it). */
   const [submittedSignaturePng, setSubmittedSignaturePng] = useState<string | null>(null);
 
@@ -149,7 +183,7 @@ export function ContractSignPage() {
   };
 
   const emailOk = isValidEmail(recipientEmail);
-  const canSubmit = agreed && signerName.trim().length > 0 && emailOk && hasSignature;
+  const canSubmit = agreed && policiesAgreed && signerName.trim().length > 0 && emailOk && hasSignature;
 
   const handleSign = async () => {
     if (!token || !contract) return;
@@ -226,6 +260,23 @@ export function ContractSignPage() {
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     };
+    const handlePayNow = async () => {
+      if (!token) return;
+      setCreatingCheckout(true);
+      try {
+        const data = await createContractCheckout(token);
+        const url = (data.paymentUrl || "").trim();
+        if (!url) {
+          void message.warning(t("contracts.sign.paymentLinkPending"));
+          return;
+        }
+        window.location.assign(url);
+      } catch (e) {
+        void message.error(e instanceof Error ? e.message : t("errors.generic"));
+      } finally {
+        setCreatingCheckout(false);
+      }
+    };
     return (
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div
@@ -245,8 +296,16 @@ export function ContractSignPage() {
             {t("contracts.sign.successTitle")}
           </Typography.Title>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <Button
+              type="primary"
+              loading={creatingCheckout}
+              onClick={() => void handlePayNow()}
+              style={{ borderRadius: 10, height: 44 }}
+            >
+              {payButtonLabel}
+            </Button>
             {contract.pdfBase64 ? (
-              <Button type="primary" onClick={downloadPdf} style={{ borderRadius: 10, height: 44 }}>
+              <Button onClick={downloadPdf} style={{ borderRadius: 10, height: 44 }}>
                 {t("contracts.sign.downloadSignedPdf")}
               </Button>
             ) : null}
@@ -635,6 +694,23 @@ export function ContractSignPage() {
                   i18nKey="contracts.sign.acceptTermsHtml"
                   components={{
                     terms: <a href="#contract-terms" style={termsLinkStyle} onClick={scrollToTerms} />,
+                  }}
+                />
+              </Typography.Text>
+            </Checkbox>
+
+            <Checkbox
+              checked={policiesAgreed}
+              onChange={(e) => setPoliciesAgreed(e.target.checked)}
+              style={{ marginTop: 4 }}
+            >
+              <Typography.Text style={{ fontSize: 13, lineHeight: 1.65, color: "#334155" }}>
+                <Trans
+                  i18nKey="contracts.sign.acceptPoliciesHtml"
+                  components={{
+                    terms: <a href={Paths.terms} target="_blank" rel="noreferrer" style={termsLinkStyle} />,
+                    privacy: <a href={Paths.privacyPolicy} target="_blank" rel="noreferrer" style={termsLinkStyle} />,
+                    cancel: <a href={Paths.cancelPolicy} target="_blank" rel="noreferrer" style={termsLinkStyle} />,
                   }}
                 />
               </Typography.Text>

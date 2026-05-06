@@ -22,21 +22,11 @@ export function usePaymentCheckout() {
   const [intent, setIntent] = useState<"savedCard" | "hosted">(state?.intent ?? "hosted");
   const [loadingPayment, setLoadingPayment] = useState(!state?.payment);
 
-  const [checkoutPhase, setCheckoutPhase] = useState<"contract" | "payment">("contract");
-  const [contractSubmitting, setContractSubmitting] = useState(false);
-
   const [loading, setLoading] = useState(false);
-  const [paid, setPaid] = useState(false);
 
   const goBack = useCallback(() => navigate(accountPath(accountId, "billing")), [navigate, accountId]);
 
-  const handleTopBack = () => {
-    if (checkoutPhase === "payment") {
-      setCheckoutPhase("contract");
-      return;
-    }
-    goBack();
-  };
+  const handleTopBack = () => goBack();
 
   useEffect(() => {
     if (state?.payment) return;
@@ -56,53 +46,29 @@ export function usePaymentCheckout() {
       .finally(() => setLoadingPayment(false));
   }, [accountId, state?.payment, services.billing, goBack]);
 
-  const handleContractContinue = async (signatureDataUrl: string) => {
-    if (!payment) return;
-    setContractSubmitting(true);
-    try {
-      await services.billing.submitContractAcceptance(accountId, {
-        paymentActionId: payment.id,
-        signaturePngBase64: signatureDataUrl,
-      });
-      setCheckoutPhase("payment");
-      void message.success(t("billing.contract.savedOk"));
-    } catch (e) {
-      void message.error(e instanceof Error ? e.message : t("billing.contract.savedFail"));
-    } finally {
-      setContractSubmitting(false);
-    }
-  };
-
   const handlePay = async () => {
     if (!payment) return;
     if (intent === "hosted") {
-      if (!payment.payUrl) return;
-
-      if (payment.payUrl.includes("/api/mock-payment/")) {
-        setLoading(true);
-        try {
-          const confirmUrl = payment.payUrl.replace(/\/$/, "") + "/confirm";
-          const res = await fetch(confirmUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ success: true }),
-          });
-          const data = (await res.json()) as { ok?: boolean };
-          if (res.ok && data.ok) {
-            setPaid(true);
-          } else {
-            void message.error(t("errors.generic"));
-          }
-        } catch {
-          void message.error(t("errors.generic"));
-        } finally {
-          setLoading(false);
+      setLoading(true);
+      try {
+        const res = await services.billing.createHostedCheckout({
+          accountId: Number(accountId),
+          amount: payment.amount,
+          currency: payment.currency || "ILS",
+          description: payment.summary || "Invoice payment",
+        });
+        const payUrl = (res.paymentUrl || "").trim();
+        if (!payUrl) {
+          void message.warning(t("billing.paymentLinkPending"));
+          return;
         }
+        window.location.assign(payUrl);
         return;
+      } catch (e) {
+        void message.error(e instanceof Error ? e.message : t("errors.generic"));
+      } finally {
+        setLoading(false);
       }
-
-      window.open(payment.payUrl, "_blank", "noopener,noreferrer");
-      goBack();
     } else {
       setLoading(true);
       try {
@@ -126,15 +92,11 @@ export function usePaymentCheckout() {
     accountId,
     loadingPayment,
     payment,
-    paid,
-    checkoutPhase,
-    contractSubmitting,
     loading,
     intent,
     setIntent,
     goBack,
     handleTopBack,
-    handleContractContinue,
     handlePay,
   };
 }

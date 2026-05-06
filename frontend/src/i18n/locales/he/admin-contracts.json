@@ -15,8 +15,10 @@
       "send": "שלח ללקוח",
       "void": "בטל חוזה",
       "copyLink": "העתק קישור לחתימה",
+      "copyPaymentLink": "העתק קישור לתשלום",
       "linkCopied": "הועתק!",
       "signLink": "קישור לחתימה (שלח ללקוח)",
+      "paymentLink": "קישור לתשלום (שלח ללקוח)",
       "viewDetail": "צפה",
       "signedBy": "נחתם על ידי {{name}} בתאריך {{date}}",
       "signedPosition": "תפקיד: {{position}}",
@@ -28,12 +30,24 @@
         "voided": "מבוטל"
       },
       "columns": {
+        "contractId": "מזהה",
         "account": "לקוח",
         "title": "כותרת",
         "total": "סה\"כ",
         "stages": "שלבים",
+        "installments": "תשלומים",
         "status": "סטטוס",
         "signedAt": "תאריך חתימה"
+      },
+      "installmentsTag": {
+        "paid": "שולם {{paid}} מתוך {{total}}",
+        "partial": "{{paid}} מתוך {{total}} שולם",
+        "unpaid": "לא שולם"
+      },
+      "stageStatus": {
+        "pending": "ממתין",
+        "invoiced": "נרשם חשבונית",
+        "paid": "שולם"
       },
       "form": {
         "account": "חשבון לקוח",

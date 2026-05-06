@@ -1,6 +1,7 @@
 import {
   CheckCircleOutlined,
   CopyOutlined,
+  CreditCardOutlined,
   DeleteOutlined,
   EyeOutlined,
   FilePdfOutlined,
@@ -53,6 +54,40 @@ function statusTag(status: Contract["status"]) {
     pending_signature: ["processing", "admin.contracts.status.pending_signature"],
     signed: ["success", "admin.contracts.status.signed"],
     voided: ["error", "admin.contracts.status.voided"],
+  };
+  return map[status] ?? ["default", status];
+}
+
+function getPaidStagesCount(contract: Contract) {
+  return contract.stages.filter((stage) => stage.status === "paid").length;
+}
+
+function getPaidAmount(contract: Contract) {
+  return contract.stages
+    .filter((stage) => stage.status === "paid")
+    .reduce((sum, stage) => sum + (stage.amount ?? 0), 0);
+}
+
+function installmentsTagKey(contract: Contract): [string, string] {
+  const paidStages = getPaidStagesCount(contract);
+  const totalStages = contract.stages.length;
+  if (!totalStages) {
+    return ["default", "admin.contracts.installmentsTag.unpaid"];
+  }
+  if (paidStages === totalStages) {
+    return ["success", "admin.contracts.installmentsTag.paid"];
+  }
+  if (paidStages === 0) {
+    return ["default", "admin.contracts.installmentsTag.unpaid"];
+  }
+  return ["warning", "admin.contracts.installmentsTag.partial"];
+}
+
+function stageStatusTag(status: Contract["stages"][number]["status"]) {
+  const map: Record<string, [string, string]> = {
+    pending: ["default", "admin.contracts.stageStatus.pending"],
+    invoiced: ["processing", "admin.contracts.stageStatus.invoiced"],
+    paid: ["success", "admin.contracts.stageStatus.paid"],
   };
   return map[status] ?? ["default", status];
 }
@@ -132,8 +167,17 @@ export function AdminContractsPage() {
   const signUrl = (c: Contract) =>
     `${window.location.origin}/contracts/sign/${c.signToken}`;
 
+  const paymentUrl = (c: Contract) =>
+    `${window.location.origin}/contracts/sign/${c.signToken}`;
+
   const copyLink = async (c: Contract) => {
     await navigator.clipboard.writeText(signUrl(c));
+    setCopiedId(c.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const copyPaymentLink = async (c: Contract) => {
+    await navigator.clipboard.writeText(paymentUrl(c));
     setCopiedId(c.id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -235,12 +279,19 @@ export function AdminContractsPage() {
 
   const columns: ColumnsType<Contract> = [
     {
+      title: t("admin.contracts.columns.contractId"),
+      dataIndex: "id",
+      key: "id",
+      width: 88,
+      render: (id: number) => <Typography.Text type="secondary">#{id}</Typography.Text>,
+    },
+    {
       title: t("admin.contracts.columns.account"),
       dataIndex: "accountId",
       key: "account",
       render: (id: number) => {
         const u = users.find((x) => x.accountId === id);
-        return u?.displayName ?? `#${id}`;
+        return u?.displayName ? `#${id} · ${u.displayName}` : `#${id}`;
       },
     },
     {
@@ -257,6 +308,25 @@ export function AdminContractsPage() {
       title: t("admin.contracts.columns.stages"),
       key: "stages",
       render: (_, r) => r.stages.length,
+    },
+    {
+      title: t("admin.contracts.columns.installments"),
+      key: "installments",
+      width: 210,
+      render: (_, r) => {
+        const [color, key] = installmentsTagKey(r);
+        const paidAmount = getPaidAmount(r);
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Tag color={color}>
+              {t(key, { paid: getPaidStagesCount(r), total: r.stages.length })}
+            </Tag>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {fmtMoney(paidAmount, r.currency)} / {fmtMoney(r.totalAmount, r.currency)}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: t("admin.contracts.columns.status"),
@@ -295,6 +365,18 @@ export function AdminContractsPage() {
                 size="small"
                 icon={copiedId === r.id ? <CheckCircleOutlined style={{ color: "#22c55e" }} /> : <CopyOutlined />}
                 onClick={() => void copyLink(r)}
+              />
+            </Tooltip>
+          )}
+          {r.status === "signed" && (
+            <Tooltip
+              title={copiedId === r.id ? t("admin.contracts.linkCopied") : t("admin.contracts.copyPaymentLink")}
+            >
+              <Button
+                type="text"
+                size="small"
+                icon={copiedId === r.id ? <CheckCircleOutlined style={{ color: "#22c55e" }} /> : <CreditCardOutlined />}
+                onClick={() => void copyPaymentLink(r)}
               />
             </Tooltip>
           )}
@@ -649,12 +731,27 @@ export function AdminContractsPage() {
             <Typography.Text strong style={{ display: "block", marginBottom: 8 }}>
               {t("admin.contracts.form.stages")}
             </Typography.Text>
-            {detailContract.stages.map((s, i) => (
-              <Row key={s.id} justify="space-between" style={{ padding: "8px 12px", borderRadius: 6, background: i % 2 === 0 ? "#f8fafc" : "#fff", marginBottom: 4 }}>
-                <Typography.Text>{s.description}</Typography.Text>
-                <Typography.Text strong>{fmtMoney(s.amount, detailContract.currency)}</Typography.Text>
-              </Row>
-            ))}
+            {detailContract.stages.map((s, i) => {
+              const [tagColor, tagKey] = stageStatusTag(s.status);
+              return (
+                <Row
+                  key={s.id}
+                  justify="space-between"
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 6,
+                    background: i % 2 === 0 ? "#f8fafc" : "#fff",
+                    marginBottom: 4,
+                  }}
+                >
+                  <Space size={6}>
+                    <Typography.Text>{s.description}</Typography.Text>
+                    <Tag color={tagColor}>{t(tagKey)}</Tag>
+                  </Space>
+                  <Typography.Text strong>{fmtMoney(s.amount, detailContract.currency)}</Typography.Text>
+                </Row>
+              );
+            })}
 
             {(detailContract.status === "pending_signature" || detailContract.status === "draft") && (
               <div style={{ marginTop: 16 }}>
@@ -702,6 +799,25 @@ export function AdminContractsPage() {
                     alt="signature"
                   />
                 )}
+                <div style={{ marginTop: 12 }}>
+                  <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 6 }}>
+                    {t("admin.contracts.paymentLink")}
+                  </Typography.Text>
+                  <Row gutter={8}>
+                    <Col flex="auto">
+                      <Input readOnly value={paymentUrl(detailContract)} size="small" />
+                    </Col>
+                    <Col>
+                      <Button
+                        size="small"
+                        icon={copiedId === detailContract.id ? <CheckCircleOutlined style={{ color: "#22c55e" }} /> : <CreditCardOutlined />}
+                        onClick={() => void copyPaymentLink(detailContract)}
+                      >
+                        {copiedId === detailContract.id ? t("admin.contracts.linkCopied") : t("admin.contracts.copyPaymentLink")}
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
               </div>
             )}
           </div>

@@ -30,12 +30,12 @@ interface Props {
 
 export function CheckoutContractStep({ payment, accountId, appLocale, submitting, onContinue }: Props) {
   const { t, i18n } = useTranslation();
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const padRef = useRef<SignaturePad | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [readContract, setReadContract] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const padRef = useRef<SignaturePad | null>(null);
 
   const localizedClauses = useMemo(
     () => [

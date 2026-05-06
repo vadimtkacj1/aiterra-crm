@@ -42,12 +42,29 @@ export interface CardInfo {
   expYear: number;
 }
 
+export interface HostedCheckoutRequest {
+  accountId: number;
+  amount: number;
+  currency: string;
+  description: string;
+}
+
+export interface HostedCheckoutResponse {
+  status: string;
+  message: string;
+  gateway: string;
+  callbackUrl: string;
+  sessionId?: string | null;
+  paymentUrl?: string | null;
+}
+
 export interface IBillingService {
   fetchAccountContracts(accountId: string): Promise<ContractMemberRow[]>;
   fetchOverview(accountId: string): Promise<BillingOverview>;
   getCard(accountId: string): Promise<CardInfo | null>;
   deleteCard(accountId: string): Promise<void>;
   payOpenInvoice(accountId: string): Promise<{ status: string; hostedInvoiceUrl?: string | null }>;
+  createHostedCheckout(body: HostedCheckoutRequest): Promise<HostedCheckoutResponse>;
   submitContractAcceptance(
     accountId: string,
     body: { paymentActionId: string; signaturePngBase64: string },

@@ -1,7 +1,6 @@
 import {
   DeleteOutlined,
   DownloadOutlined,
-  LinkOutlined,
   RollbackOutlined,
 } from "@ant-design/icons";
 import { Button, Popconfirm, Space, Spin, Table, Tag, Tooltip, Typography } from "antd";
@@ -32,7 +31,6 @@ type Props = {
   refreshBillingFormForAccount: (accountId: number) => Promise<void>;
   loadAllBillingHistory: () => Promise<void>;
   downloadRowPdf: (row: BillingHistoryWithAccountRow) => void;
-  onOpenPayLink: (row: BillingHistoryWithAccountRow) => void;
 };
 
 export function AdminPaymentsHistoryTable({
@@ -49,7 +47,6 @@ export function AdminPaymentsHistoryTable({
   refreshBillingFormForAccount,
   loadAllBillingHistory,
   downloadRowPdf,
-  onOpenPayLink,
 }: Props) {
   return (
     <Spin spinning={loading}>

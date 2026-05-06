@@ -1,9 +1,6 @@
 import { Divider, Drawer, Typography } from "antd";
-import { useState } from "react";
-import type { BillingHistoryWithAccountRow } from "@/services/admin/AdminService";
 import type { AdminPaymentsLibraryDrawerModel } from "./adminPaymentsLibraryTypes";
 import { AdminPaymentsHistoryTable } from "./AdminPaymentsHistoryTable";
-import { AdminPaymentsPayLinkModal } from "./AdminPaymentsPayLinkModal";
 import { AdminPaymentsTemplatesPanel } from "./AdminPaymentsTemplatesPanel";
 
 type Props = {
@@ -11,27 +8,6 @@ type Props = {
 };
 
 export function AdminPaymentsLibraryDrawer({ model }: Props) {
-  const [linkModal, setLinkModal] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const openLinkModal = (_row: BillingHistoryWithAccountRow) => {
-    // Disabled per request — no payment links shown
-    return;
-  };
-
-  const handleCopy = () => {
-    if (!linkModal) return;
-    void navigator.clipboard.writeText(linkModal).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const closeLinkModal = () => {
-    setLinkModal(null);
-    setCopied(false);
-  };
-
   return (
     <Drawer
       title={model.t("admin.payments.libraryDrawerTitle")}
@@ -63,7 +39,6 @@ export function AdminPaymentsLibraryDrawer({ model }: Props) {
         refreshBillingFormForAccount={model.refreshBillingFormForAccount}
         loadAllBillingHistory={model.loadAllBillingHistory}
         downloadRowPdf={model.downloadRowPdf}
-        onOpenPayLink={openLinkModal}
       />
 
       <Divider style={{ margin: "18px 0" }} />
@@ -81,13 +56,6 @@ export function AdminPaymentsLibraryDrawer({ model }: Props) {
         loadInvoiceTemplates={model.loadInvoiceTemplates}
       />
 
-      <AdminPaymentsPayLinkModal
-        t={model.t}
-        url={linkModal}
-        copied={copied}
-        onClose={closeLinkModal}
-        onCopy={handleCopy}
-      />
     </Drawer>
   );
 }

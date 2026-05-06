@@ -16,10 +16,8 @@ export function AdminPaymentsLibraryDrawer({ model }: Props) {
 
   const openLinkModal = (row: BillingHistoryWithAccountRow) => {
     const raw = row.paymentUrl;
-    const url = raw?.startsWith("http")
-      ? raw
-      : `${window.location.origin}/a/${row.accountId}/billing/checkout`;
-    setLinkModal(url);
+    if (!raw || !raw.trim()) return;
+    setLinkModal(raw);
     setCopied(false);
   };
 

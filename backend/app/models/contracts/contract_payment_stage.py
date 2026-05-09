@@ -23,6 +23,9 @@ class ContractPaymentStage(Base):
     # "pending" | "invoiced" | "paid"
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
 
+    # Z-Credit session ID set when checkout is created; used to match webhook callback
+    payment_doc_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+
     contract: Mapped[Contract] = relationship("Contract", back_populates="stages")
 
 

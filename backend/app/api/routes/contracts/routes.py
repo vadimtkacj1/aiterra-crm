@@ -395,6 +395,9 @@ def create_contract_checkout(
         c.currency,
         f"Contract #{c.id} · {stage.description or 'Payment'}",
     )
+    stage.payment_doc_id = session_id
+    stage.status = "invoiced"
+    db.commit()
     return ContractCheckoutOut(
         status="ok",
         message="Open paymentUrl in the browser to complete payment.",

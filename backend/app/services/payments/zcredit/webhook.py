@@ -14,6 +14,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.billing import AccountBillingInstruction
+from app.models.contracts import ContractPaymentStage
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,22 @@ def _find_instruction_for_callback(db: Session, data: dict[str, Any]) -> Account
     return None
 
 
+def _mark_contract_stage_paid(db: Session, session_id: str) -> bool:
+    """Mark the contract payment stage with the given session ID as paid. Returns True if found."""
+    stage = (
+        db.query(ContractPaymentStage)
+        .filter(ContractPaymentStage.payment_doc_id == session_id)
+        .first()
+    )
+    if stage:
+        stage.status = "paid"
+        db.add(stage)
+        db.commit()
+        logger.info("zcredit_webhook: marked contract stage paid stage_id=%s session=%s", stage.id, session_id)
+        return True
+    return False
+
+
 def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, Any]) -> None:
     """
     Apply a single webhook event to billing instructions. Commits per successful branch.
@@ -87,6 +104,10 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
     """
     try:
         if event_type in ("payment.success", "J4"):
+            sid = str(data.get("SessionId") or "").strip()
+            if sid and _mark_contract_stage_paid(db, sid):
+                return
+
             ins = _find_instruction_for_callback(db, data)
             if ins:
                 ins.payment_url = None

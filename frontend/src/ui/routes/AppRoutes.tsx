@@ -3,6 +3,8 @@ import { useApp } from "../../app/AppProviders";
 import { AdminLayout } from "../features/admin/pages/AdminLayout";
 import { AccountSelectPage } from "../pages/accounts";
 import { AccountBillingPageRoute } from "../pages/a/[accountId]/billing";
+import { AccountBillingSuccessPageRoute } from "../pages/a/[accountId]/billing/success";
+import { AccountBillingFailedPageRoute } from "../pages/a/[accountId]/billing/failed";
 import { AccountContractsPageRoute } from "../pages/a/[accountId]/contracts";
 import { GoogleAnalyticsPage } from "../pages/a/[accountId]/google";
 import { MetaAnalyticsPage } from "../pages/a/[accountId]/meta";
@@ -46,6 +48,8 @@ export function AppRoutes() {
       <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />
       <Route path={Paths.privacyPolicy} element={<PrivacyPolicyPage />} />
       <Route path="/contracts/sign/:token" element={<ContractSignPage />} />
+      <Route path={Paths.billingSuccess} element={<AccountBillingSuccessPageRoute />} />
+      <Route path={Paths.billingFailed} element={<AccountBillingFailedPageRoute />} />
       <Route path={Paths.takanon} element={<TakanonRedirect />} />
       <Route
         element={

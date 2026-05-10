@@ -20,6 +20,8 @@ export const Paths = {
   google: "/a/:accountId/google",
   billing: "/a/:accountId/billing",
   billingCheckout: "/a/:accountId/billing/checkout",
+  billingSuccess: "/a/:accountId/billing/success",
+  billingFailed: "/a/:accountId/billing/failed",
   contracts: "/a/:accountId/contracts",
   admin: "/admin",
   adminStatistics: "/admin/statistics",

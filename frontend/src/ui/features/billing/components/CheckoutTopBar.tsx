@@ -3,7 +3,7 @@ import { Button, Flex } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface Props {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export function CheckoutTopBar({ onBack }: Props) {
@@ -20,14 +20,16 @@ export function CheckoutTopBar({ onBack }: Props) {
         gap: 12,
       }}
     >
-      <Button
-        type="text"
-        icon={<ArrowLeftOutlined />}
-        onClick={onBack}
-        style={{ color: "#64748b", fontWeight: 500 }}
-      >
-        {t("common.back")}
-      </Button>
+      {onBack && (
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={onBack}
+          style={{ color: "#64748b", fontWeight: 500 }}
+        >
+          {t("common.back")}
+        </Button>
+      )}
       <Flex align="center" gap={6} style={{ marginLeft: "auto", color: "#64748b", fontSize: 13 }}>
         <LockOutlined style={{ fontSize: 13 }} />
         {t("billing.secureCheckout")}

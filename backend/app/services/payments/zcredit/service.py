@@ -100,9 +100,6 @@ def _gateway_password() -> str:
 def _customer_app_base() -> str:
     if (settings.zcredit_customer_app_url or "").strip():
         return settings.zcredit_customer_app_url.strip().rstrip("/")
-    parts = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-    if parts:
-        return parts[0].rstrip("/")
     return settings.app_base_url.rstrip("/")
 
 

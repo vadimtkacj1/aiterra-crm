@@ -201,6 +201,7 @@ def _create_session_body(
     success_url: str | None = None,
     cancel_url: str | None = None,
     failure_url: str | None = None,
+    callback_url: str | None = None,
 ) -> dict[str, Any]:
     key = (settings.zcredit_api_key or "").strip()
     def_success, def_cancel, def_fail = _success_cancel_urls(account)
@@ -208,6 +209,7 @@ def _create_session_body(
     s_url = success_url if success_url else def_success
     c_url = cancel_url if cancel_url else def_cancel
     f_url = failure_url if failure_url else def_fail
+    cb_url = callback_url if callback_url else _callback_url()
 
     local = (settings.zcredit_checkout_local or "En").strip() or "En"
     return {
@@ -216,8 +218,8 @@ def _create_session_body(
         "UniqueId": unique_id,
         "SuccessUrl": s_url,
         "CancelUrl": c_url,
-        "CallbackUrl": _callback_url(),
-        "FailureCallBackUrl": _callback_url(),
+        "CallbackUrl": cb_url,
+        "FailureCallBackUrl": cb_url,
         "FailureRedirectUrl": f_url,
         "NumberOfFailures": 3,
         "PaymentType": "regular",
@@ -304,6 +306,7 @@ def create_invoice(
     success_url: str | None = None,
     cancel_url: str | None = None,
     failure_url: str | None = None,
+    callback_url: str | None = None,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
         raise HTTPException(status_code=503, detail="zcredit_not_configured")
@@ -335,6 +338,7 @@ def create_invoice(
         success_url=success_url,
         cancel_url=cancel_url,
         failure_url=failure_url,
+        callback_url=callback_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
@@ -350,6 +354,7 @@ def create_invoice_with_line_items(
     success_url: str | None = None,
     cancel_url: str | None = None,
     failure_url: str | None = None,
+    callback_url: str | None = None,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
         total_minor = sum(amt for amt, _ in line_items if amt > 0)
@@ -361,6 +366,7 @@ def create_invoice_with_line_items(
             success_url=success_url,
             cancel_url=cancel_url,
             failure_url=failure_url,
+            callback_url=callback_url,
         )
 
     cur = (currency or "ILS").upper()
@@ -392,6 +398,7 @@ def create_invoice_with_line_items(
         success_url=success_url,
         cancel_url=cancel_url,
         failure_url=failure_url,
+        callback_url=callback_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
@@ -530,6 +537,7 @@ def create_subscription(
     success_url: str | None = None,
     cancel_url: str | None = None,
     failure_url: str | None = None,
+    callback_url: str | None = None,
 ) -> tuple[str, str, str | None, str | None]:
     """
     WebCheckout has no standing-order API in public docs — create a hosted session for the
@@ -562,6 +570,7 @@ def create_subscription(
         success_url=success_url,
         cancel_url=cancel_url,
         failure_url=failure_url,
+        callback_url=callback_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)

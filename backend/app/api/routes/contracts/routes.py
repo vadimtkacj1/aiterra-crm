@@ -5,7 +5,7 @@ import logging
 import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
@@ -368,6 +368,7 @@ def sign_contract(
 @router.post("/contracts/{token}/checkout", response_model=ContractCheckoutOut)
 def create_contract_checkout(
     token: str,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> ContractCheckoutOut:
     c = _get_by_token_or_404(db, token)
@@ -387,10 +388,25 @@ def create_contract_checkout(
     if not account:
         raise HTTPException(status_code=404, detail="account_not_found")
 
-    callback_url = f"{settings.app_base_url.rstrip('/')}/api/webhooks/zcredit"
+    # Determine dynamic base_url based on the incoming request to avoid localhost issues
+    origin = request.headers.get("origin")
+    referer = request.headers.get("referer")
+    host = request.headers.get("x-forwarded-host") or request.url.netloc
+    scheme = request.headers.get("x-forwarded-proto") or request.url.scheme
+    
+    if origin:
+        base_url = origin.rstrip("/")
+    elif referer:
+        from urllib.parse import urlparse
+        parsed = urlparse(referer)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        base_url = f"{scheme}://{host}"
+
+    callback_base = f"{scheme}://{host}"
+    callback_url = f"{callback_base}/api/webhooks/zcredit"
     amount_minor = int(round(float(stage.amount) * 100))
     
-    base_url = zcredit_service._customer_app_base()
     cancel_url = f"{base_url}/contracts/sign/{token}"
     success_url = f"{base_url}/a/{account.id}/billing/success"
     failure_url = f"{base_url}/a/{account.id}/billing/failed"
@@ -403,6 +419,7 @@ def create_contract_checkout(
         success_url=success_url,
         cancel_url=cancel_url,
         failure_url=failure_url,
+        callback_url=callback_url,
     )
     stage.payment_doc_id = session_id
     stage.status = "invoiced"

@@ -100,6 +100,13 @@ def _gateway_password() -> str:
 def _customer_app_base() -> str:
     if (settings.zcredit_customer_app_url or "").strip():
         return settings.zcredit_customer_app_url.strip().rstrip("/")
+    parts = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    # Знаходимо реальний домен, ігноруючи localhost
+    public_origins = [p for p in parts if "localhost" not in p and "127.0.0.1" not in p]
+    if public_origins:
+        return public_origins[0].rstrip("/")
+    if parts:
+        return parts[0].rstrip("/")
     return settings.app_base_url.rstrip("/")
 
 

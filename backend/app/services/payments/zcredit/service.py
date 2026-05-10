@@ -110,12 +110,13 @@ def _callback_url() -> str:
     return f"{settings.app_base_url.rstrip('/')}/api/webhooks/zcredit"
 
 
-def _success_cancel_urls(account: Account) -> tuple[str, str]:
+def _success_cancel_urls(account: Account) -> tuple[str, str, str]:
     base = _customer_app_base()
     path = f"/a/{account.id}/billing"
     success = f"{base}{path}/success"
-    cancel = f"{base}{path}/failed"
-    return success, cancel
+    cancel = f"{base}{path}"
+    fail = f"{base}{path}/failed"
+    return success, cancel, fail
 
 
 def _normalize_payment_url(url: str) -> str:
@@ -193,19 +194,27 @@ def _create_session_body(
     cart_items: list[dict[str, Any]],
     description: str,
     amount_minor: int,
+    success_url: str | None = None,
+    cancel_url: str | None = None,
+    failure_url: str | None = None,
 ) -> dict[str, Any]:
     key = (settings.zcredit_api_key or "").strip()
-    success, cancel = _success_cancel_urls(account)
+    def_success, def_cancel, def_fail = _success_cancel_urls(account)
+    
+    s_url = success_url if success_url else def_success
+    c_url = cancel_url if cancel_url else def_cancel
+    f_url = failure_url if failure_url else def_fail
+
     local = (settings.zcredit_checkout_local or "En").strip() or "En"
     return {
         "Key": key,
         "Local": local,
         "UniqueId": unique_id,
-        "SuccessUrl": success,
-        "CancelUrl": cancel,
+        "SuccessUrl": s_url,
+        "CancelUrl": c_url,
         "CallbackUrl": _callback_url(),
         "FailureCallBackUrl": _callback_url(),
-        "FailureRedirectUrl": cancel,
+        "FailureRedirectUrl": f_url,
         "NumberOfFailures": 3,
         "PaymentType": "regular",
         "CreateInvoice": "false",
@@ -288,6 +297,9 @@ def create_invoice(
     amount_minor: int,
     currency: str,
     description: str,
+    success_url: str | None = None,
+    cancel_url: str | None = None,
+    failure_url: str | None = None,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
         raise HTTPException(status_code=503, detail="zcredit_not_configured")
@@ -316,6 +328,9 @@ def create_invoice(
         cart_items=cart,
         description=description,
         amount_minor=amount_minor,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        failure_url=failure_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
@@ -328,10 +343,21 @@ def create_invoice_with_line_items(
     currency: str,
     line_items: list[tuple[int, str]],
     invoice_description: str,
+    success_url: str | None = None,
+    cancel_url: str | None = None,
+    failure_url: str | None = None,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
         total_minor = sum(amt for amt, _ in line_items if amt > 0)
-        return create_invoice(account, total_minor, currency, invoice_description)
+        return create_invoice(
+            account, 
+            total_minor, 
+            currency, 
+            invoice_description, 
+            success_url=success_url,
+            cancel_url=cancel_url,
+            failure_url=failure_url,
+        )
 
     cur = (currency or "ILS").upper()
     unique_id = f"inv_{account.id}_{uuid.uuid4().hex[:12]}"
@@ -359,6 +385,9 @@ def create_invoice_with_line_items(
         cart_items=cart,
         description=invoice_description,
         amount_minor=sum(minor for minor, _ in line_items if minor > 0),
+        success_url=success_url,
+        cancel_url=cancel_url,
+        failure_url=failure_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
@@ -494,6 +523,9 @@ def create_subscription(
     amount_minor: int,
     currency: str,
     description: str,
+    success_url: str | None = None,
+    cancel_url: str | None = None,
+    failure_url: str | None = None,
 ) -> tuple[str, str, str | None, str | None]:
     """
     WebCheckout has no standing-order API in public docs — create a hosted session for the
@@ -517,7 +549,16 @@ def create_subscription(
             "AdjustAmount": "false",
         }
     ]
-    body = _create_session_body(account, unique_id=unique_id, cart_items=cart, description=description)
+    body = _create_session_body(
+        account, 
+        unique_id=unique_id, 
+        cart_items=cart, 
+        description=description, 
+        amount_minor=amount_minor,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        failure_url=failure_url,
+    )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
     session_id, session_url = _parse_create_session(data)

@@ -389,11 +389,20 @@ def create_contract_checkout(
 
     callback_url = f"{settings.app_base_url.rstrip('/')}/api/webhooks/zcredit"
     amount_minor = int(round(float(stage.amount) * 100))
+    
+    base_url = zcredit_service._customer_app_base()
+    cancel_url = f"{base_url}/contracts/sign/{token}"
+    success_url = f"{base_url}/a/{account.id}/billing/success"
+    failure_url = f"{base_url}/a/{account.id}/billing/failed"
+
     session_id, pay_url = zcredit_service.create_invoice(
         account,
         amount_minor,
         c.currency,
         f"Contract #{c.id} · {stage.description or 'Payment'}",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        failure_url=failure_url,
     )
     stage.payment_doc_id = session_id
     stage.status = "invoiced"

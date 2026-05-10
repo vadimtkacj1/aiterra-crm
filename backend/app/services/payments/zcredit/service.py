@@ -172,12 +172,27 @@ def _sanitize_additional_text(text: str | None) -> str:
     return sanitized[:500].strip()
 
 
+def _installments_for_amount_minor(amount_minor: int) -> dict[str, str]:
+    """
+    Business rule:
+      - Up to 1,000 (major) → no installments (1)
+      - More than 1,000     → up to 6 installments (allow 1–6)
+    """
+    try:
+        if amount_minor > 100_000:  # 1,000 major units * 100
+            return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "6"}
+        return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "1"}
+    except Exception:
+        return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "1"}
+
+
 def _create_session_body(
     account: Account,
     *,
     unique_id: str,
     cart_items: list[dict[str, Any]],
     description: str,
+    amount_minor: int,
 ) -> dict[str, Any]:
     key = (settings.zcredit_api_key or "").strip()
     success, cancel = _success_cancel_urls(account)
@@ -197,7 +212,7 @@ def _create_session_body(
         "AdditionalText": _sanitize_additional_text(description),
         "ShowCart": "true",
         "ThemeColor": "005ebb",
-        "Installments": {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "12"},
+        "Installments": _installments_for_amount_minor(amount_minor),
         "CartItems": cart_items,
         "FocusType": "None",
         "UseLightMode": "false",
@@ -295,7 +310,13 @@ def create_invoice(
             "AdjustAmount": "false",
         }
     ]
-    body = _create_session_body(account, unique_id=unique_id, cart_items=cart, description=description)
+    body = _create_session_body(
+        account,
+        unique_id=unique_id,
+        cart_items=cart,
+        description=description,
+        amount_minor=amount_minor,
+    )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
     session_id, session_url = _parse_create_session(data)
@@ -337,6 +358,7 @@ def create_invoice_with_line_items(
         unique_id=unique_id,
         cart_items=cart,
         description=invoice_description,
+        amount_minor=sum(minor for minor, _ in line_items if minor > 0),
     )
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)

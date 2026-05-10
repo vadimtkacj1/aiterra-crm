@@ -113,8 +113,8 @@ def _callback_url() -> str:
 def _success_cancel_urls(account: Account) -> tuple[str, str]:
     base = _customer_app_base()
     path = f"/a/{account.id}/billing"
-    success = f"{base}{path}?zcredit=1"
-    cancel = f"{base}{path}?zcredit=cancel"
+    success = f"{base}{path}/success"
+    cancel = f"{base}{path}/failed"
     return success, cancel
 
 

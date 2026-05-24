@@ -83,6 +83,10 @@
         "monthlyAmount": "Monthly charge amount",
         "subscriptionMonths": "Duration (months)",
         "subscriptionMonthsHint": "Leave empty for unlimited recurring billing",
+        "subscriptionAutoStages": "Subscription Payment Stages",
+        "subscriptionSummary": "Monthly payments of {{amount}} for {{months}} months will be automatically charged",
+        "subscriptionConfigureFirst": "Configure monthly amount and duration in the previous step",
+        "monthlyAmountRequired": "Monthly amount is required for subscriptions",
         "basicInfo": "Basic Information",
         "titlePlaceholder": "e.g. Annual Service Agreement"
       },

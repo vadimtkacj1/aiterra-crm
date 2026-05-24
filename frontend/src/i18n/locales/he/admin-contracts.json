@@ -83,6 +83,10 @@
         "monthlyAmount": "סכום חיוב חודשי",
         "subscriptionMonths": "משך (חודשים)",
         "subscriptionMonthsHint": "השאר ריק לחיוב חוזר ללא הגבלה",
+        "subscriptionAutoStages": "שלבי תשלום מנוי",
+        "subscriptionSummary": "תשלומים חודשיים של {{amount}} למשך {{months}} חודשים יחויבו אוטומטית",
+        "subscriptionConfigureFirst": "הגדר סכום חודשי ומשך בשלב הקודם",
+        "monthlyAmountRequired": "סכום חודשי נדרש למנויים",
         "basicInfo": "מידע בסיסי",
         "titlePlaceholder": "לדוגמה: הסכם שירות שנתי"
       },

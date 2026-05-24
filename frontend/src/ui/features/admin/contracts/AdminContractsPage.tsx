@@ -262,6 +262,37 @@ export function AdminContractsPage() {
   };
 
   const handleCreate = async (values: FormValues) => {
+    // For subscriptions, stages are auto-generated on backend
+    if (values.isSubscription) {
+      if (!values.monthlyAmount || values.monthlyAmount <= 0) {
+        void message.error(t("admin.contracts.form.monthlyAmountRequired"));
+        return;
+      }
+      setCreating(true);
+      try {
+        const created = await services.admin.createContract({
+          accountId: values.accountId,
+          title: values.title,
+          body: values.body ?? "",
+          currency: values.currency ?? "ILS",
+          pdfBase64: pdfBase64 ?? null,
+          stages: [], // Backend will generate stages
+          isSubscription: true,
+          monthlyAmount: values.monthlyAmount,
+          subscriptionMonths: values.subscriptionMonths || null,
+        });
+        setContracts((prev) => [created, ...prev]);
+        resetCreateForm();
+        void message.success(t("admin.contracts.createdSuccess"));
+      } catch (e) {
+        void message.error(e instanceof Error ? e.message : t("errors.generic"));
+      } finally {
+        setCreating(false);
+      }
+      return;
+    }
+
+    // For one-time payments, validate manual stages
     const validStages = (values.stages ?? []).filter(
       (s) => s.description?.trim() && s.amount && s.amount > 0,
     );
@@ -278,9 +309,9 @@ export function AdminContractsPage() {
         currency: values.currency ?? "ILS",
         pdfBase64: pdfBase64 ?? null,
         stages: validStages as { description: string; amount: number }[],
-        isSubscription: values.isSubscription ?? false,
-        monthlyAmount: values.isSubscription ? values.monthlyAmount : null,
-        subscriptionMonths: values.isSubscription ? values.subscriptionMonths : null,
+        isSubscription: false,
+        monthlyAmount: null,
+        subscriptionMonths: null,
       });
       setContracts((prev) => [created, ...prev]);
       resetCreateForm();
@@ -651,100 +682,141 @@ export function AdminContractsPage() {
 
           {/* Step 2 — Payment Stages */}
           <div style={{ display: currentStep === 2 ? "block" : "none" }}>
-            {/* Equal split helper */}
-            <Flex
-              gap={8}
-              align="center"
-              wrap="wrap"
-              style={{
-                padding: "10px 14px",
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: 8,
-                marginBottom: 16,
-              }}
-            >
-              <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                {t("admin.contracts.form.equalSplitTitle")}:
-              </Typography.Text>
-              <InputNumber
-                size="small"
-                min={0.01}
-                value={splitTotal ?? undefined}
-                onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
-                placeholder={t("admin.contracts.form.equalSplitTotal")}
-                style={{ width: 120 }}
-              />
-              <Typography.Text type="secondary">÷</Typography.Text>
-              <InputNumber
-                size="small"
-                min={2}
-                max={60}
-                precision={0}
-                value={splitParts}
-                onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
-                style={{ width: 64 }}
-              />
-              <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
-                {t("admin.contracts.form.equalSplitApply")}
-              </Button>
-            </Flex>
+            <Form.Item noStyle shouldUpdate={(prev, curr) => prev.isSubscription !== curr.isSubscription}>
+              {({ getFieldValue }) => {
+                const isSubscription = getFieldValue("isSubscription");
 
-            {/* Stage list */}
-            <Form.List name="stages">
-              {(fields, { add, remove }) => (
-                <Space direction="vertical" size={0} style={{ width: "100%" }}>
-                  {fields.map(({ key, name, ...rest }, index) => (
+                if (isSubscription) {
+                  // Subscription mode: show read-only info
+                  const monthlyAmount = getFieldValue("monthlyAmount");
+                  const subscriptionMonths = getFieldValue("subscriptionMonths");
+
+                  return (
+                    <div
+                      style={{
+                        padding: "16px",
+                        background: "#f0f9ff",
+                        border: "1px solid #bae6fd",
+                        borderRadius: 8,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography.Title level={5} style={{ marginBottom: 8 }}>
+                        {t("admin.contracts.form.subscriptionAutoStages")}
+                      </Typography.Title>
+                      <Typography.Text type="secondary">
+                        {monthlyAmount && subscriptionMonths
+                          ? t("admin.contracts.form.subscriptionSummary", {
+                              amount: fmtMoney(monthlyAmount, getFieldValue("currency") || "ILS"),
+                              months: subscriptionMonths,
+                            })
+                          : t("admin.contracts.form.subscriptionConfigureFirst")}
+                      </Typography.Text>
+                    </div>
+                  );
+                }
+
+                // One-time payment mode: show manual stages
+                return (
+                  <>
+                    {/* Equal split helper */}
                     <Flex
-                      key={key}
                       gap={8}
                       align="center"
-                      style={{ padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}
+                      wrap="wrap"
+                      style={{
+                        padding: "10px 14px",
+                        background: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 8,
+                        marginBottom: 16,
+                      }}
                     >
-                      <Typography.Text
-                        type="secondary"
-                        style={{ flex: "0 0 22px", textAlign: "center", fontSize: 13 }}
-                      >
-                        {index + 1}
+                      <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                        {t("admin.contracts.form.equalSplitTitle")}:
                       </Typography.Text>
-                      <Form.Item
-                        {...rest}
-                        name={[name, "description"]}
-                        rules={[{ required: true, message: "" }]}
-                        style={{ flex: 1, marginBottom: 0 }}
-                      >
-                        <Input placeholder={t("admin.contracts.form.stageDescription")} />
-                      </Form.Item>
-                      <Form.Item
-                        {...rest}
-                        name={[name, "amount"]}
-                        rules={[{ required: true, type: "number", min: 0.01, message: "" }]}
-                        style={{ width: 130, marginBottom: 0 }}
-                      >
-                        <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
-                      </Form.Item>
-                      <Button
-                        type="text"
-                        danger
-                        icon={<MinusCircleOutlined />}
-                        onClick={() => remove(name)}
-                        disabled={fields.length === 1}
+                      <InputNumber
+                        size="small"
+                        min={0.01}
+                        value={splitTotal ?? undefined}
+                        onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
+                        placeholder={t("admin.contracts.form.equalSplitTotal")}
+                        style={{ width: 120 }}
                       />
+                      <Typography.Text type="secondary">÷</Typography.Text>
+                      <InputNumber
+                        size="small"
+                        min={2}
+                        max={60}
+                        precision={0}
+                        value={splitParts}
+                        onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
+                        style={{ width: 64 }}
+                      />
+                      <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
+                        {t("admin.contracts.form.equalSplitApply")}
+                      </Button>
                     </Flex>
-                  ))}
 
-                  <Button
-                    type="dashed"
-                    icon={<PlusOutlined />}
-                    onClick={() => add({ description: "", amount: null })}
-                    block
-                    style={{ marginTop: 12 }}
-                  >
-                    {t("admin.contracts.form.addStage")}
-                  </Button>
-                </Space>
-              )}
-            </Form.List>
+                    {/* Stage list */}
+                    <Form.List name="stages">
+                      {(fields, { add, remove }) => (
+                        <Space direction="vertical" size={0} style={{ width: "100%" }}>
+                          {fields.map(({ key, name, ...rest }, index) => (
+                            <Flex
+                              key={key}
+                              gap={8}
+                              align="center"
+                              style={{ padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}
+                            >
+                              <Typography.Text
+                                type="secondary"
+                                style={{ flex: "0 0 22px", textAlign: "center", fontSize: 13 }}
+                              >
+                                {index + 1}
+                              </Typography.Text>
+                              <Form.Item
+                                {...rest}
+                                name={[name, "description"]}
+                                rules={[{ required: true, message: "" }]}
+                                style={{ flex: 1, marginBottom: 0 }}
+                              >
+                                <Input placeholder={t("admin.contracts.form.stageDescription")} />
+                              </Form.Item>
+                              <Form.Item
+                                {...rest}
+                                name={[name, "amount"]}
+                                rules={[{ required: true, type: "number", min: 0.01, message: "" }]}
+                                style={{ width: 130, marginBottom: 0 }}
+                              >
+                                <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
+                              </Form.Item>
+                              <Button
+                                type="text"
+                                danger
+                                icon={<MinusCircleOutlined />}
+                                onClick={() => remove(name)}
+                                disabled={fields.length === 1}
+                              />
+                            </Flex>
+                          ))}
+
+                          <Button
+                            type="dashed"
+                            icon={<PlusOutlined />}
+                            onClick={() => add({ description: "", amount: null })}
+                            block
+                            style={{ marginTop: 12 }}
+                          >
+                            {t("admin.contracts.form.addStage")}
+                          </Button>
+                        </Space>
+                      )}
+                    </Form.List>
+                  </>
+                );
+              }}
+            </Form.Item>
           </div>
         </Form>
       </AppModal>

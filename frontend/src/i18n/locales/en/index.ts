@@ -1,4 +1,5 @@
 import { deepMerge } from "../mergeTranslations";
+import commonEnhanced from "./common-enhanced.json";
 import coreShell from "./core-shell.json";
 import coreAccount from "./core-account.json";
 import analyticsShell from "./analytics-shell.json";
@@ -25,6 +26,7 @@ import site from "./site.json";
 
 const merged = deepMerge(
   {},
+  commonEnhanced,
   coreShell,
   coreAccount,
   analyticsShell,

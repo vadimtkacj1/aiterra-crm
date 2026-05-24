@@ -344,6 +344,9 @@ export class AdminService {
       currency: input.currency,
       pdfBase64: input.pdfBase64 ?? null,
       stages: input.stages.map((s) => ({ description: s.description, amount: s.amount })),
+      isSubscription: input.isSubscription ?? false,
+      monthlyAmount: input.monthlyAmount ?? null,
+      subscriptionMonths: input.subscriptionMonths ?? null,
     });
   }
 

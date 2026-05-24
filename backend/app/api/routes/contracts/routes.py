@@ -156,7 +156,22 @@ def create_contract(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ) -> ContractOut:
-    total = sum(s.amount for s in body.stages)
+    # For subscriptions, generate a single stage with monthly amount
+    if body.isSubscription and not body.stages:
+        if not body.monthlyAmount or body.monthlyAmount <= 0:
+            raise HTTPException(status_code=400, detail="monthlyAmount required for subscriptions")
+        # Create a single stage representing the subscription
+        stages_to_create = [
+            ContractStageIn(
+                description=f"Monthly subscription ({body.subscriptionMonths or '∞'} months)",
+                amount=body.monthlyAmount
+            )
+        ]
+        total = body.monthlyAmount
+    else:
+        stages_to_create = body.stages
+        total = sum(s.amount for s in body.stages)
+
     contract = Contract(
         account_id=body.accountId,
         title=body.title,
@@ -172,7 +187,7 @@ def create_contract(
     db.add(contract)
     db.flush()
 
-    for i, stage in enumerate(body.stages):
+    for i, stage in enumerate(stages_to_create):
         db.add(
             ContractPaymentStage(
                 contract_id=contract.id,

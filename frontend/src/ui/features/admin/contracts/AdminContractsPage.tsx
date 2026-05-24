@@ -524,22 +524,23 @@ export function AdminContractsPage() {
               </Col>
             </Row>
 
-            <Form.Item
-              name="body"
-              label={t("admin.contracts.form.body")}
-              extra={
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {t("admin.contracts.form.bodyFormatHint")}
-                </Typography.Text>
-              }
-              style={{ display: pdfBase64 ? "none" : "block" }}
-            >
-              <Input.TextArea
-                rows={4}
-                placeholder={t("admin.contracts.form.bodyPlaceholder")}
-                style={{ fontFamily: "monospace", fontSize: 13 }}
-              />
-            </Form.Item>
+            {!pdfBase64 && (
+              <Form.Item
+                name="body"
+                label={t("admin.contracts.form.body")}
+                extra={
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    {t("admin.contracts.form.bodyFormatHint")}
+                  </Typography.Text>
+                }
+              >
+                <Input.TextArea
+                  rows={4}
+                  placeholder={t("admin.contracts.form.bodyPlaceholder")}
+                  style={{ fontFamily: "monospace", fontSize: 13 }}
+                />
+              </Form.Item>
+            )}
 
             {/* PDF upload */}
             <Form.Item label={t("admin.contracts.form.pdf")} style={{ marginBottom: 0 }}>

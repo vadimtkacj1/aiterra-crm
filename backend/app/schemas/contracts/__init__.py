@@ -33,8 +33,10 @@ class ContractCreate(BaseModel):
 
     @field_validator("stages")
     @classmethod
-    def at_least_one(cls, v: list[ContractStageIn]) -> list[ContractStageIn]:
-        if not v:
+    def at_least_one(cls, v: list[ContractStageIn], info) -> list[ContractStageIn]:
+        # For subscriptions, stages can be empty (backend will generate them)
+        is_subscription = info.data.get("isSubscription", False)
+        if not is_subscription and not v:
             raise ValueError("at least one stage required")
         return v
 

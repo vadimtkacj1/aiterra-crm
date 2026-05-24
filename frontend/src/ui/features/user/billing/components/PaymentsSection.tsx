@@ -6,6 +6,7 @@ import type { PaymentRecord } from "@/domain/Billing";
 import type { BillingOverview } from "@/services/billing/IBillingService";
 import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
 import { billingShell, formatInvoiceMoney } from "./billingUtils";
+import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 
 interface Props {
   overview: BillingOverview | null;
@@ -46,6 +47,7 @@ function InvoicePaymentStatusTag({ status }: { status: PaymentRecord["status"] }
 export function PaymentsSection({ overview, loading, appLocale, accountId }: Props) {
   const { t } = useTranslation();
   const [activeInvoice, setActiveInvoice] = useState<BillingOverview["payments"][number] | null>(null);
+  const isMobile = useMobileView();
 
   const downloadPaymentPdf = useCallback(
     (row: BillingOverview["payments"][number]) => {
@@ -105,67 +107,104 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
               border: `1px solid ${billingShell.border}`,
             }}
           >
-            <Table
-              size="small"
-              rowKey="id"
-              scroll={{ x: 500 }}
-              pagination={{ pageSize: 5 }}
-              dataSource={overview?.payments ?? []}
-              locale={{ emptyText: tableEmpty(t("billing.emptyPayments")) }}
-              columns={[
-                { title: t("billing.date"), dataIndex: "date", key: "date", width: 108 },
-                {
-                  title: t("billing.invoiceNumberShort"),
-                  dataIndex: "id",
-                  key: "id",
-                  width: 132,
-                  ellipsis: true,
-                  render: (id: string) => (
-                    <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
-                      {id}
+            {isMobile ? (
+              <ResponsiveCardView
+                items={(overview?.payments ?? []).map((r) => ({
+                  id: r.id,
+                  title: `#${r.id}`,
+                  subtitle: r.date,
+                  description: r.description,
+                  tags: [
+                    {
+                      label: r.status === "succeeded" ? t("billing.statusSucceeded") : r.status === "pending" ? t("billing.statusPending") : t("billing.statusFailed"),
+                      color: r.status === "succeeded" ? "success" : r.status === "pending" ? "warning" : "error",
+                    },
+                  ],
+                  extra: (
+                    <Typography.Text strong style={{ fontSize: 14 }}>
+                      {formatInvoiceMoney(r.amount, r.currency, appLocale)}
                     </Typography.Text>
                   ),
-                },
-                {
-                  title: t("billing.total"),
-                  key: "amount",
-                  width: 100,
-                  render: (_, r) => formatInvoiceMoney(r.amount, r.currency, appLocale),
-                },
-                {
-                  title: t("billing.status"),
-                  dataIndex: "status",
-                  key: "status",
-                  width: 120,
-                  render: (s: PaymentRecord["status"]) => <InvoicePaymentStatusTag status={s} />,
-                },
-                {
-                  title: t("billing.actions"),
-                  key: "actions",
-                  width: 200,
-                  render: (_, r) => (
-                    <Space size={8} wrap>
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<DownloadOutlined />}
-                        onClick={() => downloadPaymentPdf(r)}
-                        style={{ borderRadius: 8 }}
-                      >
-                        PDF
-                      </Button>
-                      <Button
-                        type="link"
-                        onClick={() => setActiveInvoice(r)}
-                        style={{ padding: 0, height: "auto", fontWeight: 500 }}
-                      >
-                        {t("billing.view")}
-                      </Button>
-                    </Space>
-                  ),
-                },
-              ]}
-            />
+                  actions: [
+                    {
+                      label: "PDF",
+                      onClick: () => downloadPaymentPdf(r),
+                      icon: <DownloadOutlined />,
+                      type: "primary" as const,
+                    },
+                    {
+                      label: t("billing.view"),
+                      onClick: () => setActiveInvoice(r),
+                      type: "link" as const,
+                    },
+                  ],
+                }))}
+                loading={loading}
+                emptyText={t("billing.emptyPayments")}
+              />
+            ) : (
+              <Table
+                size="small"
+                rowKey="id"
+                scroll={{ x: 500 }}
+                pagination={{ pageSize: 5 }}
+                dataSource={overview?.payments ?? []}
+                locale={{ emptyText: tableEmpty(t("billing.emptyPayments")) }}
+                columns={[
+                  { title: t("billing.date"), dataIndex: "date", key: "date", width: 108 },
+                  {
+                    title: t("billing.invoiceNumberShort"),
+                    dataIndex: "id",
+                    key: "id",
+                    width: 132,
+                    ellipsis: true,
+                    render: (id: string) => (
+                      <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                        {id}
+                      </Typography.Text>
+                    ),
+                  },
+                  {
+                    title: t("billing.total"),
+                    key: "amount",
+                    width: 100,
+                    render: (_, r) => formatInvoiceMoney(r.amount, r.currency, appLocale),
+                  },
+                  {
+                    title: t("billing.status"),
+                    dataIndex: "status",
+                    key: "status",
+                    width: 120,
+                    render: (s: PaymentRecord["status"]) => <InvoicePaymentStatusTag status={s} />,
+                  },
+                  {
+                    title: t("billing.actions"),
+                    key: "actions",
+                    width: 200,
+                    render: (_, r) => (
+                      <Space size={8} wrap>
+                        <Button
+                          type="primary"
+                          size="small"
+                          icon={<DownloadOutlined />}
+                          onClick={() => downloadPaymentPdf(r)}
+                          style={{ borderRadius: 8 }}
+                        >
+                          PDF
+                        </Button>
+                        <Button
+                          type="link"
+                          onClick={() => setActiveInvoice(r)}
+                          style={{ padding: 0, height: "auto", fontWeight: 500 }}
+                        >
+                          {t("billing.view")}
+                        </Button>
+                      </Space>
+                    ),
+                  },
+                ]}
+              />
+            )}
           </Card>
         </Col>
       </Row>

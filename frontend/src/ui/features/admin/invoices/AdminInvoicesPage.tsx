@@ -30,6 +30,7 @@ import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
 import { downloadInvoicePdf } from "../../../shared/utils/invoicePdf";
+import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
 
 function fmtMoney(amount: number, currency: string) {
   try {
@@ -55,6 +56,7 @@ export function AdminInvoicesPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const { services, users } = useApp();
+  const isMobile = useMobileView();
 
   const [invoices, setInvoices] = useState<BillingHistoryWithAccountRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -290,19 +292,80 @@ export function AdminInvoicesPage() {
         title={t("admin.invoices.title")}
         extra={
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {t("admin.invoices.createButton")}
+            {!isMobile && t("admin.invoices.createButton")}
           </Button>
         }
       >
-        <Table
-          columns={columns}
-          dataSource={invoices}
-          rowKey={(r) => `${r.accountId}-${r.id}`}
-          loading={loading}
-          pagination={{ pageSize: 20, showSizeChanger: true }}
-          scroll={{ x: 1100 }}
-          locale={{ emptyText: t("admin.invoices.empty") }}
-        />
+        {isMobile ? (
+          <ResponsiveCardView
+            items={invoices.map((r) => ({
+              id: `${r.accountId}-${r.id}`,
+              title: r.accountName,
+              subtitle: r.ownerEmail || "-",
+              description: new Date(r.createdAt).toLocaleDateString(),
+              tags: [
+                {
+                  label: r.chargeType === "monthly" ? t("admin.invoices.typeMonthly") : t("admin.invoices.typeOneTime"),
+                  color: r.chargeType === "monthly" ? "purple" : "blue",
+                },
+                {
+                  label: r.paymentStatus === "paid" ? t("admin.invoices.paymentPaid") : r.paymentStatus === "pending" ? t("admin.invoices.paymentPending") : t("admin.invoices.paymentUnpaid"),
+                  color: r.paymentStatus === "paid" ? "success" : r.paymentStatus === "pending" ? "warning" : "default",
+                },
+                {
+                  label: r.recordStatus === "active" ? t("admin.invoices.statusActive") : r.recordStatus === "revoked" ? t("admin.invoices.statusRevoked") : t("admin.invoices.statusSuperseded"),
+                  color: r.recordStatus === "active" ? "success" : r.recordStatus === "revoked" ? "error" : "default",
+                },
+              ],
+              extra: (
+                <div style={{ textAlign: "right" }}>
+                  <Typography.Text strong style={{ fontSize: 14 }}>
+                    {r.amount != null ? fmtMoney(r.amount, r.currency) : "-"}
+                  </Typography.Text>
+                  {r.chargeType === "monthly" && r.installmentMonths != null && r.installmentMonths >= 2 && r.installmentTotalAmount != null && (
+                    <Typography.Text type="secondary" style={{ display: "block", fontSize: 10 }}>
+                      {t("admin.invoices.installmentNote", {
+                        total: fmtMoney(r.installmentTotalAmount, r.currency),
+                        months: r.installmentMonths,
+                      })}
+                    </Typography.Text>
+                  )}
+                </div>
+              ),
+              actions: [
+                {
+                  label: t("admin.invoices.downloadPdf"),
+                  onClick: () => downloadPdf(r),
+                  icon: <DownloadOutlined />,
+                  type: "default" as const,
+                },
+                ...(r.recordStatus === "active"
+                  ? [{
+                      label: t("admin.invoices.revoke"),
+                      onClick: () => void handleRevoke(r),
+                      danger: true,
+                    }]
+                  : [{
+                      label: t("admin.invoices.delete"),
+                      onClick: () => void handleDelete(r),
+                      danger: true,
+                    }]),
+              ],
+            }))}
+            loading={loading}
+            emptyText={t("admin.invoices.empty")}
+          />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={invoices}
+            rowKey={(r) => `${r.accountId}-${r.id}`}
+            loading={loading}
+            pagination={{ pageSize: 20, showSizeChanger: true }}
+            scroll={{ x: 1100 }}
+            locale={{ emptyText: t("admin.invoices.empty") }}
+          />
+        )}
       </ListCard>
 
       {/* Create Modal */}

@@ -8,6 +8,7 @@ import type { ContractMemberRow } from "../../../../../domain/Contract";
 import { useApp } from "../../../../../app/AppProviders";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
+import { ResponsiveCardView, useMobileView } from "../../../../shared/components/ResponsiveCardView";
 
 function fmtMoney(amount: number, currency: string) {
   try {
@@ -68,6 +69,7 @@ export function MemberContractsPage() {
   const [rows, setRows] = useState<ContractMemberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [payLoadingId, setPayLoadingId] = useState<number | null>(null);
+  const isMobile = useMobileView();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -230,6 +232,58 @@ export function MemberContractsPage() {
         <Card>
           {!loading && rows.length === 0 ? (
             <Empty description={t("memberContracts.empty")} />
+          ) : isMobile ? (
+            <ResponsiveCardView
+              items={rows.map((r) => {
+                const [statusColor, statusKey] = statusMeta(r.status);
+                const [paymentColor, paymentKey] = paymentMeta(r);
+                const { stagesPaid, stagesTotal, paidAmount } = paidCounts(r);
+                const payAvailable = hasUnpaidStage(r) && r.status === "signed";
+
+                return {
+                  id: r.id,
+                  title: r.title,
+                  subtitle: r.signedAt
+                    ? new Date(r.signedAt).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : t("memberContracts.notSigned"),
+                  description: t("memberContracts.paymentProgress", {
+                    paid: stagesPaid,
+                    total: stagesTotal,
+                    paidAmount: fmtMoney(paidAmount, r.currency),
+                    totalAmount: fmtMoney(r.totalAmount, r.currency),
+                  }),
+                  tags: [
+                    { label: t(statusKey), color: statusColor },
+                    { label: t(paymentKey), color: paymentColor },
+                  ],
+                  extra: (
+                    <Typography.Text strong style={{ fontSize: 14 }}>
+                      {fmtMoney(r.totalAmount, r.currency)}
+                    </Typography.Text>
+                  ),
+                  actions: [
+                    {
+                      label: t("memberContracts.actionDownload"),
+                      onClick: () => window.open(`/contracts/sign/${encodeURIComponent(r.signToken)}`, "_blank"),
+                      type: "link" as const,
+                    },
+                    ...(payAvailable
+                      ? [{
+                          label: t("memberContracts.actionPay"),
+                          onClick: () => void handleContractPay(r),
+                          type: "primary" as const,
+                        }]
+                      : []),
+                  ],
+                };
+              })}
+              loading={loading}
+              emptyText={t("memberContracts.empty")}
+            />
           ) : (
             <Table<ContractMemberRow>
               rowKey="id"

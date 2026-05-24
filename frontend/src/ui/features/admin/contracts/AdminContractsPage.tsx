@@ -14,6 +14,7 @@ import {
   Descriptions,
   Flex,
   Form,
+  Grid,
   Image,
   Input,
   InputNumber,
@@ -39,6 +40,7 @@ import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
 import { SubscriptionStatusModal } from "./SubscriptionStatusModal";
 import { ContractRowActions } from "./ContractRowActions";
+import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -128,6 +130,7 @@ export function AdminContractsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const { services, users } = useApp();
+  const isMobile = useMobileView();
 
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(false);
@@ -431,17 +434,72 @@ export function AdminContractsPage() {
         title={t("admin.contracts.title")}
         extra={
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {t("admin.contracts.create")}
+            {!isMobile && t("admin.contracts.create")}
+            {isMobile && <PlusOutlined />}
           </Button>
         }
       >
-        <Table
-          columns={columns}
-          dataSource={contracts}
-          rowKey="id"
-          loading={loading}
-          pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => `${n} contracts` }}
-        />
+        {isMobile ? (
+          <ResponsiveCardView
+            items={contracts.map((c) => {
+              const u = users.find((x) => x.accountId === c.accountId);
+              const [statusColor, statusKey] = statusCfg(c.status);
+              const paidCount = getPaidCount(c);
+              const total = c.stages.length;
+              const paidAmt = getPaidAmount(c);
+
+              return {
+                id: c.id,
+                title: c.title,
+                subtitle: u?.displayName || `Account #${c.accountId}`,
+                description: u?.email,
+                tags: [
+                  { label: t(statusKey), color: statusColor },
+                  ...(c.monthlyAmount && c.monthlyAmount > 0
+                    ? [{
+                        label: t("admin.contracts.subscriptionTag", {
+                          amount: fmtMoney(c.monthlyAmount, c.currency),
+                          months: c.subscriptionMonths || "∞",
+                        }),
+                        color: "blue",
+                      }]
+                    : []),
+                ],
+                extra: (
+                  <div style={{ textAlign: "right" }}>
+                    <Typography.Text strong style={{ fontSize: 14 }}>
+                      {fmtMoney(c.totalAmount, c.currency)}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ display: "block", fontSize: 11 }}>
+                      {paidCount === total && total > 0
+                        ? t("admin.contracts.installmentsTag.paid", { paid: paidCount, total })
+                        : paidCount === 0
+                        ? t("admin.contracts.installmentsTag.unpaid")
+                        : `${paidCount}/${total}`}
+                    </Typography.Text>
+                  </div>
+                ),
+                actions: [
+                  {
+                    label: t("common.view"),
+                    onClick: () => setDetailContract(c),
+                    type: "default" as const,
+                  },
+                ],
+              };
+            })}
+            loading={loading}
+            emptyText={t("common.noData")}
+          />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={contracts}
+            rowKey="id"
+            loading={loading}
+            pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => `${n} contracts` }}
+          />
+        )}
       </ListCard>
 
       {/* ── Create modal ──────────────────────────────────────── */}

@@ -16,6 +16,7 @@ import {
   formatMoney,
   paymentStatusTag,
 } from "./billingUi";
+import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 
 type Props = {
   t: TFunction;
@@ -48,6 +49,92 @@ export function AdminPaymentsHistoryTable({
   loadAllBillingHistory,
   downloadRowPdf,
 }: Props) {
+  const isMobile = useMobileView();
+
+  if (isMobile) {
+    return (
+      <ResponsiveCardView
+        items={rows.map((r) => ({
+          id: `${r.accountId}-${r.id}`,
+          title: r.accountName,
+          subtitle: r.ownerEmail || "-",
+          description: formatHistoryDateTime(r.createdAt),
+          tags: [
+            {
+              label: r.chargeType === "monthly" ? t("admin.payments.historyTypeMonthly") : t("admin.payments.historyTypeOneTime"),
+              color: r.chargeType === "monthly" ? "purple" : "blue",
+            },
+            {
+              label: r.recordStatus === "active" ? t("admin.payments.historyStatusActive") : r.recordStatus === "revoked" ? t("admin.payments.historyStatusRevoked") : t("admin.payments.historyStatusSuperseded"),
+              color: r.recordStatus === "active" ? "success" : r.recordStatus === "revoked" ? "error" : "default",
+            },
+          ],
+          extra: (
+            <div style={{ textAlign: "right" }}>
+              <Typography.Text strong style={{ fontSize: 14 }}>
+                {r.amount != null ? formatMoney(r.amount, r.currency) : "-"}
+              </Typography.Text>
+              {r.chargeType === "monthly" && r.installmentMonths != null && r.installmentMonths >= 2 && r.installmentTotalAmount != null && (
+                <Typography.Text type="secondary" style={{ display: "block", fontSize: 10 }}>
+                  {t("admin.payments.historyInstallmentFootnote", {
+                    total: formatMoney(r.installmentTotalAmount, r.currency),
+                    months: r.installmentMonths,
+                  })}
+                </Typography.Text>
+              )}
+            </div>
+          ),
+          actions: [
+            {
+              label: t("admin.payments.downloadPdf"),
+              onClick: () => downloadRowPdf(r),
+              icon: <DownloadOutlined />,
+              type: "default" as const,
+            },
+            ...(r.recordStatus === "active"
+              ? [{
+                  label: t("admin.payments.revoke"),
+                  onClick: async () => {
+                    setRevokingId(r.id);
+                    try {
+                      await admin.revokeBillingHistoryRow(r.accountId, r.id);
+                      message.success(t("admin.payments.revokeSuccess"));
+                      await loadAllBillingHistory();
+                      if (userMeta?.accountId === r.accountId) {
+                        await refreshBillingFormForAccount(r.accountId);
+                      }
+                    } catch (e) {
+                      message.error(e instanceof Error ? e.message : t("errors.generic"));
+                    } finally {
+                      setRevokingId(null);
+                    }
+                  },
+                  danger: true,
+                }]
+              : [{
+                  label: t("admin.payments.deleteRow"),
+                  onClick: async () => {
+                    setDeletingId(r.id);
+                    try {
+                      await admin.deleteBillingHistoryRow(r.accountId, r.id);
+                      message.success(t("admin.payments.deleteSuccess"));
+                      await loadAllBillingHistory();
+                    } catch (e) {
+                      message.error(billingHistoryDeleteErrorMessage(t, e));
+                    } finally {
+                      setDeletingId(null);
+                    }
+                  },
+                  danger: true,
+                }]),
+          ],
+        }))}
+        loading={loading}
+        emptyText={t("admin.payments.historyEmpty")}
+      />
+    );
+  }
+
   return (
     <Spin spinning={loading}>
       <Table<BillingHistoryWithAccountRow>

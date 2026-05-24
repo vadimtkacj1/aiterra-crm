@@ -156,6 +156,13 @@ def create_contract(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ) -> ContractOut:
+    # Debug logging
+    print(f"DEBUG: Received contract creation request")
+    print(f"  isSubscription: {body.isSubscription}")
+    print(f"  monthlyAmount: {body.monthlyAmount}")
+    print(f"  stages: {body.stages}")
+    print(f"  subscriptionMonths: {body.subscriptionMonths}")
+
     # For subscriptions, generate a single stage with monthly amount
     if body.isSubscription and not body.stages:
         if not body.monthlyAmount or body.monthlyAmount <= 0:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator
+from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class ContractStageIn(BaseModel):
@@ -25,20 +25,20 @@ class ContractCreate(BaseModel):
     pdfBase64: str | None = Field(
         default=None, validation_alias=AliasChoices("pdfBase64", "pdf_base64")
     )
-    stages: list[ContractStageIn]
+    stages: list[ContractStageIn] = []
     # Monthly subscription fields
     isSubscription: bool = Field(default=False, validation_alias=AliasChoices("isSubscription", "is_subscription"))
     monthlyAmount: float | None = Field(default=None, validation_alias=AliasChoices("monthlyAmount", "monthly_amount"))
     subscriptionMonths: int | None = Field(default=None, validation_alias=AliasChoices("subscriptionMonths", "subscription_months"))
 
-    @field_validator("stages")
-    @classmethod
-    def at_least_one(cls, v: list[ContractStageIn], info) -> list[ContractStageIn]:
+    @model_validator(mode='after')
+    def validate_stages_or_subscription(self):
         # For subscriptions, stages can be empty (backend will generate them)
-        is_subscription = info.data.get("isSubscription", False)
-        if not is_subscription and not v:
-            raise ValueError("at least one stage required")
-        return v
+        if not self.isSubscription and not self.stages:
+            raise ValueError("at least one stage required for non-subscription contracts")
+        if self.isSubscription and not self.monthlyAmount:
+            raise ValueError("monthlyAmount required for subscription contracts")
+        return self
 
     @field_validator("title")
     @classmethod

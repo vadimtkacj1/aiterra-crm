@@ -5,7 +5,6 @@ import type { TFunction } from "i18next";
 import type { UserBusinessMeta } from "@/services/admin/AdminService";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
 import type { AdminEditUserFormValues } from "./adminUsersTypes";
-import { AdminUsersBillingFields } from "./AdminUsersBillingFields";
 import { AdminUsersGoogleLinkFields } from "./AdminUsersGoogleLinkFields";
 import { AdminUsersMetaLinkFields } from "./AdminUsersMetaLinkFields";
 import { AdminUsersSiteLinkFields } from "./AdminUsersSiteLinkFields";

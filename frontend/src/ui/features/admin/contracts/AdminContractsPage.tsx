@@ -14,7 +14,6 @@ import {
   Descriptions,
   Flex,
   Form,
-  Grid,
   Image,
   Input,
   InputNumber,
@@ -446,7 +445,6 @@ export function AdminContractsPage() {
               const [statusColor, statusKey] = statusCfg(c.status);
               const paidCount = getPaidCount(c);
               const total = c.stages.length;
-              const paidAmt = getPaidAmount(c);
 
               return {
                 id: c.id,

@@ -309,8 +309,8 @@ export function AdminInvoicesPage() {
                   color: r.chargeType === "monthly" ? "purple" : "blue",
                 },
                 {
-                  label: r.paymentStatus === "paid" ? t("admin.invoices.paymentPaid") : r.paymentStatus === "pending" ? t("admin.invoices.paymentPending") : t("admin.invoices.paymentUnpaid"),
-                  color: r.paymentStatus === "paid" ? "success" : r.paymentStatus === "pending" ? "warning" : "default",
+                  label: r.paymentStatus === "paid" ? t("admin.invoices.paymentPaid") : t("admin.invoices.paymentUnpaid"),
+                  color: r.paymentStatus === "paid" ? "success" : "default",
                 },
                 {
                   label: r.recordStatus === "active" ? t("admin.invoices.statusActive") : r.recordStatus === "revoked" ? t("admin.invoices.statusRevoked") : t("admin.invoices.statusSuperseded"),

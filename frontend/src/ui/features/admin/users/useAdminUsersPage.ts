@@ -228,7 +228,7 @@ export function useAdminUsersPage() {
       cancelText: t("common.cancel"),
       onOk: async () => {
         try {
-          await services.admin.deleteUser(u.id);
+          await services.admin.deleteUser(Number(u.id));
           message.success(t("admin.userDeleted"));
           // Refresh users list
           window.location.reload();

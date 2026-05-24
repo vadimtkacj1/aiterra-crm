@@ -69,7 +69,6 @@ export function AdminUserEditModal({
                 editGoogleHasCredentials={editGoogleHasCredentials}
               />
               <AdminUsersSiteLinkFields t={t} />
-              <AdminUsersBillingFields t={t} />
             </>
           ) : null}
         </Form>

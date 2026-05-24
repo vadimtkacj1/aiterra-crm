@@ -436,3 +436,23 @@ def reset_password(
     log_admin_action(db, admin, "user_password_reset", resource_type="user", resource_id=str(user_id), detail=None)
     db.commit()
     return {"ok": True}
+
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+) -> dict:
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="user_not_found")
+
+    # Don't allow deleting yourself
+    if u.id == admin.id:
+        raise HTTPException(status_code=400, detail="cannot_delete_yourself")
+
+    log_admin_action(db, admin, "user_deleted", resource_type="user", resource_id=str(user_id), detail=u.email)
+    db.delete(u)
+    db.commit()
+    return {"ok": True}

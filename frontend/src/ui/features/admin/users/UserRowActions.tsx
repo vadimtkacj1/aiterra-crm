@@ -1,4 +1,4 @@
-import { EditOutlined, LockOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, LockOutlined } from "@ant-design/icons";
 import { Space } from "antd";
 import type { TFunction } from "i18next";
 import type { User } from "../../../../domain/User";
@@ -9,9 +9,10 @@ interface Props {
   t: TFunction;
   onEdit: (u: User) => void;
   onResetPassword: (u: User) => void;
+  onDelete: (u: User) => void;
 }
 
-export function UserRowActions({ user, t, onEdit, onResetPassword }: Props) {
+export function UserRowActions({ user, t, onEdit, onResetPassword, onDelete }: Props) {
   return (
     <Space size={4}>
       <TableActionButton
@@ -23,6 +24,12 @@ export function UserRowActions({ user, t, onEdit, onResetPassword }: Props) {
         tooltip={t("admin.resetPassword")}
         icon={<LockOutlined />}
         onClick={() => onResetPassword(user)}
+      />
+      <TableActionButton
+        tooltip={t("admin.deleteUser")}
+        icon={<DeleteOutlined />}
+        danger
+        onClick={() => onDelete(user)}
       />
     </Space>
   );

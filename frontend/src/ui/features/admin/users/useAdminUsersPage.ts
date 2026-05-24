@@ -218,6 +218,27 @@ export function useAdminUsersPage() {
     pwdForm.resetFields();
   };
 
+  const handleDeleteUser = async (u: User) => {
+    const { Modal } = await import("antd");
+    Modal.confirm({
+      title: t("admin.deleteUserConfirmTitle"),
+      content: t("admin.deleteUserConfirmContent", { name: u.displayName || u.email }),
+      okText: t("common.confirm"),
+      okType: "danger",
+      cancelText: t("common.cancel"),
+      onOk: async () => {
+        try {
+          await services.admin.deleteUser(u.id);
+          message.success(t("admin.userDeleted"));
+          // Refresh users list
+          window.location.reload();
+        } catch (e) {
+          message.error(e instanceof Error ? e.message : t("errors.generic"));
+        }
+      },
+    });
+  };
+
   return {
     t,
     form,
@@ -242,5 +263,6 @@ export function useAdminUsersPage() {
     openResetPassword,
     closeResetPassword: () => setResetUser(null),
     handleResetPasswordSave,
+    handleDeleteUser,
   };
 }

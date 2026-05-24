@@ -307,6 +307,10 @@ export class AdminService {
     return this.http.put<UserBusinessSite>(`/admin/users/${userId}/business-site`, { hasSite, siteUrl: siteUrl || null });
   }
 
+  async deleteUser(userId: number): Promise<void> {
+    return this.http.delete(`/admin/users/${userId}`);
+  }
+
   async listAuditLogs(limit = 200): Promise<AdminAuditLogRow[]> {
     return this.http.get<AdminAuditLogRow[]>(`/admin/audit-logs?limit=${limit}`);
   }

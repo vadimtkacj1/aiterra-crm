@@ -11,10 +11,11 @@ type Props = {
   loading: boolean;
   onEdit: (u: User) => void;
   onResetPassword: (u: User) => void;
+  onDelete: (u: User) => void;
   onCreateUser: () => void;
 };
 
-export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPassword, onCreateUser }: Props) {
+export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPassword, onDelete, onCreateUser }: Props) {
   return (
     <ListCard
       icon={<TeamOutlined />}
@@ -46,6 +47,7 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
                 t={t}
                 onEdit={onEdit}
                 onResetPassword={onResetPassword}
+                onDelete={onDelete}
               />
             ),
           },

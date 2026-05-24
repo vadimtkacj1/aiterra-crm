@@ -39,6 +39,7 @@
         "status": "סטטוס",
         "signedAt": "תאריך חתימה"
       },
+      "subscriptionTag": "{{amount}}/חודש × {{months}}",
       "installmentsTag": {
         "paid": "שולם {{paid}} מתוך {{total}}",
         "partial": "{{paid}} מתוך {{total}} שולם",
@@ -50,14 +51,18 @@
         "paid": "שולם"
       },
       "form": {
+        "selectClient": "בחירת לקוח",
+        "contractDetails": "פרטי החוזה",
         "account": "חשבון לקוח",
         "accountPlaceholder": "חיפוש לקוח...",
         "title": "כותרת החוזה",
+        "titlePlaceholder": "לדוגמה: הסכם שירות שנתי",
         "currency": "מטבע",
         "body": "תנאי החוזה",
         "bodyPlaceholder": "הכנס את תנאי החוזה...",
         "bodyFormatHint": "שורות ריקות נשמרות. הלקוח רואה את אותו מבנה בדף החתימה.",
         "stages": "שלבי תשלום",
+        "paymentStages": "שלבי תשלום חד-פעמיים",
         "addStage": "הוסף שלב",
         "stageDescription": "תיאור (לדוגמה: תשלום ראשון)",
         "stagesRequired": "יש להוסיף לפחות שלב תשלום אחד",
@@ -71,7 +76,39 @@
         "equalStageLabel": "תשלום {{current}} מתוך {{total}}",
         "pdf": "קובץ PDF",
         "pdfUpload": "העלה PDF",
-        "pdfRemove": "הסר PDF"
+        "pdfRemove": "הסר PDF",
+        "subscriptionToggle": "הפעל חיוב חודשי אוטומטי",
+        "subscriptionHint": "כאשר הלקוח חותם על החוזה, חיובים חודשיים חוזרים יופעלו אוטומטית",
+        "subscriptionSettings": "הגדרות מנוי חודשי",
+        "monthlyAmount": "סכום חיוב חודשי",
+        "subscriptionMonths": "משך (חודשים)",
+        "subscriptionMonthsHint": "השאר ריק לחיוב חוזר ללא הגבלה",
+        "basicInfo": "מידע בסיסי",
+        "titlePlaceholder": "לדוגמה: הסכם שירות שנתי"
+      },
+      "subscription": {
+        "title": "סטטוס מנוי",
+        "viewStatus": "צפה במנוי",
+        "contractTitle": "חוזה",
+        "monthlyAmount": "סכום חודשי",
+        "duration": "משך",
+        "months": "חודשים",
+        "unlimited": "ללא הגבלה",
+        "startedAt": "התחיל",
+        "nextPayment": "תשלום הבא",
+        "paymentsMade": "תשלומים שבוצעו",
+        "total": "סה\"כ",
+        "totalPaid": "סה\"כ שולם",
+        "subscriptionStatus": "סטטוס",
+        "testMode": "מצב בדיקה",
+        "testModeDesc": "סימולציה של תשלומים חודשיים ללא המתנה של 30 יום. זה למטרות בדיקה בלבד.",
+        "simulatePayment": "סימולציה של תשלום",
+        "paymentHistory": "היסטוריית תשלומים",
+        "noPayments": "אין תשלומים עדיין",
+        "amount": "סכום",
+        "status": "סטטוס",
+        "paidAt": "שולם ב",
+        "transactionId": "מזהה עסקה"
       }
     }
   }

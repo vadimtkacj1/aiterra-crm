@@ -28,6 +28,7 @@ export const Paths = {
   adminUsers: "/admin/users",
   adminPayments: "/admin/payments",
   adminContracts: "/admin/contracts",
+  adminInvoices: "/admin/invoices",
   adminMetaBudget: "/admin/meta-budget",
   adminAudit: "/admin/audit",
   login: "/login",
@@ -39,14 +40,12 @@ export const Paths = {
   root: "/",
   /** CRM guide (authenticated). */
   help: "/help",
+  site: "/a/:accountId/site",
 } as const;
 
 export type AppPath = (typeof Paths)[keyof typeof Paths];
 
-export function accountPath(
-  accountId: string,
-  section: "meta" | "google" | "billing" | "contracts" | "settings",
-): string {
+export function accountPath(accountId: string, section: string): string {
   return `/a/${accountId}/${section}`;
 }
 

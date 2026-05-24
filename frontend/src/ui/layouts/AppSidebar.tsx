@@ -2,8 +2,8 @@ import { CloseOutlined } from "@ant-design/icons";
 import { Button, ConfigProvider, Drawer, Layout, Menu, theme } from "antd";
 import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
-import logoUrl from "../../assets/logo.svg";
-import { LanguageSwitcher } from "../shared/components/LanguageSwitcher";
+import logoUrl from "@/assets/logo.svg";
+import { LanguageSwitcher } from "@/ui/shared/components/LanguageSwitcher";
 
 const { Sider } = Layout;
 

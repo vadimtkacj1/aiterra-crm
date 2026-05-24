@@ -1,6 +1,6 @@
-import type { Env } from "../../../config/Env";
-import type { CampaignAnalyticsSnapshot } from "../../../domain/CampaignAnalytics";
-import type { HttpClient } from "../../../infrastructure/HttpClient";
+import type { Env } from "@/config/Env";
+import type { CampaignAnalyticsSnapshot } from "@/domain/CampaignAnalytics";
+import type { HttpClient } from "@/infrastructure/HttpClient";
 import type { IGoogleCampaignAnalyticsService } from "./IGoogleCampaignAnalyticsService";
 
 export class GoogleCampaignAnalyticsService implements IGoogleCampaignAnalyticsService {

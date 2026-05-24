@@ -1,20 +1,3 @@
-from pydantic import BaseModel
-
-
-class AccountOut(BaseModel):
-    id: int
-    name: str
-    hasMeta: bool = False
-    hasGoogle: bool = False
-
-
-class CreateAccountRequest(BaseModel):
-    name: str
-    metaCampaignId: str | None = None
-    metaCampaignName: str | None = None
-
-
-class AssignMemberRequest(BaseModel):
-    userId: int
-    roleInAccount: str = "member"
-
+# Backward-compatibility shim — content moved to app.schemas.core
+from app.schemas.core import *  # noqa: F401, F403
+from app.schemas.core import AccountOut, CreateAccountRequest, AssignMemberRequest  # noqa: F401

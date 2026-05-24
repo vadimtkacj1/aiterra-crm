@@ -4,6 +4,7 @@ from .billing_instruction_history import BillingInstructionHistory
 from .invoice_template import InvoiceTemplate
 from .meta_topup import MetaTopup
 from .saved_card import SavedCard
+from .subscription_payment import SubscriptionPayment
 
 __all__ = [
     "AccountBillingInstruction",
@@ -12,4 +13,5 @@ __all__ = [
     "InvoiceTemplate",
     "MetaTopup",
     "SavedCard",
+    "SubscriptionPayment",
 ]

@@ -2,6 +2,10 @@
   "admin": {
     "title": "User management",
     "subtitle": "Manage users and businesses. Only administrators can access this page.",
+    "users": {
+      "title": "User management",
+      "description": "Manage users and businesses. Only administrators can access this page."
+    },
     "userListTitle": "All users",
     "businesses": "Businesses",
     "createBusiness": "Create business",
@@ -45,10 +49,17 @@
       "metaCampaignRequired": "Select a Meta campaign",
       "metaCampaignHint": "One Meta campaign can only be linked to one business.",
       "metaCampaignPlaceholder": "Select from Meta API",
+      "phone": "Phone number",
       "linkGoogle": "Google ads",
       "linkGoogleExtra": "Optional. Provide OAuth credentials to link Google Ads to this account.",
       "linkGoogleWithout": "Do not link Google Ads",
       "linkGoogleWith": "Link Google Ads",
+      "linkSite": "Site module",
+      "linkSiteExtra": "Optional. Enable the Site page for this account (links, popup, leads).",
+      "linkSiteWithout": "Disabled",
+      "linkSiteWith": "Enabled",
+      "siteUrl": "Site URL",
+      "siteUrlInvalid": "Enter a valid URL (e.g. https://example.com)",
       "googleCustomerId": "Customer ID",
       "googleCustomerIdRequired": "Enter the Google Ads customer ID",
       "googleCustomerIdHint": "10-digit Google Ads account ID (without dashes).",

@@ -1,42 +1,52 @@
-import { theme, Typography } from "antd";
+import { Breadcrumb, Flex, Space, Typography } from "antd";
 import type { ReactNode } from "react";
 
-export function PageHeader(props: { title: string; subtitle?: string; extra?: ReactNode }) {
-  const { token } = theme.useToken();
+interface PageHeaderProps {
+  title: string;
+  subtitle?: string;
+  description?: string;
+  breadcrumbs?: Array<{ title: string; href?: string }>;
+  extra?: ReactNode;
+  actions?: ReactNode;
+}
+
+export function PageHeader({
+  title,
+  subtitle,
+  description,
+  breadcrumbs,
+  extra,
+  actions
+}: PageHeaderProps) {
+  const desc = description || subtitle;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        flexWrap: "wrap",
-        gap: 16,
-        width: "100%",
-        paddingBottom: 20,
-        borderBottom: `1px solid ${token.colorSplit}`,
-      }}
-    >
-      <div style={{ minWidth: 0, flex: "1 1 240px" }}>
-        <Typography.Title level={3} style={{ margin: 0, lineHeight: 1.25, fontWeight: 600 }}>
-          {props.title}
-        </Typography.Title>
-        {props.subtitle ? (
-          <Typography.Paragraph
-            type="secondary"
-            style={{
-              marginBottom: 0,
-              marginTop: 8,
-              fontSize: 14,
-              lineHeight: 1.55,
-              maxWidth: 720,
-            }}
-          >
-            {props.subtitle}
-          </Typography.Paragraph>
-        ) : null}
-      </div>
-      {props.extra ? <div style={{ flexShrink: 0, paddingTop: 2 }}>{props.extra}</div> : null}
+    <div style={{ marginBottom: 24 }}>
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <Breadcrumb
+          items={breadcrumbs.map((b) => ({ title: b.title, href: b.href }))}
+          style={{ marginBottom: 12 }}
+        />
+      )}
+
+      <Flex justify="space-between" align="flex-start" gap={16} wrap="wrap">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Typography.Title level={2} style={{ margin: 0, marginBottom: desc ? 8 : 0, fontSize: 28, fontWeight: 600 }}>
+            {title}
+          </Typography.Title>
+          {desc && (
+            <Typography.Text type="secondary" style={{ fontSize: 14, lineHeight: 1.5 }}>
+              {desc}
+            </Typography.Text>
+          )}
+        </div>
+
+        {(actions || extra) && (
+          <Space size={8} wrap>
+            {actions || extra}
+          </Space>
+        )}
+      </Flex>
     </div>
   );
 }

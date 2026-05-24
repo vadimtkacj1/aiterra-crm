@@ -1,0 +1,64 @@
+{
+  "common": {
+    "dismiss": "Dismiss",
+    "retry": "Retry",
+    "search": "Search",
+    "export": "Export",
+    "clearSelection": "Clear Selection",
+    "noData": "No data available",
+    "close": "Close",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "reload": "Reload",
+    "back": "Back",
+    "next": "Next",
+    "language": "Language",
+    "copied": "Copied!",
+    "copyFailed": "Failed to copy",
+    "copyToClipboard": "Copy to clipboard",
+    "confirm": "Confirm",
+    "confirmAction": "Are you sure?"
+  },
+  "export": {
+    "csv": "Export as CSV",
+    "excel": "Export as Excel",
+    "json": "Export as JSON"
+  },
+  "table": {
+    "selectedCount": "{{count}} item(s) selected"
+  },
+  "form": {
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "emailExists": "This email is already in use",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least {{length}} characters",
+      "passwordStrength": "Password must contain uppercase, lowercase, and numbers",
+      "passwordMismatch": "Passwords do not match",
+      "fieldRequired": "{{field}} is required",
+      "required": "This field is required",
+      "numberRequired": "Please enter a number",
+      "numberInvalid": "Please enter a valid number",
+      "numberMin": "Value must be at least {{min}}",
+      "numberMax": "Value must not exceed {{max}}",
+      "urlRequired": "URL is required",
+      "urlInvalid": "Please enter a valid URL",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Please enter a valid phone number",
+      "dateRangeRequired": "Date range is required",
+      "dateRangeInvalid": "Start date must be before end date",
+      "amountRequired": "Amount is required",
+      "amountMin": "Amount must be at least {{min}}",
+      "amountMax": "Amount must not exceed {{max}}",
+      "textRequired": "This field is required",
+      "textMinLength": "Must be at least {{length}} characters",
+      "textMaxLength": "Must not exceed {{length}} characters",
+      "noWhitespace": "Cannot contain only whitespace"
+    }
+  },
+  "errors": {
+    "operationFailed": "Operation Failed",
+    "generic": "An unexpected error occurred. Please try again."
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "admin": {
+    "invoices": {
+      "title": "Invoices & Subscriptions",
+      "subtitle": "View and manage all invoices and recurring subscriptions across all businesses.",
+      "createButton": "Create Invoice",
+      "table": {
+        "created": "Created",
+        "business": "Business",
+        "owner": "Owner",
+        "type": "Type",
+        "amount": "Amount",
+        "paymentStatus": "Payment",
+        "recordStatus": "Status",
+        "actions": "Actions"
+      },
+      "typeOneTime": "One-time",
+      "typeMonthly": "Monthly",
+      "statusActive": "Active",
+      "statusRevoked": "Revoked",
+      "statusSuperseded": "Superseded",
+      "paymentPaid": "Paid",
+      "paymentUnpaid": "Unpaid",
+      "paymentPending": "Pending",
+      "empty": "No invoices or subscriptions yet.",
+      "loadError": "Failed to load invoices.",
+      "createModal": {
+        "title": "Create Invoice or Subscription",
+        "selectUser": "Select User",
+        "selectUserPlaceholder": "Choose a user/business",
+        "chargeType": "Type",
+        "chargeTypeOneTime": "One-time invoice",
+        "chargeTypeMonthly": "Monthly subscription",
+        "amount": "Amount",
+        "currency": "Currency",
+        "description": "Description",
+        "descriptionPlaceholder": "Optional description for the invoice",
+        "submit": "Create",
+        "cancel": "Cancel",
+        "success": "Invoice created successfully",
+        "error": "Failed to create invoice"
+      },
+      "revoke": "Revoke",
+      "revokeConfirm": "Are you sure you want to revoke this invoice/subscription?",
+      "revokeSuccess": "Invoice revoked",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this invoice record?",
+      "deleteSuccess": "Invoice deleted",
+      "downloadPdf": "Download PDF",
+      "installmentNote": "{{total}} split over {{months}} months"
+    }
+  }
+}

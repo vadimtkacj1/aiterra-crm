@@ -9,6 +9,7 @@ from app.db.session import get_db
 from app.models.campaign import TrackedCampaign
 from app.models.core import Account, AccountMembership, User
 from app.models.integrations import GoogleAdsIntegration
+from app.models.site import AccountSiteConfig
 from app.schemas.admin import (
     ResetPasswordRequest,
     UpdateUserRequest,
@@ -16,10 +17,12 @@ from app.schemas.admin import (
     UserBusinessGoogleUpdateRequest,
     UserBusinessMetaOut,
     UserBusinessMetaUpdateRequest,
+    UserBusinessSiteOut,
+    UserBusinessSiteUpdateRequest,
 )
 from app.schemas.auth import UserOut
 from app.services.admin.audit import log_admin_action
-from app.services.auth.security import hash_password
+from app.core.security import hash_password
 
 router = APIRouter()
 
@@ -43,6 +46,7 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require_admin)) 
             displayName=u.display_name,
             role=u.role,
             accountId=first_account_by_user.get(u.id),
+            phone=u.phone,
         )
         for u in rows
     ]
@@ -58,12 +62,15 @@ def create_user(
     password = str(payload.get("password", ""))
     display_name = str(payload.get("displayName", "")).strip()
     role = str(payload.get("role", "user"))
+    phone = str(payload.get("phone") or "").strip() or None
     meta_campaign_id = str(payload.get("metaCampaignId") or "").strip()
     meta_campaign_name = str(payload.get("metaCampaignName") or "").strip()
     google_customer_id = str(payload.get("googleCustomerId") or "").strip()
     google_developer_token = str(payload.get("googleDeveloperToken") or "").strip()
     google_refresh_token = str(payload.get("googleRefreshToken") or "").strip()
     google_login_customer_id = str(payload.get("googleLoginCustomerId") or "").strip() or None
+    with_site = bool(payload.get("withSite", False))
+    site_url = str(payload.get("siteUrl") or "").strip() or None
 
     if not email or not password or not display_name:
         raise HTTPException(status_code=400, detail="validation_error")
@@ -83,6 +90,7 @@ def create_user(
         display_name=display_name,
         role=role,
         password_hash=hash_password(password),
+        phone=phone,
     )
     db.add(u)
     db.flush()
@@ -110,6 +118,8 @@ def create_user(
                 login_customer_id=google_login_customer_id,
             )
         )
+    if with_site:
+        db.add(AccountSiteConfig(account_id=biz.id, site_url=site_url))
     log_admin_action(
         db,
         admin,
@@ -126,6 +136,7 @@ def create_user(
         displayName=u.display_name,
         role=u.role,
         accountId=biz.id,
+        phone=u.phone,
     )
 
 
@@ -355,6 +366,57 @@ def set_user_business_google(
         loginCustomerId=row.login_customer_id,
         hasCredentials=bool((row.developer_token or "").strip() and (row.refresh_token or "").strip()),
     )
+
+
+@router.get("/users/{user_id}/business-site", response_model=UserBusinessSiteOut)
+def get_user_business_site(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> UserBusinessSiteOut:
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="user_not_found")
+    m = common.owner_membership(db, user_id)
+    if not m:
+        return UserBusinessSiteOut()
+    config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
+    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None)
+
+
+@router.put("/users/{user_id}/business-site", response_model=UserBusinessSiteOut)
+def set_user_business_site(
+    user_id: int,
+    payload: UserBusinessSiteUpdateRequest,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+) -> UserBusinessSiteOut:
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="user_not_found")
+    m = common.owner_membership(db, user_id)
+    if not m:
+        raise HTTPException(status_code=400, detail="no_owner_business")
+    existing = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
+    if payload.hasSite and not existing:
+        existing = AccountSiteConfig(account_id=m.account_id, site_url=payload.siteUrl)
+        db.add(existing)
+    elif payload.hasSite and existing:
+        existing.site_url = payload.siteUrl
+    elif not payload.hasSite and existing:
+        db.delete(existing)
+        existing = None
+    log_admin_action(
+        db,
+        admin,
+        "user_business_site_updated",
+        resource_type="user",
+        resource_id=str(user_id),
+        detail={"hasSite": payload.hasSite},
+    )
+    db.commit()
+    config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
+    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None)
 
 
 @router.put("/users/{user_id}/password")

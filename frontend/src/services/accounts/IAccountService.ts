@@ -3,6 +3,7 @@ export interface Account {
   name: string;
   hasMeta: boolean;
   hasGoogle: boolean;
+  hasSite: boolean;
 }
 
 export interface IAccountService {

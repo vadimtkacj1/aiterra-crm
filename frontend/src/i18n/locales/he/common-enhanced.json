@@ -1,0 +1,64 @@
+{
+  "common": {
+    "dismiss": "סגור",
+    "retry": "נסה שוב",
+    "search": "חיפוש",
+    "export": "ייצוא",
+    "clearSelection": "נקה בחירה",
+    "noData": "אין נתונים זמינים",
+    "close": "סגור",
+    "ok": "אישור",
+    "cancel": "ביטול",
+    "reload": "טען מחדש",
+    "back": "חזרה",
+    "next": "הבא",
+    "language": "שפה",
+    "copied": "הועתק!",
+    "copyFailed": "העתקה נכשלה",
+    "copyToClipboard": "העתק ללוח",
+    "confirm": "אישור",
+    "confirmAction": "האם אתה בטוח?"
+  },
+  "export": {
+    "csv": "ייצוא כ-CSV",
+    "excel": "ייצוא כ-Excel",
+    "json": "ייצוא כ-JSON"
+  },
+  "table": {
+    "selectedCount": "{{count}} פריטים נבחרו"
+  },
+  "form": {
+    "validation": {
+      "emailRequired": "נדרש אימייל",
+      "emailInvalid": "נא להזין כתובת אימייל תקינה",
+      "emailExists": "אימייל זה כבר בשימוש",
+      "passwordRequired": "נדרשת סיסמה",
+      "passwordMinLength": "הסיסמה חייבת להכיל לפחות {{length}} תווים",
+      "passwordStrength": "הסיסמה חייבת להכיל אותיות גדולות, קטנות ומספרים",
+      "passwordMismatch": "הסיסמאות אינן תואמות",
+      "fieldRequired": "{{field}} נדרש",
+      "required": "שדה זה נדרש",
+      "numberRequired": "נא להזין מספר",
+      "numberInvalid": "נא להזין מספר תקין",
+      "numberMin": "הערך חייב להיות לפחות {{min}}",
+      "numberMax": "הערך לא יכול לעבור {{max}}",
+      "urlRequired": "נדרש URL",
+      "urlInvalid": "נא להזין URL תקין",
+      "phoneRequired": "נדרש מספר טלפון",
+      "phoneInvalid": "נא להזין מספר טלפון תקין",
+      "dateRangeRequired": "נדרש טווח תאריכים",
+      "dateRangeInvalid": "תאריך התחלה חייב להיות לפני תאריך הסיום",
+      "amountRequired": "נדרש סכום",
+      "amountMin": "הסכום חייב להיות לפחות {{min}}",
+      "amountMax": "הסכום לא יכול לעבור {{max}}",
+      "textRequired": "שדה זה נדרש",
+      "textMinLength": "חייב להכיל לפחות {{length}} תווים",
+      "textMaxLength": "לא יכול לעבור {{length}} תווים",
+      "noWhitespace": "לא יכול להכיל רק רווחים"
+    }
+  },
+  "errors": {
+    "operationFailed": "הפעולה נכשלה",
+    "generic": "אירעה שגיאה בלתי צפויה. אנא נסה שוב."
+  }
+}

@@ -1,5 +1,5 @@
-import type { HttpClient } from "../../infrastructure/HttpClient";
-import type { Contract, ContractCreateInput } from "../../domain/Contract";
+import type { HttpClient } from "@/infrastructure/HttpClient";
+import type { Contract, ContractCreateInput } from "@/domain/Contract";
 
 export interface AdminAccountRow {
   id: number;
@@ -24,6 +24,12 @@ export interface UserBusinessGoogle {
   customerId: string | null;
   loginCustomerId: string | null;
   hasCredentials: boolean;
+}
+
+export interface UserBusinessSite {
+  accountId: number | null;
+  hasSite: boolean;
+  siteUrl?: string | null;
 }
 
 export interface AdminStats {
@@ -116,6 +122,32 @@ export interface InvoiceTemplateCreateInput {
   description?: string | null;
   lineItems?: BillingLineItem[] | null;
   splitAcrossMonths?: number | null;
+}
+
+export interface SubscriptionPayment {
+  id: number;
+  payment_number: number;
+  amount: number;
+  currency: string;
+  status: string;
+  paid_at: string;
+  expected_date: string | null;
+  zcredit_transaction_id: string | null;
+}
+
+export interface SubscriptionStatus {
+  contract_id: number;
+  contract_title: string;
+  monthly_amount: number;
+  currency: string;
+  subscription_months: number | null;
+  subscription_status: string | null;
+  started_at: string | null;
+  next_payment_date: string | null;
+  payments_made: number;
+  payments_remaining: number | null;
+  total_paid: number;
+  payments: SubscriptionPayment[];
 }
 
 export type BillingHistoryRecordStatus = "active" | "superseded" | "revoked";
@@ -267,6 +299,14 @@ export class AdminService {
     return this.http.put<UserBusinessGoogle>(`/admin/users/${userId}/business-google`, input);
   }
 
+  async getUserBusinessSite(userId: string): Promise<UserBusinessSite> {
+    return this.http.get<UserBusinessSite>(`/admin/users/${userId}/business-site`);
+  }
+
+  async setUserBusinessSite(userId: string, hasSite: boolean, siteUrl?: string): Promise<UserBusinessSite> {
+    return this.http.put<UserBusinessSite>(`/admin/users/${userId}/business-site`, { hasSite, siteUrl: siteUrl || null });
+  }
+
   async listAuditLogs(limit = 200): Promise<AdminAuditLogRow[]> {
     return this.http.get<AdminAuditLogRow[]>(`/admin/audit-logs?limit=${limit}`);
   }
@@ -317,5 +357,13 @@ export class AdminService {
 
   async deleteContract(id: number): Promise<void> {
     return this.http.delete(`/admin/contracts/${id}`);
+  }
+
+  async getContractSubscriptionStatus(contractId: number): Promise<SubscriptionStatus> {
+    return this.http.get<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription`);
+  }
+
+  async simulateMonthlyPayment(contractId: number): Promise<{ success: boolean; payment_number: number; amount: number; currency: string; message: string }> {
+    return this.http.post(`/subscriptions/contracts/${contractId}/subscription/simulate-payment`, {});
   }
 }

@@ -1,0 +1,38 @@
+{
+  "site": {
+    "title": "My Site",
+    "subtitle": "Manage your website links, popup content, and view leads from your landing page.",
+    "loadError": "Could not load site settings. Try again.",
+    "saveError": "Could not save changes. Try again.",
+    "links": {
+      "title": "Site Links",
+      "siteUrl": "Website URL",
+      "gmbUrl": "Google My Business URL",
+      "save": "Save Links",
+      "saved": "Links saved."
+    },
+    "popup": {
+      "title": "Popup Content",
+      "imageLabel": "Popup Image",
+      "uploadBtn": "Upload",
+      "currentImage": "Current image",
+      "textLabel": "Popup Text",
+      "textPlaceholder": "Enter the text shown in the popup on your landing page…",
+      "save": "Save Popup",
+      "saved": "Popup content saved."
+    },
+    "leads": {
+      "title": "Landing Page Leads",
+      "empty": "No leads yet. When a visitor submits the contact form on your landing page, they will appear here.",
+      "loadError": "Could not load leads. Try again.",
+      "colName": "Name",
+      "colPhone": "Phone",
+      "colEmail": "Email",
+      "colMessage": "Message",
+      "colDate": "Date"
+    }
+  },
+  "layout": {
+    "menuSite": "My Site"
+  }
+}

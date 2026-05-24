@@ -2,6 +2,10 @@
   "admin": {
     "title": "ניהול משתמשים",
     "subtitle": "ניהול משתמשים ועסקים. רק מנהלים יכולים לגשת לעמוד זה.",
+    "users": {
+      "title": "ניהול משתמשים",
+      "description": "ניהול משתמשים ועסקים. רק מנהלים יכולים לגשת לעמוד זה."
+    },
     "userListTitle": "כל המשתמשים",
     "businesses": "עסקים",
     "createBusiness": "יצירת עסק",
@@ -45,10 +49,17 @@
       "metaCampaignRequired": "בחר קמפיין Meta",
       "metaCampaignHint": "ניתן לקשר קמפיין Meta אחד לכל עסק.",
       "metaCampaignPlaceholder": "בחר מה-Meta API",
+      "phone": "מספר טלפון",
       "linkGoogle": "מודעות Google",
       "linkGoogleExtra": "אופציונלי. ספק פרטי OAuth כדי לקשר Google Ads לחשבון זה.",
       "linkGoogleWithout": "ללא Google Ads",
       "linkGoogleWith": "קישור Google Ads",
+      "linkSite": "מודול אתר",
+      "linkSiteExtra": "אופציונלי. הפעל את עמוד האתר לחשבון זה (קישורים, פופ-אפ, לידים).",
+      "linkSiteWithout": "כבוי",
+      "linkSiteWith": "פעיל",
+      "siteUrl": "כתובת האתר",
+      "siteUrlInvalid": "הזן כתובת URL תקינה (לדוגמה https://example.com)",
       "googleCustomerId": "מזהה לקוח",
       "googleCustomerIdRequired": "הזן את מזהה הלקוח של Google Ads",
       "googleCustomerIdHint": "מזהה חשבון Google Ads בן 10 ספרות (ללא מקפים).",

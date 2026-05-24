@@ -1,6 +1,6 @@
-import type { Env } from "../../config/Env";
-import type { ContractMemberRow } from "../../domain/Contract";
-import type { HttpClient } from "../../infrastructure/HttpClient";
+import type { Env } from "@/config/Env";
+import type { ContractMemberRow } from "@/domain/Contract";
+import type { HttpClient } from "@/infrastructure/HttpClient";
 import type {
   BillingOverview,
   CardInfo,

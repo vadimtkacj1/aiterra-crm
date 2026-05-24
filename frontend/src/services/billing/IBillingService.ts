@@ -2,8 +2,8 @@ import type {
   OfferRecord,
   PaymentRecord,
   SubscriptionRecord,
-} from "../../domain/Billing";
-import type { ContractMemberRow } from "../../domain/Contract";
+} from "@/domain/Billing";
+import type { ContractMemberRow } from "@/domain/Contract";
 
 export type PendingPaymentFlow = "one_time" | "monthly";
 

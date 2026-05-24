@@ -1,4 +1,4 @@
-import type { CampaignAdsData, CampaignAnalyticsSnapshot, MetaAccountBilling } from "../../../domain/CampaignAnalytics";
+import type { CampaignAdsData, CampaignAnalyticsSnapshot, MetaAccountBilling } from "@/domain/CampaignAnalytics";
 
 export type MetaAdAccountOption = { id: string; name: string };
 export type MetaCampaignOption = { id: string; name: string };

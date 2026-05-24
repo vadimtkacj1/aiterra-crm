@@ -15,11 +15,13 @@ import adminPaymentsA from "./admin-payments-a.json";
 import adminPaymentsB from "./admin-payments-b.json";
 import adminTopup from "./admin-topup.json";
 import adminContracts from "./admin-contracts.json";
+import adminInvoices from "./admin-invoices.json";
 import meta from "./meta.json";
 import legal from "./legal.json";
 import errors from "./errors.json";
 import memberContracts from "./memberContracts.json";
 import contracts from "./contracts.json";
+import site from "./site.json";
 
 const merged = deepMerge(
   {},
@@ -39,10 +41,12 @@ const merged = deepMerge(
   adminPaymentsB,
   adminTopup,
   adminContracts,
+  adminInvoices,
   meta,
   legal,
   errors,
   memberContracts,
   contracts,
+  site,
 );
 export default merged;

@@ -1,6 +1,6 @@
-import type { Env } from "../../../config/Env";
-import type { CampaignAdsData, CampaignAnalyticsSnapshot, MetaAccountBilling } from "../../../domain/CampaignAnalytics";
-import type { HttpClient } from "../../../infrastructure/HttpClient";
+import type { Env } from "@/config/Env";
+import type { CampaignAdsData, CampaignAnalyticsSnapshot, MetaAccountBilling } from "@/domain/CampaignAnalytics";
+import type { HttpClient } from "@/infrastructure/HttpClient";
 import type {
   IMetaCampaignAnalyticsService,
   MetaAdAccountOption,

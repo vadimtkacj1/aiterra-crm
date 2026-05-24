@@ -1,0 +1,53 @@
+{
+  "admin": {
+    "invoices": {
+      "title": "חשבוניות ומנויים",
+      "subtitle": "צפייה וניהול של כל החשבוניות והמנויים החוזרים בכל העסקים.",
+      "createButton": "צור חשבונית",
+      "table": {
+        "created": "נוצר",
+        "business": "עסק",
+        "owner": "בעלים",
+        "type": "סוג",
+        "amount": "סכום",
+        "paymentStatus": "תשלום",
+        "recordStatus": "סטטוס",
+        "actions": "פעולות"
+      },
+      "typeOneTime": "חד-פעמי",
+      "typeMonthly": "חודשי",
+      "statusActive": "פעיל",
+      "statusRevoked": "בוטל",
+      "statusSuperseded": "הוחלף",
+      "paymentPaid": "שולם",
+      "paymentUnpaid": "לא שולם",
+      "paymentPending": "ממתין",
+      "empty": "אין חשבוניות או מנויים עדיין.",
+      "loadError": "נכשל בטעינת חשבוניות.",
+      "createModal": {
+        "title": "צור חשבונית או מנוי",
+        "selectUser": "בחר משתמש",
+        "selectUserPlaceholder": "בחר משתמש/עסק",
+        "chargeType": "סוג",
+        "chargeTypeOneTime": "חשבונית חד-פעמית",
+        "chargeTypeMonthly": "מנוי חודשי",
+        "amount": "סכום",
+        "currency": "מטבע",
+        "description": "תיאור",
+        "descriptionPlaceholder": "תיאור אופציונלי לחשבונית",
+        "submit": "צור",
+        "cancel": "ביטול",
+        "success": "החשבונית נוצרה בהצלחה",
+        "error": "נכשל ביצירת חשבונית"
+      },
+      "revoke": "בטל",
+      "revokeConfirm": "האם אתה בטוח שברצונך לבטל חשבונית/מנוי זה?",
+      "revokeSuccess": "החשבונית בוטלה",
+      "delete": "מחק",
+      "deleteConfirm": "למחוק רשומת חשבונית זו?",
+      "deleteSuccess": "החשבונית נמחקה",
+      "downloadPdf": "הורד PDF",
+      "installmentNote": "{{total}} מחולק על {{months}} חודשים"
+    }
+  }
+}

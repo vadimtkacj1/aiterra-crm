@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import en from "./locales/en/index.ts";
-import he from "./locales/he/index.ts";
+import en from "@/i18n/locales/en/index.ts";
+import he from "@/i18n/locales/he/index.ts";
 
 export const defaultLanguage = "he";
 

@@ -2,7 +2,7 @@ import { useOutletContext } from "react-router-dom";
 
 export type AccountLayoutOutletContext = {
   accountLoading: boolean;
-  currentAccount: { id: number; name: string; hasMeta: boolean; hasGoogle: boolean } | null;
+  currentAccount: { id: number; name: string; hasMeta: boolean; hasGoogle: boolean; hasSite: boolean } | null;
   totalAccountCount: number;
 };
 

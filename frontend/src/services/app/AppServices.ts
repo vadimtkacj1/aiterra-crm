@@ -1,9 +1,10 @@
-import type { IAuthService } from "../auth/IAuthService";
-import type { IAccountService } from "../accounts/IAccountService";
-import type { IBillingService } from "../billing/IBillingService";
-import type { IGoogleCampaignAnalyticsService } from "../analytics/google/IGoogleCampaignAnalyticsService";
-import type { IMetaCampaignAnalyticsService } from "../analytics/meta/IMetaCampaignAnalyticsService";
-import type { AdminService } from "../admin/AdminService";
+import type { IAuthService } from "@/services/auth/IAuthService";
+import type { IAccountService } from "@/services/accounts/IAccountService";
+import type { IBillingService } from "@/services/billing/IBillingService";
+import type { IGoogleCampaignAnalyticsService } from "@/services/analytics/google/IGoogleCampaignAnalyticsService";
+import type { IMetaCampaignAnalyticsService } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
+import type { AdminService } from "@/services/admin/AdminService";
+import type { ISiteService } from "@/services/site/ISiteService";
 
 export interface AppServices {
   auth: IAuthService;
@@ -12,4 +13,5 @@ export interface AppServices {
   metaAnalytics: IMetaCampaignAnalyticsService;
   googleAnalytics: IGoogleCampaignAnalyticsService;
   billing: IBillingService;
+  site: ISiteService;
 }

@@ -1,2 +1,0 @@
- With this API you can make all types of transactions, including sales, refunds, validation, authorization and PinPad activation.
-Please review the request attributes for full parameter documentation. 

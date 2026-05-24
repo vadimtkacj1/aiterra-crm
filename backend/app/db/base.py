@@ -10,6 +10,7 @@ from app.models.billing import (
 )
 from app.models.campaign import TrackedCampaign
 from app.models.contracts import Contract, ContractPaymentStage
+from app.models.site import AccountSiteConfig, SiteLead
 from app.models.core import Account, AccountMembership, User
 from app.models.integrations import GoogleAdsIntegration, MetaIntegration
 
@@ -30,4 +31,6 @@ __all__ = [
     "MetaAnalyticsDailyCache",
     "Contract",
     "ContractPaymentStage",
+    "AccountSiteConfig",
+    "SiteLead",
 ]

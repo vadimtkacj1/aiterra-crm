@@ -8,4 +8,5 @@ export interface User {
   displayName: string;
   role: UserRole;
   accountId?: number | null;
+  phone?: string | null;
 }

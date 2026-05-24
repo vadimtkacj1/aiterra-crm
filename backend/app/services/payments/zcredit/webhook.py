@@ -13,7 +13,7 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.models.billing import AccountBillingInstruction
+from app.models.billing import AccountBillingInstruction, SubscriptionPayment
 from app.models.contracts import ContractPaymentStage
 
 logger = logging.getLogger(__name__)
@@ -113,6 +113,38 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                 ins.payment_url = None
                 ins.subscription_status = "active" if ins.charge_type == "monthly" else None
                 db.add(ins)
+
+                # If this is a monthly subscription payment, record it
+                if ins.charge_type == "monthly":
+                    # Count existing payments to determine payment number
+                    payment_count = db.query(SubscriptionPayment).filter(
+                        SubscriptionPayment.billing_instruction_id == ins.id
+                    ).count()
+
+                    # Find associated contract
+                    from app.models.contracts import Contract
+                    contract = db.query(Contract).filter(
+                        Contract.billing_instruction_id == ins.id
+                    ).first()
+
+                    # Create payment record
+                    payment = SubscriptionPayment(
+                        billing_instruction_id=ins.id,
+                        contract_id=contract.id if contract else None,
+                        amount=ins.amount or 0,
+                        currency=ins.currency,
+                        payment_number=payment_count + 1,
+                        status="success",
+                        zcredit_transaction_id=str(data.get("SessionId") or ""),
+                        zcredit_approval_number=str(data.get("ApprovalNumber") or ""),
+                    )
+                    db.add(payment)
+                    logger.info(
+                        "zcredit_webhook: recorded subscription payment #%d for billing_instruction_id=%s",
+                        payment.payment_number,
+                        ins.id,
+                    )
+
                 db.commit()
                 logger.info(
                     "zcredit_webhook: marked paid session=%s unique=%s",

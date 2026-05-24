@@ -7,7 +7,7 @@ from app.db.session import SessionLocal
 from app.models.core import Account, AccountMembership, User
 from app.models.integrations import MetaIntegration
 from app.services.meta.graph import fetch_meta_ad_accounts, normalize_meta_ad_account_id
-from app.services.auth.security import hash_password
+from app.core.security import hash_password
 
 logger = logging.getLogger(__name__)
 

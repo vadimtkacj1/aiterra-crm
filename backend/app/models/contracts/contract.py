@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -27,6 +27,14 @@ class Contract(Base):
 
     # "draft" | "pending_signature" | "signed" | "voided"
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
+
+    # Link to billing instruction for monthly subscriptions
+    billing_instruction_id: Mapped[int | None] = mapped_column(
+        ForeignKey("account_billing_instructions.id", ondelete="SET NULL"), nullable=True
+    )
+    # Monthly subscription amount (if this is a subscription contract)
+    monthly_amount: Mapped[float | None] = mapped_column(Float, nullable=True)
+    subscription_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Token used in the public signing URL — never changes once created
     sign_token: Mapped[str] = mapped_column(

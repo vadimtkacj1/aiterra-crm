@@ -1,8 +1,8 @@
 {
   "admin": {
     "payments": {
-      "menuTitle": "חשבוניות לקוחות",
-      "title": "חשבוניות ומנויים",
+      "menuTitle": "צור חשבונית",
+      "title": "צור חשבונית",
       "intro": "כל מי שיש לו חשבון מופיע ברשימה (מנהלים מסומנים). חשבונית או מנוי אפשר לשייך רק למשתמשים עם תפקיד \"משתמש\", לא למנהלים.",
       "introShort": "בוחרים לקוח, ואז מגדירים את החיוב למטה. היסטוריית חשבוניות מלאה תחת «תבניות והיסטוריית חיובים». לא ניתן לחייב מנהלים. שנהו תפקיד ל\"משתמש\" תחת כל המשתמשים.",
       "sectionClient": "לקוח",
@@ -49,8 +49,8 @@
       "importClientBillingOk": "נטען מהלקוח",
       "templatesCollapse": "תבניות שמורות",
       "historyCollapse": "היסטוריית חיובים",
-      "libraryDrawerTrigger": "תבניות והיסטוריית חיובים",
-      "libraryDrawerTitle": "ספרייה: תבניות והיסטוריה",
+      "libraryDrawerTitle": "תבניות חשבוניות",
+      "libraryDrawerTrigger": "תבניות",
       "allInvoicesTitle": "כל החשבוניות",
       "allInvoicesHint": "כל חיובי העסקים: הורדת PDF כאן. שורות ששולמו ולא ששולמו מופיעות יחד; אין סינון לפי משתמש.",
       "createSubmit": "צור",
@@ -73,7 +73,30 @@
       "colLabel": "תיאור",
       "labelRequired": "הזינו תיאור",
       "amountRequired": "הזינו סכום",
-      "linesInvalid": "הוסיפו לפחות שורה עם תיאור וסכום, או עברו לסכום יחיד."
+      "linesInvalid": "הוסיפו לפחות שורה עם תיאור וסכום, או עברו לסכום יחיד.",
+      "step1Title": "בחירת לקוח",
+      "step1Desc": "בחרו את מי לחייב",
+      "step2Title": "יצירת חשבונית",
+      "step2Desc": "הגדרת סכום ופרטים",
+      "nextStep": "הבא: יצירת חשבונית",
+      "backStep": "חזרה לבחירת לקוח",
+      "selectClient": "בחירת לקוח",
+      "selectClientPlaceholder": "חיפוש לפי שם או אימייל...",
+      "clientName": "שם לקוח",
+      "clientEmail": "אימייל",
+      "accountId": "מזהה חשבון",
+      "noAccount": "אין חשבון",
+      "metaCampaign": "קמפיין מטא",
+      "liveBillingDetected": "זוהה חיוב פעיל",
+      "liveBillingAmount": "חיוב נוכחי: {{amount}} {{currency}}/חודש",
+      "importLiveBilling": "ייבוא חיוב נוכחי",
+      "selectUserToStart": "בחרו לקוח כדי להתחיל",
+      "adminSelectedWarningDesc": "לא ניתן לחייב מנהלים. אנא בחרו משתמש עם תפקיד 'משתמש' או שנו את התפקיד של אדם זה.",
+      "selectChargeType": "בחירת סוג חיוב",
+      "useItemizedBreakdown": "להשתמש בפירוט שורות?",
+      "monthlyChargeInfo": "חיוב חודשי חוזר",
+      "monthlyChargeInfoDesc": "פעולה זו תיצור מנוי חודשי אוטומטי. הלקוח יחויב מדי חודש עד לביטול.",
+      "saveAsTemplate": "שמירה כתבנית"
     }
   }
 }

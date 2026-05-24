@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.dev_mock.zcredit_hosted_mock import (
+from dev_mock.zcredit_hosted_mock import (
     apply_mock_hosted_confirm,
     build_zcredit_hosted_mock_html,
     find_mock_payment_data,

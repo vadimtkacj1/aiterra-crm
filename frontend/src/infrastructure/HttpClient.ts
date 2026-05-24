@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from "axios";
-import type { Env } from "../config/Env";
+import type { Env } from "@/config/Env";
 
 type TokenGetter = () => string | null;
 type OnUnauthorized = () => void;

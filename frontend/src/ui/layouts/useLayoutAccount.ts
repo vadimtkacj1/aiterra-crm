@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { useApp } from "../../app/AppProviders";
-import { LAST_VISITED_ACCOUNT_STORAGE_KEY, readLastVisitedAccountId } from "../navigation/paths";
+import { useApp } from "@/app/AppProviders";
+import { LAST_VISITED_ACCOUNT_STORAGE_KEY, readLastVisitedAccountId } from "@/ui/navigation/paths";
 import type { AccountLayoutOutletContext } from "./accountLayoutContext";
 
 function isValidAccountId(id: string | undefined): id is string {
@@ -62,6 +62,7 @@ export function useLayoutAccount() {
                 name: found.name,
                 hasMeta: found.hasMeta ?? false,
                 hasGoogle: found.hasGoogle ?? false,
+                hasSite: found.hasSite ?? false,
               }
             : null,
           totalAccountCount: rows.length,

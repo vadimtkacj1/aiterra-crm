@@ -39,6 +39,7 @@
         "status": "Status",
         "signedAt": "Signed"
       },
+      "subscriptionTag": "{{amount}}/mo × {{months}}",
       "installmentsTag": {
         "paid": "Paid {{paid}}/{{total}}",
         "partial": "{{paid}}/{{total}} paid",
@@ -50,14 +51,18 @@
         "paid": "Paid"
       },
       "form": {
+        "selectClient": "Select Client",
+        "contractDetails": "Contract Details",
         "account": "Client account",
         "accountPlaceholder": "Search client...",
         "title": "Contract title",
+        "titlePlaceholder": "e.g. Annual Service Agreement",
         "currency": "Currency",
         "body": "Contract terms",
         "bodyPlaceholder": "Enter the contract terms...",
         "bodyFormatHint": "Line breaks are preserved. The client sees the same paragraphs on the signing page.",
         "stages": "Payment stages",
+        "paymentStages": "One-time payment stages",
         "addStage": "Add stage",
         "stageDescription": "Description (e.g. First payment)",
         "stagesRequired": "Add at least one payment stage",
@@ -71,7 +76,39 @@
         "equalStageLabel": "Payment {{current}} of {{total}}",
         "pdf": "PDF attachment",
         "pdfUpload": "Upload PDF",
-        "pdfRemove": "Remove PDF"
+        "pdfRemove": "Remove PDF",
+        "subscriptionToggle": "Enable monthly subscription billing",
+        "subscriptionHint": "When the client signs this contract, monthly recurring payments will be automatically activated",
+        "subscriptionSettings": "Monthly subscription settings",
+        "monthlyAmount": "Monthly charge amount",
+        "subscriptionMonths": "Duration (months)",
+        "subscriptionMonthsHint": "Leave empty for unlimited recurring billing",
+        "basicInfo": "Basic Information",
+        "titlePlaceholder": "e.g. Annual Service Agreement"
+      },
+      "subscription": {
+        "title": "Subscription Status",
+        "viewStatus": "View Subscription",
+        "contractTitle": "Contract",
+        "monthlyAmount": "Monthly Amount",
+        "duration": "Duration",
+        "months": "months",
+        "unlimited": "Unlimited",
+        "startedAt": "Started",
+        "nextPayment": "Next Payment",
+        "paymentsMade": "Payments Made",
+        "total": "total",
+        "totalPaid": "Total Paid",
+        "subscriptionStatus": "Status",
+        "testMode": "Test Mode",
+        "testModeDesc": "Simulate monthly payments without waiting 30 days. This is for testing only.",
+        "simulatePayment": "Simulate Payment",
+        "paymentHistory": "Payment History",
+        "noPayments": "No payments yet",
+        "amount": "Amount",
+        "status": "Status",
+        "paidAt": "Paid At",
+        "transactionId": "Transaction ID"
       }
     }
   }

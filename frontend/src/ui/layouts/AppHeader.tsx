@@ -2,8 +2,8 @@ import { LogoutOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons
 import { Button, Layout, Space, Spin, theme, Tooltip, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { accountPath, Paths } from "../navigation/paths";
-import { UserNotificationCenter } from "../shared/components/UserNotificationCenter";
+import { accountPath, Paths } from "@/ui/navigation/paths";
+import { UserNotificationCenter } from "@/ui/shared/components/UserNotificationCenter";
 import type { AccountLayoutOutletContext } from "./accountLayoutContext";
 
 const { Header } = Layout;

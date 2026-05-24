@@ -1,4 +1,4 @@
-import type { User, UserRole } from "../../domain/User";
+import type { User, UserRole } from "@/domain/User";
 
 export interface LoginCredentials {
   email: string;
@@ -15,12 +15,15 @@ export interface CreateUserInput {
   password: string;
   displayName: string;
   role: UserRole;
+  phone?: string | null;
   metaCampaignId?: string;
   metaCampaignName?: string;
   googleCustomerId?: string;
   googleDeveloperToken?: string;
   googleRefreshToken?: string;
   googleLoginCustomerId?: string;
+  withSite?: boolean;
+  siteUrl?: string;
 }
 
 export interface UpdateUserInput {

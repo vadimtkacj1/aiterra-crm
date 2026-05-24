@@ -1,4 +1,4 @@
-import type { HttpClient } from "../../infrastructure/HttpClient";
+import type { HttpClient } from "@/infrastructure/HttpClient";
 import type { Account, IAccountService } from "./IAccountService";
 
 export class AccountService implements IAccountService {

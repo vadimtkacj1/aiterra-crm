@@ -23,6 +23,9 @@ export interface Contract {
   pdfBase64: string | null;
   createdAt: string;
   stages: ContractStage[];
+  billingInstructionId?: number | null;
+  monthlyAmount?: number | null;
+  subscriptionMonths?: number | null;
 }
 
 export interface ContractPublic {
@@ -50,6 +53,9 @@ export interface ContractCreateInput {
   currency: string;
   pdfBase64?: string | null;
   stages: ContractStageInput[];
+  isSubscription?: boolean;
+  monthlyAmount?: number | null;
+  subscriptionMonths?: number | null;
 }
 
 export interface ContractMemberRow {

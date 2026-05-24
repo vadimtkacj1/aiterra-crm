@@ -1,8 +1,8 @@
 import axios from "axios";
-import type { Env } from "../../config/Env";
-import type { User, UserRole } from "../../domain/User";
-import { TranslatableError } from "../../domain/errors";
-import type { HttpClient } from "../../infrastructure/HttpClient";
+import type { Env } from "@/config/Env";
+import type { User, UserRole } from "@/domain/User";
+import { TranslatableError } from "@/domain/errors";
+import type { HttpClient } from "@/infrastructure/HttpClient";
 import type {
   AuthSession,
   CreateUserInput,

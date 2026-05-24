@@ -1,27 +1,19 @@
 import {
   AppstoreOutlined,
-  BarChartOutlined,
-  ContainerOutlined,
-  CreditCardOutlined,
-  FacebookOutlined,
-  FileTextOutlined,
-  GoogleOutlined,
   QuestionCircleOutlined,
-  SafetyCertificateOutlined,
   SettingOutlined,
-  TeamOutlined,
-  WalletOutlined,
 } from "@ant-design/icons";
 import { Grid, Layout } from "antd";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useApp } from "../../app/AppProviders";
-import { accountPath, Paths } from "../navigation/paths";
-import { GuidedTourProvider } from "../shared/onboarding/guidedTourContext";
+import { useApp } from "@/app/AppProviders";
+import { accountPath, Paths } from "@/ui/navigation/paths";
+import { GuidedTourProvider } from "@/ui/shared/onboarding/guidedTourContext";
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 import { useLayoutAccount } from "./useLayoutAccount";
+import { accountModules, adminModules, type AccountModuleCtx } from "@/ui/modules";
 
 const { Content } = Layout;
 const DESKTOP_SIDEBAR_WIDTH = 248;
@@ -47,37 +39,35 @@ export function MainLayout() {
 
   const menuItems = useMemo(() => {
     const items: { key: string; icon: ReactNode; label: string }[] = [];
+
     if (layoutAccountValid && layoutAccountId) {
       if (accountOutletCtx.totalAccountCount > 1) {
         items.push({ key: Paths.accounts, icon: <AppstoreOutlined />, label: t("layout.menuBusinesses") });
       }
-      if (accountOutletCtx.currentAccount?.hasMeta) {
-        items.push({ key: accountPath(layoutAccountId, "meta"), icon: <FacebookOutlined />, label: t("layout.menuMeta") });
-      }
-      if (accountOutletCtx.currentAccount?.hasGoogle) {
-        items.push({ key: accountPath(layoutAccountId, "google"), icon: <GoogleOutlined />, label: t("layout.menuGoogle") });
-      }
-      if (!isAdmin) {
-        items.push({ key: accountPath(layoutAccountId, "billing"), icon: <WalletOutlined />, label: t("layout.menuBilling") });
-        items.push({ key: accountPath(layoutAccountId, "contracts"), icon: <FileTextOutlined />, label: t("layout.menuContracts") });
-      }
+
+      const ctx: AccountModuleCtx = {
+        accountId: layoutAccountId,
+        isAdmin,
+        hasMeta: accountOutletCtx.currentAccount?.hasMeta ?? false,
+        hasGoogle: accountOutletCtx.currentAccount?.hasGoogle ?? false,
+        hasSite: accountOutletCtx.currentAccount?.hasSite ?? false,
+        totalAccounts: accountOutletCtx.totalAccountCount,
+      };
+
+      items.push(...accountModules.flatMap((m) => m.navItems?.(ctx, t) ?? []));
     }
+
     if (isAdmin) {
-      items.push(
-        { key: Paths.adminStatistics, icon: <BarChartOutlined />, label: t("admin.stats.title") },
-        { key: Paths.adminAudit, icon: <SafetyCertificateOutlined />, label: t("admin.audit.menuTitle") },
-        { key: Paths.adminUsers, icon: <TeamOutlined />, label: t("admin.userListTitle") },
-        { key: Paths.adminPayments, icon: <FileTextOutlined />, label: t("admin.payments.title") },
-        { key: Paths.adminContracts, icon: <ContainerOutlined />, label: t("admin.contracts.title") },
-        { key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t("admin.topup.title") },
-      );
+      items.push(...adminModules.map((m) => m.navItem(t)));
     }
+
     items.push({ key: Paths.help, icon: <QuestionCircleOutlined />, label: t("help.menuTitle") });
     items.push({
       key: layoutAccountValid && layoutAccountId ? accountPath(layoutAccountId, "settings") : Paths.accounts,
       icon: <SettingOutlined />,
       label: t("layout.menuSettings"),
     });
+
     return items;
   }, [
     t,
@@ -86,6 +76,7 @@ export function MainLayout() {
     layoutAccountId,
     accountOutletCtx.currentAccount?.hasMeta,
     accountOutletCtx.currentAccount?.hasGoogle,
+    accountOutletCtx.currentAccount?.hasSite,
     accountOutletCtx.totalAccountCount,
   ]);
 

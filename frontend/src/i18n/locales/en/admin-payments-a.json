@@ -1,8 +1,8 @@
 {
   "admin": {
     "payments": {
-      "menuTitle": "Client invoices",
-      "title": "Invoices & subscriptions",
+      "menuTitle": "Create Invoice",
+      "title": "Create Invoice",
       "intro": "Everyone who has an account appears in the list (admins are labeled). Invoices and subscriptions can only be assigned to users with role User, not to administrators.",
       "introShort": "Pick the client, then set the new charge below. Full invoice history is under «Templates & billing history». Admins cannot be billed. Switch role to User under All users.",
       "sectionClient": "Client",
@@ -49,10 +49,10 @@
       "importClientBillingOk": "Loaded from client",
       "templatesCollapse": "Saved templates",
       "historyCollapse": "Billing history",
-      "libraryDrawerTrigger": "Templates & billing history",
-      "libraryDrawerTitle": "Library: templates & history",
-      "allInvoicesTitle": "All invoices",
-      "allInvoicesHint": "Every business charge: download PDFs here. Paid and unpaid rows appear together; there is no filter by user.",
+      "libraryDrawerTrigger": "Templates",
+      "libraryDrawerTitle": "Invoice Templates",
+      "templatesTitle": "Saved Templates",
+      "templatesHint": "Reusable invoice templates. Load into the form or apply directly to the selected client.",
       "createSubmit": "Create",
       "createdSuccess": "Invoice created, the client can pay from Billing.",
       "createdDownloadHint": "You can download the PDF anytime from «Templates & billing history» in the header.",
@@ -73,7 +73,30 @@
       "colLabel": "Description",
       "labelRequired": "Enter a description",
       "amountRequired": "Enter amount",
-      "linesInvalid": "Add at least one line with description and amount, or switch to a single total."
+      "linesInvalid": "Add at least one line with description and amount, or switch to a single total.",
+      "step1Title": "Select Client",
+      "step1Desc": "Choose who to bill",
+      "step2Title": "Create Invoice",
+      "step2Desc": "Set amount and details",
+      "nextStep": "Next: Create Invoice",
+      "backStep": "Back to Client Selection",
+      "selectClient": "Select Client",
+      "selectClientPlaceholder": "Search by name or email...",
+      "clientName": "Client Name",
+      "clientEmail": "Email",
+      "accountId": "Account ID",
+      "noAccount": "No Account",
+      "metaCampaign": "Meta Campaign",
+      "liveBillingDetected": "Active Billing Detected",
+      "liveBillingAmount": "Current billing: {{amount}} {{currency}}/month",
+      "importLiveBilling": "Import Current Billing",
+      "selectUserToStart": "Select a client to get started",
+      "adminSelectedWarningDesc": "Administrators cannot be billed. Please select a user with role 'User' or change this person's role.",
+      "selectChargeType": "Select Charge Type",
+      "useItemizedBreakdown": "Use itemized breakdown?",
+      "monthlyChargeInfo": "Monthly Recurring Charge",
+      "monthlyChargeInfoDesc": "This will create an automatic monthly subscription. The client will be charged every month until cancelled.",
+      "saveAsTemplate": "Save as Template"
     }
   }
 }

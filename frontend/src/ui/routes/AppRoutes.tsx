@@ -1,36 +1,20 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useApp } from "../../app/AppProviders";
-import { AdminLayout } from "../features/admin/pages/AdminLayout";
-import { AccountSelectPage } from "../pages/accounts";
-import { AccountBillingPageRoute } from "../pages/a/[accountId]/billing";
-import { AccountBillingSuccessPageRoute } from "../pages/a/[accountId]/billing/success";
-import { AccountBillingFailedPageRoute } from "../pages/a/[accountId]/billing/failed";
-import { AccountContractsPageRoute } from "../pages/a/[accountId]/contracts";
-import { GoogleAnalyticsPage } from "../pages/a/[accountId]/google";
-import { MetaAnalyticsPage } from "../pages/a/[accountId]/meta";
-import { MetaCampaignDeepDivePage } from "../pages/a/[accountId]/meta/campaigns/[campaignId]";
-import { SettingsPage } from "../pages/a/[accountId]/settings";
-import { AdminIndexRedirect } from "../pages/admin";
-import { AdminMetaBudgetPage } from "../pages/admin/meta-budget";
-import { AdminPaymentsPage } from "../pages/admin/payments";
-import { AdminContractsPage } from "../pages/admin/contracts";
-import { AdminAuditPage } from "../pages/admin/audit";
-import { AdminStatisticsPage } from "../pages/admin/statistics";
-import { AdminUsersPage } from "../pages/admin/users";
-import { HelpPage } from "../pages/help";
-import { LoginPage } from "../pages/login";
-import { PricingPage } from "../pages/pricing";
-import { TermsPage } from "../pages/terms";
-import { CancellationPolicyPage } from "../pages/cancel-policy";
-import { PrivacyPolicyPage } from "../pages/privacy-policy";
-import { TakanonRedirect } from "../pages/takanon";
-import { LegacySettingsRedirect } from "../pages/settings";
-import { AccountBillingCheckoutPageRoute } from "../pages/a/[accountId]/billing/checkout";
-import { ContractSignPage } from "../pages/contracts/sign/[token]";
-import { MainLayout } from "../layouts/MainLayout";
-import { Paths } from "../navigation/paths";
-import { ProtectedAdminRoute } from "../shared/components/ProtectedAdminRoute";
-import { ProtectedRoute } from "../shared/components/ProtectedRoute";
+import { useApp } from "@/app/AppProviders";
+import { AccountSelectPage } from "@/ui/features/shared/accounts/pages/AccountSelectPage";
+import { AdminLayout } from "@/ui/features/admin/layout/AdminLayout";
+import { LoginPage } from "@/ui/features/shared/auth/pages/LoginPage";
+import { ContractSignPage } from "@/ui/features/user/contracts/pages/ContractSignPage";
+import { HelpPage } from "@/ui/features/shared/help/pages/HelpPage";
+import { CancellationPolicyPage } from "@/ui/features/shared/legal/pages/CancellationPolicyPage";
+import { PrivacyPolicyPage } from "@/ui/features/shared/legal/pages/PrivacyPolicyPage";
+import { TermsPage } from "@/ui/features/shared/legal/pages/TermsPage";
+import { PricingPage } from "@/ui/features/shared/pricing/pages/PricingPage";
+import { MainLayout } from "@/ui/layouts/MainLayout";
+import { accountModules, adminModules } from "@/ui/modules";
+import { Paths } from "@/ui/navigation/paths";
+import { LegacySettingsRedirect } from "@/ui/routes/LegacySettingsRedirect";
+import { ProtectedAdminRoute } from "@/ui/shared/components/ProtectedAdminRoute";
+import { ProtectedRoute } from "@/ui/shared/components/ProtectedRoute";
 
 export function AppRoutes() {
   const { session, isAdmin } = useApp();
@@ -39,6 +23,7 @@ export function AppRoutes() {
 
   return (
     <Routes>
+      {/* Public routes */}
       <Route
         path={Paths.login}
         element={session ? <Navigate to={homeRedirect} replace /> : <LoginPage />}
@@ -48,33 +33,30 @@ export function AppRoutes() {
       <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />
       <Route path={Paths.privacyPolicy} element={<PrivacyPolicyPage />} />
       <Route path="/contracts/sign/:token" element={<ContractSignPage />} />
-      <Route path={Paths.billingSuccess} element={<AccountBillingSuccessPageRoute />} />
-      <Route path={Paths.billingFailed} element={<AccountBillingFailedPageRoute />} />
-      <Route path={Paths.takanon} element={<TakanonRedirect />} />
-      <Route
-        element={
-          <ProtectedRoute>
-            <MainLayout />
-          </ProtectedRoute>
-        }
-      >
+      <Route path={Paths.takanon} element={<Navigate to={Paths.terms} replace />} />
+
+      {/* Standalone module routes — outside main layout (e.g. post-payment pages) */}
+      {accountModules.flatMap((m) =>
+        (m.standaloneRoutes ?? []).map((r) => (
+          <Route key={r.path} path={r.path} element={r.element} />
+        ))
+      )}
+
+      {/* Authenticated app shell */}
+      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route path={Paths.root} element={<Navigate to={homeRedirect} replace />} />
         <Route path={Paths.accounts} element={<AccountSelectPage />} />
         <Route path={Paths.help} element={<HelpPage />} />
         <Route path={Paths.settings} element={<LegacySettingsRedirect />} />
-        <Route path="/a/:accountId/settings" element={<SettingsPage />} />
-        <Route path={Paths.meta} element={<MetaAnalyticsPage />} />
-        <Route path={Paths.metaCampaign} element={<MetaCampaignDeepDivePage />} />
-        <Route path={Paths.google} element={<GoogleAnalyticsPage />} />
-        <Route
-          path={Paths.billing}
-          element={<AccountBillingPageRoute />}
-        />
-        <Route path={Paths.contracts} element={<AccountContractsPageRoute />} />
-        <Route
-          path={Paths.billingCheckout}
-          element={<AccountBillingCheckoutPageRoute />}
-        />
+
+        {/* Feature module routes — registered from modules/index.ts */}
+        {accountModules.flatMap((m) =>
+          m.routes.map((r) => (
+            <Route key={r.path} path={r.path} element={r.element} />
+          ))
+        )}
+
+        {/* Admin panel — nested under AdminLayout */}
         <Route
           path={Paths.admin}
           element={
@@ -83,15 +65,13 @@ export function AppRoutes() {
             </ProtectedAdminRoute>
           }
         >
-          <Route index element={<AdminIndexRedirect />} />
-          <Route path="statistics" element={<AdminStatisticsPage />} />
-          <Route path="audit" element={<AdminAuditPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
-          <Route path="payments" element={<AdminPaymentsPage />} />
-          <Route path="contracts" element={<AdminContractsPage />} />
-          <Route path="meta-budget" element={<AdminMetaBudgetPage />} />
+          <Route index element={<Navigate to={Paths.adminStatistics} replace />} />
+          {adminModules.map((m) => (
+            <Route key={m.id} path={m.path} element={m.element} />
+          ))}
         </Route>
       </Route>
+
       <Route path="*" element={<Navigate to={Paths.root} replace />} />
     </Routes>
   );

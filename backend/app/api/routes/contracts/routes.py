@@ -76,6 +76,9 @@ def _contract_out(c: Contract) -> ContractOut:
         pdfBase64=c.pdf_base64,
         createdAt=c.created_at,
         stages=[_stage_out(s) for s in c.stages],
+        billingInstructionId=c.billing_instruction_id,
+        monthlyAmount=c.monthly_amount,
+        subscriptionMonths=c.subscription_months,
     )
 
 
@@ -163,6 +166,8 @@ def create_contract(
         pdf_base64=body.pdfBase64,
         status="draft",
         created_by_admin_id=admin.id,
+        monthly_amount=body.monthlyAmount if body.isSubscription else None,
+        subscription_months=body.subscriptionMonths if body.isSubscription else None,
     )
     db.add(contract)
     db.flush()
@@ -234,7 +239,7 @@ def void_contract(
     return _contract_out(c)
 
 
-@router.delete("/admin/contracts/{contract_id}", status_code=204)
+@router.delete("/admin/contracts/{contract_id}", status_code=204, response_model=None)
 def delete_contract(
     contract_id: int,
     db: Session = Depends(get_db),
@@ -342,6 +347,39 @@ def sign_contract(
     c.signed_copy_email = signer_email or owner_email
     c.signed_at = signed_at
     c.status = "signed"
+
+    # If this is a subscription contract, activate monthly billing
+    if c.monthly_amount and c.monthly_amount > 0:
+        from app.models.billing import AccountBillingInstruction
+        from app.schemas.billing import BillingInstructionIn
+        from app.api.routes.admin import billing_sync
+
+        # Create or update billing instruction
+        billing_payload = BillingInstructionIn(
+            chargeType="monthly",
+            amount=c.monthly_amount,
+            currency=c.currency,
+            description=f"Monthly subscription: {c.title}",
+            lineItems=None,
+            splitAcrossMonths=c.subscription_months,
+        )
+
+        # Get admin user who created the contract
+        from app.models.core import User
+        admin = db.query(User).filter(User.id == c.created_by_admin_id).first()
+        if admin:
+            billing_result = billing_sync.sync_account_billing_instruction(
+                db, c.account_id, admin, billing_payload
+            )
+            # Link the billing instruction to the contract
+            instruction = (
+                db.query(AccountBillingInstruction)
+                .filter(AccountBillingInstruction.account_id == c.account_id)
+                .first()
+            )
+            if instruction:
+                c.billing_instruction_id = instruction.id
+
     # pdf_base64 is left unchanged — original PDF is kept as-is
 
     db.commit()

@@ -13,21 +13,12 @@ class Base(DeclarativeBase):
 
 
 def _make_engine():
-    if settings.database_url.startswith("sqlite"):
-        connect_args = {"check_same_thread": False, "timeout": 15}
-        engine = create_engine(
-            settings.database_url,
-            connect_args=connect_args,
-            # One connection per thread is safe with check_same_thread=False.
-            pool_size=10,
-            max_overflow=20,
-        )
-        # WAL mode: multiple concurrent readers, no blocking on reads.
-        with engine.connect() as conn:
-            conn.execute(text("PRAGMA journal_mode=WAL"))
-            conn.execute(text("PRAGMA busy_timeout=10000"))
-        return engine
-    return create_engine(settings.database_url)
+    return create_engine(
+        settings.database_url,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,  # Verify connections before using them
+    )
 
 
 engine = _make_engine()
@@ -98,6 +89,17 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("contracts", "signer_position", "VARCHAR(255)")
         _ensure_column("contracts", "signed_copy_email", "VARCHAR(255)")
         _ensure_column("contract_payment_stages", "payment_doc_id", "VARCHAR(255)")
+        # Subscription contract columns
+        _ensure_column("contracts", "billing_instruction_id", "INTEGER")
+        _ensure_column("contracts", "monthly_amount", "FLOAT")
+        _ensure_column("contracts", "subscription_months", "INTEGER")
+        # User phone
+        _ensure_column("users", "phone", "VARCHAR(50)")
+        # Site module columns
+        _ensure_column("account_site_configs", "site_url", "VARCHAR(2048)")
+        _ensure_column("account_site_configs", "gmb_url", "VARCHAR(2048)")
+        _ensure_column("account_site_configs", "popup_text", "TEXT")
+        _ensure_column("account_site_configs", "popup_image_base64", "TEXT")
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

@@ -8,8 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Env } from "../config/Env";
-import type { User } from "../domain/User";
+import { Env } from "@/config/Env";
+import type { User } from "@/domain/User";
 import type { AuthSession, CreateUserInput, LoginCredentials, UpdateUserInput } from "@/services/auth/IAuthService";
 import type { AppServices } from "@/services/app/AppServices";
 import { createAppServices } from "@/services/app/createAppServices";

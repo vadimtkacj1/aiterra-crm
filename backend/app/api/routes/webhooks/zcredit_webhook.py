@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from app.core.settings import settings
 from app.db.session import get_db
 from app.services.payments.zcredit.webhook import (
     apply_zcredit_webhook_event,
@@ -46,9 +45,6 @@ async def zcredit_webhook(request: Request, db: Session = Depends(get_db)) -> di
             - recurring.active  → set subscription_status = "active"
             - recurring.cancelled → set subscription_status = "canceled"
     """
-    if not settings.zcredit_webhook_secret:
-        raise HTTPException(status_code=503, detail="zcredit_webhook_not_configured")
-
     payload = await request.body()
 
     # TODO: Verify Z-Credit signature

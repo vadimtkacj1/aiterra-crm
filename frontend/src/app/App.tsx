@@ -4,9 +4,9 @@ import heIL from "antd/locale/he_IL";
 import { useEffect, type ReactNode } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { BrowserRouter } from "react-router-dom";
-import { i18n } from "../i18n";
+import { i18n } from "@/i18n";
 import { AppProviders } from "./AppProviders";
-import { AppRoutes } from "../ui/routes/AppRoutes";
+import { AppRoutes } from "@/ui/routes/AppRoutes";
 
 const appTheme = {
   algorithm: theme.defaultAlgorithm,

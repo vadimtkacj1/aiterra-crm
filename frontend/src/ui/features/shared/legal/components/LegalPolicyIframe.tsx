@@ -8,10 +8,9 @@ type PolicyKind = "cancel" | "privacy";
  */
 export function LegalPolicyIframe({ policy, title }: { policy: PolicyKind; title: string }) {
   const src = useMemo(() => {
-    const path = policy === "cancel" ? "/api/cancel-policy" : "/api/privacy-policy";
-    const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-    const url = apiBase ? `${apiBase}${path}` : path;
-    return `${url}?embed=1`;
+    const path = policy === "cancel" ? "cancel-policy" : "privacy-policy";
+    const apiBase = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
+    return `${apiBase}/${path}?embed=1`;
   }, [policy]);
 
   return (

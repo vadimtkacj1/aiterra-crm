@@ -18,6 +18,7 @@ from app.models.core import Account
 from app.models.core import User
 from app.schemas.contract import (
     ContractCreate,
+    ContractStageIn,
     ContractMemberOut,
     ContractOut,
     ContractPublicOut,

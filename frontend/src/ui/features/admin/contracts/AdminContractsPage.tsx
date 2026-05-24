@@ -3,12 +3,9 @@ import {
   ContainerOutlined,
   CopyOutlined,
   CreditCardOutlined,
-  DollarOutlined,
   FilePdfOutlined,
-  FileTextOutlined,
   MinusCircleOutlined,
   PlusOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import {
   App,
@@ -24,7 +21,6 @@ import {
   Row,
   Select,
   Space,
-  Steps,
   Switch,
   Table,
   Tag,
@@ -126,12 +122,6 @@ interface FormValues {
   subscriptionMonths?: number | null;
 }
 
-const STEP_FIELDS: Record<number, string[]> = {
-  0: ["accountId"],
-  1: ["title"],
-  2: [],
-};
-
 // ─── component ──────────────────────────────────────────────────────────────
 
 export function AdminContractsPage() {
@@ -232,16 +222,6 @@ export function AdminContractsPage() {
     setPdfFileName(null);
     setSplitTotal(null);
     setSplitParts(2);
-  };
-
-  const goNext = async () => {
-    try {
-      const fields = STEP_FIELDS[currentStep] ?? [];
-      if (fields.length) await form.validateFields(fields);
-      setCurrentStep((s) => s + 1);
-    } catch {
-      // stay on step
-    }
   };
 
   const goNext = async () => {

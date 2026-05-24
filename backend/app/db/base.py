@@ -7,6 +7,7 @@ from app.models.billing import (
     InvoiceTemplate,
     MetaTopup,
     SavedCard,
+    SubscriptionPayment,
 )
 from app.models.campaign import TrackedCampaign
 from app.models.contracts import Contract, ContractPaymentStage
@@ -33,4 +34,5 @@ __all__ = [
     "ContractPaymentStage",
     "AccountSiteConfig",
     "SiteLead",
+    "SubscriptionPayment",
 ]

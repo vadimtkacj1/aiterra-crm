@@ -4,10 +4,12 @@ services:
     build:
       context: ./backend
     restart: unless-stopped
-    # Required for EMAIL_*, JWT_*, META_*, etc. Without this block, only vars listed in
-    # `environment:` below reach the container — backend/.env on the host is ignored.
+    # Required for EMAIL_*, JWT_*, META_*, etc.
+    # deploy.yml writes the ENV_FILE secret to ~/crm/.env (project root), so point here.
+    # DATABASE_URL in `environment:` below overrides any DATABASE_URL in the file.
     env_file:
-      - backend/.env
+      - path: .env
+        required: false
     environment:
       DATABASE_URL: sqlite:////data/app.db
     volumes:

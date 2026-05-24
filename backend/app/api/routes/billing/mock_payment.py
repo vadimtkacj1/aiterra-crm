@@ -6,17 +6,23 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 
-# Import dev_mock from parent directory
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
-
-from dev_mock.zcredit_hosted_mock import (
-    apply_mock_hosted_confirm,
-    build_zcredit_hosted_mock_html,
-    find_mock_payment_data,
-    require_zcredit_mock_mode,
-)
+try:
+    from dev_mock.zcredit_hosted_mock import (
+        apply_mock_hosted_confirm,
+        build_zcredit_hosted_mock_html,
+        find_mock_payment_data,
+        require_zcredit_mock_mode,
+    )
+except ImportError:
+    # Fallback if dev_mock not available
+    def require_zcredit_mock_mode():
+        raise HTTPException(status_code=501, detail="Mock mode not available")
+    def find_mock_payment_data(db, doc_id):
+        return None
+    def build_zcredit_hosted_mock_html(data, confirm_url):
+        return ""
+    def apply_mock_hosted_confirm(db, doc_id, success):
+        pass
 
 router = APIRouter()
 

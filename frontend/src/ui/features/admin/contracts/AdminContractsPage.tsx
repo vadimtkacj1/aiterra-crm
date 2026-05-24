@@ -143,7 +143,6 @@ export function AdminContractsPage() {
   const [loading, setLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
   const [detailContract, setDetailContract] = useState<Contract | null>(null);
   const [subscriptionContractId, setSubscriptionContractId] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -228,12 +227,21 @@ export function AdminContractsPage() {
 
   const resetCreateForm = () => {
     setCreateOpen(false);
-    setCurrentStep(0);
     form.resetFields();
     setPdfBase64(null);
     setPdfFileName(null);
     setSplitTotal(null);
     setSplitParts(2);
+  };
+
+  const goNext = async () => {
+    try {
+      const fields = STEP_FIELDS[currentStep] ?? [];
+      if (fields.length) await form.validateFields(fields);
+      setCurrentStep((s) => s + 1);
+    } catch {
+      // stay on step
+    }
   };
 
   const goNext = async () => {
@@ -432,24 +440,13 @@ export function AdminContractsPage() {
   const createFooter = (
     <Flex justify="space-between" align="center">
       <Button onClick={resetCreateForm}>{t("common.cancel")}</Button>
-      <Space>
-        {currentStep > 0 && (
-          <Button onClick={() => setCurrentStep((s) => s - 1)}>{t("common.back")}</Button>
-        )}
-        {currentStep < 2 ? (
-          <Button type="primary" onClick={() => void goNext()}>
-            {t("common.next")}
-          </Button>
-        ) : (
-          <Button
-            type="primary"
-            loading={creating}
-            onClick={() => void form.validateFields().then(handleCreate)}
-          >
-            {t("admin.contracts.create")}
-          </Button>
-        )}
-      </Space>
+      <Button
+        type="primary"
+        loading={creating}
+        onClick={() => void form.validateFields().then(handleCreate)}
+      >
+        {t("admin.contracts.create")}
+      </Button>
     </Flex>
   );
 
@@ -482,31 +479,23 @@ export function AdminContractsPage() {
         title={t("admin.contracts.create")}
         open={createOpen}
         onCancel={resetCreateForm}
-        width={620}
+        width={720}
         footer={createFooter}
       >
-        <Steps
-          current={currentStep}
-          size="small"
-          style={{ marginBottom: 28 }}
-          items={[
-            { title: t("admin.contracts.form.selectClient"), icon: <UserOutlined /> },
-            { title: t("admin.contracts.form.contractDetails"), icon: <FileTextOutlined /> },
-            { title: t("admin.contracts.form.paymentStages"), icon: <DollarOutlined /> },
-          ]}
-        />
-
         <Form
           form={form}
           layout="vertical"
           initialValues={{ currency: "ILS", stages: [{ description: "", amount: null }], isSubscription: false }}
         >
-          {/* Step 0 — Client */}
-          <div style={{ display: currentStep === 0 ? "block" : "none" }}>
+          {/* Client Selection */}
+          <div style={{ marginBottom: 24 }}>
+            <Typography.Title level={5} style={{ marginBottom: 12 }}>
+              {t("admin.contracts.form.selectClient")}
+            </Typography.Title>
             <Form.Item
               name="accountId"
-              label={t("admin.contracts.form.account")}
               rules={[{ required: true }]}
+              style={{ marginBottom: 0 }}
             >
               <Select
                 size="large"
@@ -535,8 +524,19 @@ export function AdminContractsPage() {
             </Form.Item>
           </div>
 
-          {/* Step 1 — Contract Details */}
-          <div style={{ display: currentStep === 1 ? "block" : "none" }}>
+          {/* Contract Details */}
+          <div
+            style={{
+              padding: "16px",
+              background: "#fafafa",
+              borderRadius: 8,
+              marginBottom: 24,
+            }}
+          >
+            <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 12 }}>
+              {t("admin.contracts.form.contractDetails")}
+            </Typography.Title>
+
             <Row gutter={12}>
               <Col flex="auto">
                 <Form.Item name="title" label={t("admin.contracts.form.title")} rules={[{ required: true }]}>
@@ -562,51 +562,104 @@ export function AdminContractsPage() {
                   {t("admin.contracts.form.bodyFormatHint")}
                 </Typography.Text>
               }
+              style={{ display: pdfBase64 ? "none" : "block" }}
             >
               <Input.TextArea
-                rows={5}
+                rows={4}
                 placeholder={t("admin.contracts.form.bodyPlaceholder")}
                 style={{ fontFamily: "monospace", fontSize: 13 }}
               />
             </Form.Item>
 
-            {/* Subscription toggle */}
-            <div
-              style={{
-                padding: "12px 14px",
-                background: "#f8fafc",
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                marginBottom: 16,
-              }}
-            >
-              <Flex gap={12} align="flex-start">
-                <Form.Item name="isSubscription" valuePropName="checked" noStyle>
-                  <Switch style={{ marginTop: 3 }} />
-                </Form.Item>
-                <div style={{ flex: 1 }}>
-                  <Typography.Text strong style={{ display: "block" }}>
-                    {t("admin.contracts.form.subscriptionToggle")}
-                  </Typography.Text>
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    {t("admin.contracts.form.subscriptionHint")}
-                  </Typography.Text>
-                </div>
-              </Flex>
-
-              <Form.Item
-                noStyle
-                shouldUpdate={(prev, curr) => prev.isSubscription !== curr.isSubscription}
+            {/* PDF upload */}
+            <Form.Item label={t("admin.contracts.form.pdf")} style={{ marginBottom: 0 }}>
+              <Upload
+                accept=".pdf"
+                maxCount={1}
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  readFileAsBase64(file)
+                    .then((b64) => {
+                      setPdfBase64(b64);
+                      setPdfFileName(file.name);
+                      form.setFieldsValue({ body: "" }); // Clear body when PDF is uploaded
+                    })
+                    .catch(() => void message.error(t("errors.generic")));
+                  return false;
+                }}
               >
-                {({ getFieldValue }) =>
-                  getFieldValue("isSubscription") ? (
-                    <Row gutter={12} style={{ marginTop: 14 }}>
+                <Button icon={<FilePdfOutlined />}>
+                  {pdfFileName ?? t("admin.contracts.form.pdfUpload")}
+                </Button>
+              </Upload>
+              {pdfFileName && (
+                <>
+                  <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                    {pdfFileName}
+                  </Typography.Text>
+                  <Button
+                    type="link"
+                    danger
+                    size="small"
+                    style={{ paddingInlineStart: 8 }}
+                    onClick={() => {
+                      setPdfBase64(null);
+                      setPdfFileName(null);
+                    }}
+                  >
+                    {t("admin.contracts.form.pdfRemove")}
+                  </Button>
+                </>
+              )}
+            </Form.Item>
+          </div>
+
+          {/* Payment Type Toggle */}
+          <div
+            style={{
+              padding: "14px 16px",
+              background: "#f0f9ff",
+              borderRadius: 8,
+              border: "1px solid #bae6fd",
+              marginBottom: 16,
+            }}
+          >
+            <Flex gap={12} align="center">
+              <Form.Item name="isSubscription" valuePropName="checked" noStyle>
+                <Switch />
+              </Form.Item>
+              <div style={{ flex: 1 }}>
+                <Typography.Text strong>
+                  {t("admin.contracts.form.subscriptionToggle")}
+                </Typography.Text>
+              </div>
+            </Flex>
+          </div>
+
+          {/* Payment Configuration */}
+          <Form.Item noStyle shouldUpdate={(prev, curr) => prev.isSubscription !== curr.isSubscription}>
+            {({ getFieldValue }) => {
+              const isSubscription = getFieldValue("isSubscription");
+
+              if (isSubscription) {
+                // Subscription mode
+                return (
+                  <div
+                    style={{
+                      padding: "16px",
+                      background: "#fafafa",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 12 }}>
+                      {t("admin.contracts.form.subscriptionSettings")}
+                    </Typography.Title>
+                    <Row gutter={12}>
                       <Col xs={24} sm={12}>
                         <Form.Item
                           name="monthlyAmount"
                           label={t("admin.contracts.form.monthlyAmount")}
                           rules={[{ required: true, type: "number", min: 0.01 }]}
-                          style={{ marginBottom: 0 }}
                         >
                           <InputNumber
                             size="large"
@@ -625,7 +678,6 @@ export function AdminContractsPage() {
                               {t("admin.contracts.form.subscriptionMonthsHint")}
                             </Typography.Text>
                           }
-                          style={{ marginBottom: 0 }}
                         >
                           <InputNumber
                             size="large"
@@ -638,186 +690,121 @@ export function AdminContractsPage() {
                         </Form.Item>
                       </Col>
                     </Row>
-                  ) : null
-                }
-              </Form.Item>
-            </div>
+                  </div>
+                );
+              }
 
-            {/* PDF upload */}
-            <Form.Item label={t("admin.contracts.form.pdf")} style={{ marginBottom: 0 }}>
-              <Upload
-                accept=".pdf"
-                maxCount={1}
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  readFileAsBase64(file)
-                    .then((b64) => {
-                      setPdfBase64(b64);
-                      setPdfFileName(file.name);
-                    })
-                    .catch(() => void message.error(t("errors.generic")));
-                  return false;
-                }}
-              >
-                <Button icon={<FilePdfOutlined />}>
-                  {pdfFileName ?? t("admin.contracts.form.pdfUpload")}
-                </Button>
-              </Upload>
-              {pdfFileName && (
-                <Button
-                  type="link"
-                  danger
-                  size="small"
-                  style={{ paddingInlineStart: 0, marginTop: 6 }}
-                  onClick={() => {
-                    setPdfBase64(null);
-                    setPdfFileName(null);
+              // One-time payment mode
+              return (
+                <div
+                  style={{
+                    padding: "16px",
+                    background: "#fafafa",
+                    borderRadius: 8,
                   }}
                 >
-                  {t("admin.contracts.form.pdfRemove")}
-                </Button>
-              )}
-            </Form.Item>
-          </div>
+                  <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 12 }}>
+                    {t("admin.contracts.form.paymentStages")}
+                  </Typography.Title>
 
-          {/* Step 2 — Payment Stages */}
-          <div style={{ display: currentStep === 2 ? "block" : "none" }}>
-            <Form.Item noStyle shouldUpdate={(prev, curr) => prev.isSubscription !== curr.isSubscription}>
-              {({ getFieldValue }) => {
-                const isSubscription = getFieldValue("isSubscription");
+                  {/* Equal split helper */}
+                  <Flex
+                    gap={8}
+                    align="center"
+                    wrap="wrap"
+                    style={{
+                      padding: "10px 14px",
+                      background: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 8,
+                      marginBottom: 16,
+                    }}
+                  >
+                    <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                      {t("admin.contracts.form.equalSplitTitle")}:
+                    </Typography.Text>
+                    <InputNumber
+                      size="small"
+                      min={0.01}
+                      value={splitTotal ?? undefined}
+                      onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
+                      placeholder={t("admin.contracts.form.equalSplitTotal")}
+                      style={{ width: 120 }}
+                    />
+                    <Typography.Text type="secondary">÷</Typography.Text>
+                    <InputNumber
+                      size="small"
+                      min={2}
+                      max={60}
+                      precision={0}
+                      value={splitParts}
+                      onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
+                      style={{ width: 64 }}
+                    />
+                    <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
+                      {t("admin.contracts.form.equalSplitApply")}
+                    </Button>
+                  </Flex>
 
-                if (isSubscription) {
-                  // Subscription mode: show read-only info
-                  const monthlyAmount = getFieldValue("monthlyAmount");
-                  const subscriptionMonths = getFieldValue("subscriptionMonths");
-
-                  return (
-                    <div
-                      style={{
-                        padding: "16px",
-                        background: "#f0f9ff",
-                        border: "1px solid #bae6fd",
-                        borderRadius: 8,
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography.Title level={5} style={{ marginBottom: 8 }}>
-                        {t("admin.contracts.form.subscriptionAutoStages")}
-                      </Typography.Title>
-                      <Typography.Text type="secondary">
-                        {monthlyAmount && subscriptionMonths
-                          ? t("admin.contracts.form.subscriptionSummary", {
-                              amount: fmtMoney(monthlyAmount, getFieldValue("currency") || "ILS"),
-                              months: subscriptionMonths,
-                            })
-                          : t("admin.contracts.form.subscriptionConfigureFirst")}
-                      </Typography.Text>
-                    </div>
-                  );
-                }
-
-                // One-time payment mode: show manual stages
-                return (
-                  <>
-                    {/* Equal split helper */}
-                    <Flex
-                      gap={8}
-                      align="center"
-                      wrap="wrap"
-                      style={{
-                        padding: "10px 14px",
-                        background: "#f8fafc",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: 8,
-                        marginBottom: 16,
-                      }}
-                    >
-                      <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                        {t("admin.contracts.form.equalSplitTitle")}:
-                      </Typography.Text>
-                      <InputNumber
-                        size="small"
-                        min={0.01}
-                        value={splitTotal ?? undefined}
-                        onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
-                        placeholder={t("admin.contracts.form.equalSplitTotal")}
-                        style={{ width: 120 }}
-                      />
-                      <Typography.Text type="secondary">÷</Typography.Text>
-                      <InputNumber
-                        size="small"
-                        min={2}
-                        max={60}
-                        precision={0}
-                        value={splitParts}
-                        onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
-                        style={{ width: 64 }}
-                      />
-                      <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
-                        {t("admin.contracts.form.equalSplitApply")}
-                      </Button>
-                    </Flex>
-
-                    {/* Stage list */}
-                    <Form.List name="stages">
-                      {(fields, { add, remove }) => (
-                        <Space direction="vertical" size={0} style={{ width: "100%" }}>
-                          {fields.map(({ key, name, ...rest }, index) => (
-                            <Flex
-                              key={key}
-                              gap={8}
-                              align="center"
-                              style={{ padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}
-                            >
-                              <Typography.Text
-                                type="secondary"
-                                style={{ flex: "0 0 22px", textAlign: "center", fontSize: 13 }}
-                              >
-                                {index + 1}
-                              </Typography.Text>
-                              <Form.Item
-                                {...rest}
-                                name={[name, "description"]}
-                                rules={[{ required: true, message: "" }]}
-                                style={{ flex: 1, marginBottom: 0 }}
-                              >
-                                <Input placeholder={t("admin.contracts.form.stageDescription")} />
-                              </Form.Item>
-                              <Form.Item
-                                {...rest}
-                                name={[name, "amount"]}
-                                rules={[{ required: true, type: "number", min: 0.01, message: "" }]}
-                                style={{ width: 130, marginBottom: 0 }}
-                              >
-                                <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
-                              </Form.Item>
-                              <Button
-                                type="text"
-                                danger
-                                icon={<MinusCircleOutlined />}
-                                onClick={() => remove(name)}
-                                disabled={fields.length === 1}
-                              />
-                            </Flex>
-                          ))}
-
-                          <Button
-                            type="dashed"
-                            icon={<PlusOutlined />}
-                            onClick={() => add({ description: "", amount: null })}
-                            block
-                            style={{ marginTop: 12 }}
+                  {/* Stage list */}
+                  <Form.List name="stages">
+                    {(fields, { add, remove }) => (
+                      <Space direction="vertical" size={0} style={{ width: "100%" }}>
+                        {fields.map(({ key, name, ...rest }, index) => (
+                          <Flex
+                            key={key}
+                            gap={8}
+                            align="center"
+                            style={{ padding: "8px 0", borderBottom: "1px solid #e0e0e0" }}
                           >
-                            {t("admin.contracts.form.addStage")}
-                          </Button>
-                        </Space>
-                      )}
-                    </Form.List>
-                  </>
-                );
-              }}
-            </Form.Item>
-          </div>
+                            <Typography.Text
+                              type="secondary"
+                              style={{ flex: "0 0 22px", textAlign: "center", fontSize: 13 }}
+                            >
+                              {index + 1}
+                            </Typography.Text>
+                            <Form.Item
+                              {...rest}
+                              name={[name, "description"]}
+                              rules={[{ required: true, message: "" }]}
+                              style={{ flex: 1, marginBottom: 0 }}
+                            >
+                              <Input placeholder={t("admin.contracts.form.stageDescription")} />
+                            </Form.Item>
+                            <Form.Item
+                              {...rest}
+                              name={[name, "amount"]}
+                              rules={[{ required: true, type: "number", min: 0.01, message: "" }]}
+                              style={{ width: 130, marginBottom: 0 }}
+                            >
+                              <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
+                            </Form.Item>
+                            <Button
+                              type="text"
+                              danger
+                              icon={<MinusCircleOutlined />}
+                              onClick={() => remove(name)}
+                              disabled={fields.length === 1}
+                            />
+                          </Flex>
+                        ))}
+
+                        <Button
+                          type="dashed"
+                          icon={<PlusOutlined />}
+                          onClick={() => add({ description: "", amount: null })}
+                          block
+                          style={{ marginTop: 12 }}
+                        >
+                          {t("admin.contracts.form.addStage")}
+                        </Button>
+                      </Space>
+                    )}
+                  </Form.List>
+                </div>
+              );
+            }}
+          </Form.Item>
         </Form>
       </AppModal>
 

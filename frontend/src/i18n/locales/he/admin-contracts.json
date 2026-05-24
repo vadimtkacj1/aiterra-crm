@@ -53,6 +53,7 @@
       "form": {
         "selectClient": "בחירת לקוח",
         "contractDetails": "פרטי החוזה",
+        "paymentSettings": "תשלום",
         "account": "חשבון לקוח",
         "accountPlaceholder": "חיפוש לקוח...",
         "title": "כותרת החוזה",

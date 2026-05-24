@@ -193,14 +193,16 @@ export function MemberContractsPage() {
         const payAvailable = hasUnpaidStage(r) && r.status === "signed";
         return (
           <Space size={6}>
-            <Button
-              type="link"
-              size="small"
-              href={`/contracts/sign/${encodeURIComponent(r.signToken)}`}
-              target="_blank"
-            >
-              {t("memberContracts.actionDownload")}
-            </Button>
+            {r.status === "signed" && (
+              <Button
+                type="link"
+                size="small"
+                href={`/contracts/sign/${encodeURIComponent(r.signToken)}`}
+                target="_blank"
+              >
+                {t("memberContracts.actionDownload")}
+              </Button>
+            )}
             {payAvailable && (
               <Button
                 type="primary"
@@ -266,11 +268,13 @@ export function MemberContractsPage() {
                     </Typography.Text>
                   ),
                   actions: [
-                    {
-                      label: t("memberContracts.actionDownload"),
-                      onClick: () => window.open(`/contracts/sign/${encodeURIComponent(r.signToken)}`, "_blank"),
-                      type: "link" as const,
-                    },
+                    ...(r.status === "signed"
+                      ? [{
+                          label: t("memberContracts.actionDownload"),
+                          onClick: () => window.open(`/contracts/sign/${encodeURIComponent(r.signToken)}`, "_blank"),
+                          type: "link" as const,
+                        }]
+                      : []),
                     ...(payAvailable
                       ? [{
                           label: t("memberContracts.actionPay"),

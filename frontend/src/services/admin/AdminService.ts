@@ -337,7 +337,7 @@ export class AdminService {
   }
 
   async createContract(input: ContractCreateInput): Promise<Contract> {
-    return this.http.post<Contract>("/admin/contracts", {
+    const payload = {
       accountId: input.accountId,
       title: input.title,
       body: input.body,
@@ -347,7 +347,9 @@ export class AdminService {
       isSubscription: input.isSubscription ?? false,
       monthlyAmount: input.monthlyAmount ?? null,
       subscriptionMonths: input.subscriptionMonths ?? null,
-    });
+    };
+    console.log("DEBUG: Creating contract with payload:", JSON.stringify(payload, null, 2));
+    return this.http.post<Contract>("/admin/contracts", payload);
   }
 
   async sendContract(id: number): Promise<Contract> {

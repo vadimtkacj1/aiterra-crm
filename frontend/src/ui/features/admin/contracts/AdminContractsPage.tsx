@@ -224,16 +224,6 @@ export function AdminContractsPage() {
     setSplitParts(2);
   };
 
-  const goNext = async () => {
-    try {
-      const fields = STEP_FIELDS[currentStep] ?? [];
-      if (fields.length) await form.validateFields(fields);
-      setCurrentStep((s) => s + 1);
-    } catch {
-      // stay on step
-    }
-  };
-
   const applyEqualSplit = () => {
     if (splitTotal == null || splitTotal <= 0 || splitParts < 2) {
       void message.warning(t("admin.contracts.form.equalSplitInvalid"));

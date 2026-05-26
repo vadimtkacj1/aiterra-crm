@@ -41,7 +41,7 @@ export function AdminUserEditModal({
       onCancel={onCancel}
       okText={t("admin.save")}
       okButtonProps={{ disabled: editMetaLoading || editMetaInfo === null }}
-      onOk={() => void onSave()}
+      onOk={onSave}
     >
       <Spin spinning={editMetaLoading}>
         <Form form={editForm} layout="vertical" style={{ marginTop: 8 }}>

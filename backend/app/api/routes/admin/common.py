@@ -15,8 +15,8 @@ from app.services import zcredit_service
 def first_account_id_for_user(db: Session, user_id: int) -> int | None:
     m = (
         db.query(AccountMembership)
-        .filter(AccountMembership.user_id == user_id)
-        .order_by(AccountMembership.id.asc())
+        .filter(AccountMembership.user_id == user_id, AccountMembership.role_in_account == "owner")
+        .order_by(AccountMembership.id.desc())
         .first()
     )
     return m.account_id if m else None
@@ -52,7 +52,7 @@ def owner_membership(db: Session, user_id: int) -> AccountMembership | None:
     return (
         db.query(AccountMembership)
         .filter(AccountMembership.user_id == user_id, AccountMembership.role_in_account == "owner")
-        .order_by(AccountMembership.id.asc())
+        .order_by(AccountMembership.id.desc())
         .first()
     )
 

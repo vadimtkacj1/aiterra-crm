@@ -18,6 +18,10 @@
     "paymentStatusPaid": "Paid",
     "paymentStatusPartial": "Partially paid",
     "paymentStatusUnpaid": "Not paid",
-    "paymentProgress": "{{paid}}/{{total}} paid · {{paidAmount}} / {{totalAmount}}"
+    "paymentProgress": "{{paid}}/{{total}} paid · {{paidAmount}} / {{totalAmount}}",
+    "monthlyBadge": "Monthly",
+    "monthlyAmount": "{{amount}}/month",
+    "monthlyDuration": "{{months}} months",
+    "notSigned": "Not signed"
   }
 }

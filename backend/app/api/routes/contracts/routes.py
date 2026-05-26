@@ -115,6 +115,8 @@ def _contract_member_out(c: Contract) -> ContractMemberOut:
         signerName=c.signer_name,
         createdAt=c.created_at,
         stages=[_stage_out(s) for s in c.stages],
+        monthlyAmount=c.monthly_amount,
+        subscriptionMonths=c.subscription_months,
     )
 
 

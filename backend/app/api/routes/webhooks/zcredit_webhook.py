@@ -54,7 +54,7 @@ async def zcredit_webhook(request: Request, db: Session = Depends(get_db)) -> di
 
     data = parse_webhook_json_body(payload)
     event_type = resolve_event_type(data)
-    logger.info("zcredit_webhook received event=%s", event_type)
+    logger.info("zcredit_webhook received event=%s data=%s", event_type, data)
 
     apply_zcredit_webhook_event(db, event_type, data)
 

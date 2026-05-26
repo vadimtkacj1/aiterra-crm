@@ -49,28 +49,30 @@ export async function submitAdminUserEdit(params: {
 
   await services.admin.setUserBusinessSite(String(editUser.id), values.linkSite, values.siteUrl?.trim());
 
-  const chargeType = values.billingChargeType ?? "none";
-  const amt = values.billingAmount;
-  const amount = chargeType === "none" ? null : typeof amt === "number" && amt > 0 ? amt : null;
-  if (chargeType !== "none" && amount == null) {
-    return { ok: false, reason: "billing_amount" };
-  }
-
-  let lineItems: BillingLineItem[] | undefined = preservedBillingLinesRef.current;
-  if (lineItems?.length && amount != null) {
-    const sum = Math.round(lineItems.reduce((s, x) => s + x.amount, 0) * 100) / 100;
-    if (Math.abs(sum - amount) > 0.02) {
-      lineItems = undefined;
+  if (values.billingChargeType !== undefined) {
+    const chargeType = values.billingChargeType ?? "none";
+    const amt = values.billingAmount;
+    const amount = chargeType === "none" ? null : typeof amt === "number" && amt > 0 ? amt : null;
+    if (chargeType !== "none" && amount == null) {
+      return { ok: false, reason: "billing_amount" };
     }
-  }
 
-  await services.admin.setAccountBillingInstruction(editMetaInfo.accountId, {
-    chargeType,
-    amount,
-    currency: values.billingCurrency ?? "USD",
-    description: values.billingDescription?.trim() || null,
-    lineItems,
-  });
+    let lineItems: BillingLineItem[] | undefined = preservedBillingLinesRef.current;
+    if (lineItems?.length && amount != null) {
+      const sum = Math.round(lineItems.reduce((s, x) => s + x.amount, 0) * 100) / 100;
+      if (Math.abs(sum - amount) > 0.02) {
+        lineItems = undefined;
+      }
+    }
+
+    await services.admin.setAccountBillingInstruction(editMetaInfo.accountId, {
+      chargeType,
+      amount,
+      currency: values.billingCurrency ?? "USD",
+      description: values.billingDescription?.trim() || null,
+      lineItems,
+    });
+  }
 
   return { ok: true };
 }

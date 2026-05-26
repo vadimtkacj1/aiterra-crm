@@ -52,6 +52,10 @@ function hasUnpaidStage(contract: ContractMemberRow): boolean {
   return Boolean(contract.stages?.some((stage) => stage.status !== "paid"));
 }
 
+function isMonthly(contract: ContractMemberRow): boolean {
+  return Boolean(contract.monthlyAmount && contract.monthlyAmount > 0);
+}
+
 function paidCounts(contract: ContractMemberRow) {
   const stagesTotal = contract.stages?.length ?? 0;
   const stagesPaid =
@@ -121,8 +125,21 @@ export function MemberContractsPage() {
       dataIndex: "title",
       key: "title",
       ellipsis: true,
-      render: (title: string) => (
-        <Typography.Text strong>{title}</Typography.Text>
+      render: (title: string, r) => (
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Typography.Text strong>{title}</Typography.Text>
+          {isMonthly(r) && (
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
+                {t("memberContracts.monthlyBadge")}
+              </Tag>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {t("memberContracts.monthlyAmount", { amount: fmtMoney(r.monthlyAmount!, r.currency) })}
+                {r.subscriptionMonths ? ` · ${t("memberContracts.monthlyDuration", { months: r.subscriptionMonths })}` : ""}
+              </Typography.Text>
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -241,6 +258,7 @@ export function MemberContractsPage() {
                 const [paymentColor, paymentKey] = paymentMeta(r);
                 const { stagesPaid, stagesTotal, paidAmount } = paidCounts(r);
                 const payAvailable = hasUnpaidStage(r) && r.status === "signed";
+                const monthly = isMonthly(r);
 
                 return {
                   id: r.id,
@@ -252,13 +270,25 @@ export function MemberContractsPage() {
                         day: "numeric",
                       })
                     : t("memberContracts.notSigned"),
-                  description: t("memberContracts.paymentProgress", {
-                    paid: stagesPaid,
-                    total: stagesTotal,
-                    paidAmount: fmtMoney(paidAmount, r.currency),
-                    totalAmount: fmtMoney(r.totalAmount, r.currency),
-                  }),
+                  description: monthly
+                    ? [
+                        t("memberContracts.monthlyAmount", { amount: fmtMoney(r.monthlyAmount!, r.currency) }),
+                        r.subscriptionMonths ? t("memberContracts.monthlyDuration", { months: r.subscriptionMonths }) : "",
+                        t("memberContracts.paymentProgress", {
+                          paid: stagesPaid,
+                          total: stagesTotal,
+                          paidAmount: fmtMoney(paidAmount, r.currency),
+                          totalAmount: fmtMoney(r.totalAmount, r.currency),
+                        }),
+                      ].filter(Boolean).join(" · ")
+                    : t("memberContracts.paymentProgress", {
+                        paid: stagesPaid,
+                        total: stagesTotal,
+                        paidAmount: fmtMoney(paidAmount, r.currency),
+                        totalAmount: fmtMoney(r.totalAmount, r.currency),
+                      }),
                   tags: [
+                    ...(monthly ? [{ label: t("memberContracts.monthlyBadge"), color: "blue" }] : []),
                     { label: t(statusKey), color: statusColor },
                     { label: t(paymentKey), color: paymentColor },
                   ],

@@ -120,6 +120,7 @@ export class AuthService implements IAuthService {
       password: input.password,
       displayName: input.displayName,
       role: input.role,
+      phone: input.phone ?? null,
     };
     const mid = (input.metaCampaignId ?? "").trim();
     if (mid) {
@@ -135,6 +136,10 @@ export class AuthService implements IAuthService {
       body.googleRefreshToken = gRt;
       const gLid = (input.googleLoginCustomerId ?? "").trim();
       if (gLid) body.googleLoginCustomerId = gLid;
+    }
+    body.withSite = input.withSite ?? false;
+    if (input.withSite && input.siteUrl) {
+      body.siteUrl = input.siteUrl;
     }
     return this.http.post<User>("/admin/users", body);
   }

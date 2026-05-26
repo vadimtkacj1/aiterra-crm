@@ -120,6 +120,8 @@ class ContractMemberOut(BaseModel):
     signerName: str | None
     createdAt: datetime
     stages: list[ContractStageOut]
+    monthlyAmount: float | None = None
+    subscriptionMonths: int | None = None
 
 
 class ContractSignRequest(BaseModel):

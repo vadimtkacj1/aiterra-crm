@@ -452,6 +452,19 @@ def delete_user(
     if u.id == admin.id:
         raise HTTPException(status_code=400, detail="cannot_delete_yourself")
 
+    # Delete owned accounts and all their related data before deleting the user
+    owned = (
+        db.query(AccountMembership)
+        .filter(AccountMembership.user_id == user_id, AccountMembership.role_in_account == "owner")
+        .all()
+    )
+    for m in owned:
+        db.query(AccountSiteConfig).filter_by(account_id=m.account_id).delete(synchronize_session=False)
+        db.query(AccountMembership).filter_by(account_id=m.account_id).delete(synchronize_session=False)
+        account = db.query(Account).filter_by(id=m.account_id).first()
+        if account:
+            db.delete(account)
+
     log_admin_action(db, admin, "user_deleted", resource_type="user", resource_id=str(user_id), detail=u.email)
     db.delete(u)
     db.commit()

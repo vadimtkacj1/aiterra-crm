@@ -69,4 +69,6 @@ export interface ContractMemberRow {
   signerName: string | null;
   createdAt: string;
   stages: ContractStage[];
+  monthlyAmount?: number | null;
+  subscriptionMonths?: number | null;
 }

@@ -18,6 +18,10 @@
     "paymentStatusPaid": "שולם",
     "paymentStatusPartial": "שולם חלקית",
     "paymentStatusUnpaid": "לא שולם",
-    "paymentProgress": "{{paid}}/{{total}} שולם · {{paidAmount}} / {{totalAmount}}"
+    "paymentProgress": "{{paid}}/{{total}} שולם · {{paidAmount}} / {{totalAmount}}",
+    "monthlyBadge": "חודשי",
+    "monthlyAmount": "{{amount}}/חודש",
+    "monthlyDuration": "{{months}} חודשים",
+    "notSigned": "לא נחתם"
   }
 }

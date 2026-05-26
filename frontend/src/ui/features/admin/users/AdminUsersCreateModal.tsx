@@ -20,19 +20,23 @@ type Props = {
 };
 
 export function AdminUsersCreateModal({ t, open, form, metaCampaigns, metaCampaignsLoading, onFinish, onCancel }: Props) {
+  const handleOk = async () => {
+    const values = await form.validateFields();
+    await onFinish(values);
+  };
+
   return (
     <AppModal
       title={<span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><UserAddOutlined />{t("admin.form.createTitle")}</span>}
       open={open}
       onCancel={onCancel}
       okText={t("admin.form.submit")}
-      onOk={() => form.submit()}
+      onOk={handleOk}
     >
       <Form
         form={form}
         layout="vertical"
-        initialValues={{ role: "user", linkMeta: "without", linkGoogle: "without", linkSite: "without" }}
-        onFinish={(values) => void onFinish(values)}
+        initialValues={{ role: "user", linkMeta: "without", linkGoogle: "without", linkSite: false }}
         style={{ marginTop: 8 }}
       >
         <Form.Item name="email" label={t("admin.form.email")} rules={[{ required: true, type: "email" }]}>

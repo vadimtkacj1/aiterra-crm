@@ -32,7 +32,7 @@ export type AdminEditUserFormValues = {
   googleLoginCustomerId?: string;
   linkSite: boolean;
   siteUrl?: string;
-  billingChargeType: "none" | "one_time" | "monthly";
+  billingChargeType?: "none" | "one_time" | "monthly";
   billingAmount?: number | null;
   billingCurrency?: string;
   billingDescription?: string;

@@ -26,7 +26,12 @@ export function AdminUsersSiteLinkFields({ t }: Props) {
             <Form.Item
               name="siteUrl"
               label={t("admin.form.siteUrl")}
-              rules={[{ type: "url", message: t("admin.form.siteUrlInvalid") }]}
+              rules={[{
+                validator: async (_, value) => {
+                  if (!value || !value.trim()) return;
+                  try { new URL(value); } catch { throw new Error(t("admin.form.siteUrlInvalid")); }
+                }
+              }]}
             >
               <Input prefix={<LinkOutlined />} placeholder="https://example.com" />
             </Form.Item>

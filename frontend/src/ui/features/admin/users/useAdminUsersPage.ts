@@ -55,6 +55,7 @@ export function useAdminUsersPage() {
     setEditUser(u);
     setEditMetaInfo(null);
     setEditGoogleHasCredentials(false);
+    editForm.resetFields();
     editForm.setFieldsValue({
       displayName: u.displayName,
       role: u.role,
@@ -67,10 +68,6 @@ export function useAdminUsersPage() {
       googleLoginCustomerId: undefined,
       linkSite: false,
       siteUrl: undefined,
-      billingChargeType: "none",
-      billingAmount: undefined,
-      billingCurrency: "USD",
-      billingDescription: undefined,
     });
     setEditMetaLoading(true);
     try {
@@ -104,12 +101,7 @@ export function useAdminUsersPage() {
             billingDescription: bi.description ?? undefined,
           });
         } catch {
-          editForm.setFieldsValue({
-            billingChargeType: "none",
-            billingAmount: undefined,
-            billingCurrency: "USD",
-            billingDescription: undefined,
-          });
+          // billing load failed — leave fields unset so billing is skipped on save
         }
       }
     } catch {

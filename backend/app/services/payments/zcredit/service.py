@@ -509,6 +509,7 @@ def pay_open_invoice(
     data = _post_json(url, body, GATEWAY_TIMEOUT)
     if data.get("HasError") or data.get("ReturnCode") not in (None, 0, "0"):
         msg = str(data.get("ReturnMessage") or "charge_failed")
+        logger.warning("pay_open_invoice failed: token=%s amount=%s response=%s", zcredit_token[:8], amount_major, data)
         raise HTTPException(status_code=502, detail=f"zcredit_charge_failed: {msg}")
 
     ref = str(data.get("ReferenceNumber") or doc_id)

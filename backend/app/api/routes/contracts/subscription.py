@@ -14,9 +14,13 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import require_admin
 from app.db.session import get_db
-from app.models.billing import AccountBillingInstruction, SubscriptionPayment
+from app.models.billing import AccountBillingInstruction, SavedCard, SubscriptionPayment
 from app.models.contracts import Contract
 from app.models.core import User
+from app.services.payments.zcredit.service import (
+    _is_gateway_configured,
+    pay_open_invoice,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +222,27 @@ def simulate_monthly_payment(
         SubscriptionPayment.billing_instruction_id == billing.id
     ).count()
 
-    # Create simulated payment
+    # Attempt real card charge if a saved token is available and Gateway is configured
+    transaction_id: str = f"TEST-{datetime.utcnow().timestamp()}"
+    approval_number: str | None = f"SIMULATED-{payment_count + 1}"
+    charged_real = False
+
+    saved_card = (
+        db.query(SavedCard)
+        .filter(SavedCard.account_id == billing.account_id)
+        .first()
+    )
+    if saved_card and saved_card.zcredit_token and _is_gateway_configured():
+        doc = pay_open_invoice(
+            f"manual_{contract_id}_{payment_count + 1}",
+            saved_card.zcredit_token,
+            amount_major=float(billing.amount or 0),
+            currency=billing.currency or "ILS",
+        )
+        transaction_id = doc.id
+        approval_number = None
+        charged_real = True
+
     payment = SubscriptionPayment(
         billing_instruction_id=billing.id,
         contract_id=contract.id,
@@ -226,15 +250,16 @@ def simulate_monthly_payment(
         currency=billing.currency,
         payment_number=payment_count + 1,
         status="success",
-        zcredit_transaction_id=f"TEST-{datetime.utcnow().timestamp()}",
-        zcredit_approval_number=f"SIMULATED-{payment_count + 1}",
+        zcredit_transaction_id=transaction_id,
+        zcredit_approval_number=approval_number,
     )
     db.add(payment)
     db.commit()
     db.refresh(payment)
 
     logger.info(
-        "Simulated subscription payment #%d for contract_id=%s (TEST MODE)",
+        "%s subscription payment #%d for contract_id=%s",
+        "Real" if charged_real else "Simulated",
         payment.payment_number,
         contract_id,
     )
@@ -244,7 +269,12 @@ def simulate_monthly_payment(
         "payment_number": payment.payment_number,
         "amount": payment.amount,
         "currency": payment.currency,
-        "message": f"Simulated payment #{payment.payment_number} of {billing.amount} {billing.currency}",
+        "charged_real": charged_real,
+        "message": (
+            f"Charged payment #{payment.payment_number} of {billing.amount} {billing.currency}"
+            if charged_real
+            else f"Simulated payment #{payment.payment_number} of {billing.amount} {billing.currency}"
+        ),
     }
 
 

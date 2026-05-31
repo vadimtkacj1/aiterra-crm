@@ -84,19 +84,6 @@ jobs:
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
             "echo 'SSH OK:' \$(whoami)@\$(hostname)"
 
-      - name: Write .env to server
-        shell: bash
-        env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: |
-          set -euo pipefail
-          ssh -i ~/.ssh/id_ed25519 -p "${{ secrets.SSH_PORT }}" \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "mkdir -p ~/crm"
-          printf '%s' "$ENV_FILE" | ssh -i ~/.ssh/id_ed25519 -p "${{ secrets.SSH_PORT }}" \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "cat > ~/crm/.env"
-
       - name: Deploy
         shell: bash
         run: |
@@ -119,8 +106,8 @@ jobs:
               git checkout main
             fi
 
-            # guard: abort if .env is missing (written by previous step from GitHub secret)
-            [ -f ~/crm/.env ] || { echo "ERROR: ~/crm/.env not found — aborting deploy"; exit 1; }
+            # guard: .env must exist on the server (managed manually, never overwritten by CI)
+            [ -f ~/crm/.env ] || { echo "ERROR: ~/crm/.env not found — place it on the server manually"; exit 1; }
 
             # deploy
             docker compose pull || true

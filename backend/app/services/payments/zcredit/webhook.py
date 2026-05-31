@@ -135,8 +135,9 @@ def _save_card_from_webhook(db: Session, account_id: int, data: dict[str, Any]) 
     logger.info("zcredit_webhook: saved card token for account_id=%s", account_id)
 
 
-def _mark_contract_stage_paid(db: Session, session_id: str) -> bool:
-    """Mark the contract payment stage with the given session ID as paid. Returns True if found."""
+def _mark_contract_stage_paid(db: Session, session_id: str) -> tuple[bool, int | None]:
+    """Mark the contract payment stage with the given session ID as paid. Returns (found, account_id)."""
+    from app.models.contracts import Contract
     stage = (
         db.query(ContractPaymentStage)
         .filter(ContractPaymentStage.payment_doc_id == session_id)
@@ -148,8 +149,9 @@ def _mark_contract_stage_paid(db: Session, session_id: str) -> bool:
         db.add(stage)
         db.commit()
         logger.info("zcredit_webhook: marked contract stage paid stage_id=%s session=%s", stage.id, session_id)
-        return True
-    return False
+        contract = db.query(Contract).filter(Contract.id == stage.contract_id).first()
+        return True, (contract.account_id if contract else None)
+    return False, None
 
 
 def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, Any]) -> None:
@@ -162,8 +164,19 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
     try:
         if event_type in ("payment.success", "J4"):
             sid = _get_field(data, "SessionId")
-            if sid and _mark_contract_stage_paid(db, sid):
-                return
+            if sid:
+                found, account_id = _mark_contract_stage_paid(db, sid)
+                if found:
+                    if account_id:
+                        try:
+                            _save_card_from_webhook(db, account_id, data)
+                        except Exception:
+                            logger.warning(
+                                "zcredit_webhook: card save failed for contract stage account_id=%s",
+                                account_id,
+                                exc_info=True,
+                            )
+                    return
 
             ins = _find_instruction_for_callback(db, data)
             if ins:

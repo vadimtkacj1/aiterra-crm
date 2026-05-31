@@ -469,7 +469,6 @@ def create_contract_checkout(
     
     cancel_url = f"{base_url}/contracts/sign/{token}"
     success_url = f"{base_url}/a/{account.id}/billing/success"
-    failure_url = f"{base_url}/a/{account.id}/billing/failed"
 
     session_id, pay_url = zcredit_service.create_invoice(
         account,
@@ -478,7 +477,6 @@ def create_contract_checkout(
         f"Contract #{c.id} · {stage.description or 'Payment'}",
         success_url=success_url,
         cancel_url=cancel_url,
-        failure_url=failure_url,
         callback_url=callback_url,
     )
     stage.payment_doc_id = session_id

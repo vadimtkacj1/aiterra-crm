@@ -188,34 +188,49 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
 
                 # If this is a monthly subscription payment, record it
                 if ins.charge_type == "monthly":
-                    # Count existing payments to determine payment number
-                    payment_count = db.query(SubscriptionPayment).filter(
-                        SubscriptionPayment.billing_instruction_id == ins.id
-                    ).count()
+                    transaction_id = _get_field(data, "SessionId")
 
-                    # Find associated contract
-                    from app.models.contracts import Contract
-                    contract = db.query(Contract).filter(
-                        Contract.billing_instruction_id == ins.id
+                    # Check if this payment was already recorded (prevent duplicates from webhook retries)
+                    existing_payment = db.query(SubscriptionPayment).filter(
+                        SubscriptionPayment.billing_instruction_id == ins.id,
+                        SubscriptionPayment.zcredit_transaction_id == transaction_id
                     ).first()
 
-                    # Create payment record
-                    payment = SubscriptionPayment(
-                        billing_instruction_id=ins.id,
-                        contract_id=contract.id if contract else None,
-                        amount=ins.amount or 0,
-                        currency=ins.currency,
-                        payment_number=payment_count + 1,
-                        status="success",
-                        zcredit_transaction_id=_get_field(data, "SessionId"),
-                        zcredit_approval_number=_get_field(data, "ApprovalNumber"),
-                    )
-                    db.add(payment)
-                    logger.info(
-                        "zcredit_webhook: recorded subscription payment #%d for billing_instruction_id=%s",
-                        payment.payment_number,
-                        ins.id,
-                    )
+                    if not existing_payment:
+                        # Count existing payments to determine payment number
+                        payment_count = db.query(SubscriptionPayment).filter(
+                            SubscriptionPayment.billing_instruction_id == ins.id
+                        ).count()
+
+                        # Find associated contract
+                        from app.models.contracts import Contract
+                        contract = db.query(Contract).filter(
+                            Contract.billing_instruction_id == ins.id
+                        ).first()
+
+                        # Create payment record
+                        payment = SubscriptionPayment(
+                            billing_instruction_id=ins.id,
+                            contract_id=contract.id if contract else None,
+                            amount=ins.amount or 0,
+                            currency=ins.currency,
+                            payment_number=payment_count + 1,
+                            status="success",
+                            zcredit_transaction_id=transaction_id,
+                            zcredit_approval_number=_get_field(data, "ApprovalNumber"),
+                        )
+                        db.add(payment)
+                        logger.info(
+                            "zcredit_webhook: recorded subscription payment #%d for billing_instruction_id=%s",
+                            payment.payment_number,
+                            ins.id,
+                        )
+                    else:
+                        logger.info(
+                            "zcredit_webhook: skipped duplicate payment transaction_id=%s billing_instruction_id=%s",
+                            transaction_id,
+                            ins.id,
+                        )
 
                 db.commit()
                 logger.info(

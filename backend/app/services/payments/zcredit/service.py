@@ -220,7 +220,6 @@ def _create_session_body(
         "CancelUrl": c_url,
         "CallbackUrl": cb_url,
         "FailureCallBackUrl": cb_url,
-        "FailureRedirectUrl": c_url,
         "NumberOfFailures": 3,
         "PaymentType": "regular",
         "CreateInvoice": "false",

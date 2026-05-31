@@ -5,7 +5,7 @@ Subscription payment tracking and testing endpoints.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -222,26 +222,32 @@ def simulate_monthly_payment(
         SubscriptionPayment.billing_instruction_id == billing.id
     ).count()
 
-    # Attempt real card charge if a saved token is available and Gateway is configured
-    transaction_id: str = f"TEST-{datetime.utcnow().timestamp()}"
-    approval_number: str | None = f"SIMULATED-{payment_count + 1}"
-    charged_real = False
+    # Require Gateway to be configured
+    if not _is_gateway_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="zcredit_gateway_not_configured: set ZCREDIT_TERMINAL_NUMBER and ZCREDIT_GATEWAY_PASSWORD in .env",
+        )
 
+    # Require a saved card token for this account
     saved_card = (
         db.query(SavedCard)
         .filter(SavedCard.account_id == billing.account_id)
         .first()
     )
-    if saved_card and saved_card.zcredit_token and _is_gateway_configured():
-        doc = pay_open_invoice(
-            f"manual_{contract_id}_{payment_count + 1}",
-            saved_card.zcredit_token,
-            amount_major=float(billing.amount or 0),
-            currency=billing.currency or "ILS",
+    if not saved_card or not saved_card.zcredit_token:
+        raise HTTPException(
+            status_code=400,
+            detail="no_saved_card: account has no saved card token — client must complete checkout first",
         )
-        transaction_id = doc.id
-        approval_number = None
-        charged_real = True
+
+    # Charge the saved card via Gateway
+    doc = pay_open_invoice(
+        f"manual_{contract_id}_{payment_count + 1}",
+        saved_card.zcredit_token,
+        amount_major=float(billing.amount or 0),
+        currency=billing.currency or "ILS",
+    )
 
     payment = SubscriptionPayment(
         billing_instruction_id=billing.id,
@@ -250,18 +256,18 @@ def simulate_monthly_payment(
         currency=billing.currency,
         payment_number=payment_count + 1,
         status="success",
-        zcredit_transaction_id=transaction_id,
-        zcredit_approval_number=approval_number,
+        zcredit_transaction_id=doc.id,
+        zcredit_approval_number=None,
     )
     db.add(payment)
     db.commit()
     db.refresh(payment)
 
     logger.info(
-        "%s subscription payment #%d for contract_id=%s",
-        "Real" if charged_real else "Simulated",
+        "Real charge payment #%d for contract_id=%s transaction=%s",
         payment.payment_number,
         contract_id,
+        doc.id,
     )
 
     return {
@@ -269,12 +275,8 @@ def simulate_monthly_payment(
         "payment_number": payment.payment_number,
         "amount": payment.amount,
         "currency": payment.currency,
-        "charged_real": charged_real,
-        "message": (
-            f"Charged payment #{payment.payment_number} of {billing.amount} {billing.currency}"
-            if charged_real
-            else f"Simulated payment #{payment.payment_number} of {billing.amount} {billing.currency}"
-        ),
+        "transaction_id": doc.id,
+        "message": f"Charged payment #{payment.payment_number} of {billing.amount} {billing.currency}",
     }
 
 

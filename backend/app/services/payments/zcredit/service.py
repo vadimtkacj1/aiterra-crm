@@ -205,15 +205,13 @@ def _create_session_body(
     amount_minor: int,
     success_url: str | None = None,
     cancel_url: str | None = None,
-    failure_url: str | None = None,
     callback_url: str | None = None,
 ) -> dict[str, Any]:
     key = (settings.zcredit_api_key or "").strip()
-    def_success, def_cancel, def_fail = _success_cancel_urls(account)
+    def_success, def_cancel, _ = _success_cancel_urls(account)
 
     s_url = success_url if success_url else def_success
     c_url = cancel_url if cancel_url else def_cancel
-    f_url = failure_url if failure_url else def_fail
     cb_url = callback_url if callback_url else _callback_url()
 
     logger.info("_create_session_body: SuccessUrl=%s CancelUrl=%s CallbackUrl=%s", s_url, c_url, cb_url)
@@ -311,7 +309,6 @@ def create_invoice(
     description: str,
     success_url: str | None = None,
     cancel_url: str | None = None,
-    failure_url: str | None = None,
     callback_url: str | None = None,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
@@ -343,7 +340,6 @@ def create_invoice(
         amount_minor=amount_minor,
         success_url=success_url,
         cancel_url=cancel_url,
-        failure_url=failure_url,
         callback_url=callback_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
@@ -359,19 +355,17 @@ def create_invoice_with_line_items(
     invoice_description: str,
     success_url: str | None = None,
     cancel_url: str | None = None,
-    failure_url: str | None = None,
     callback_url: str | None = None,
 ) -> tuple[str, str]:
     if not _is_webcheckout_configured():
         total_minor = sum(amt for amt, _ in line_items if amt > 0)
         return create_invoice(
-            account, 
-            total_minor, 
-            currency, 
-            invoice_description, 
+            account,
+            total_minor,
+            currency,
+            invoice_description,
             success_url=success_url,
             cancel_url=cancel_url,
-            failure_url=failure_url,
             callback_url=callback_url,
         )
 
@@ -403,7 +397,6 @@ def create_invoice_with_line_items(
         amount_minor=sum(minor for minor, _ in line_items if minor > 0),
         success_url=success_url,
         cancel_url=cancel_url,
-        failure_url=failure_url,
         callback_url=callback_url,
     )
     url = f"{_webcheckout_base()}/CreateSession"
@@ -542,7 +535,6 @@ def create_subscription(
     description: str,
     success_url: str | None = None,
     cancel_url: str | None = None,
-    failure_url: str | None = None,
     callback_url: str | None = None,
 ) -> tuple[str, str, str | None, str | None]:
     """
@@ -575,7 +567,6 @@ def create_subscription(
         amount_minor=amount_minor,
         success_url=success_url,
         cancel_url=cancel_url,
-        failure_url=failure_url,
         callback_url=callback_url,
     )
     logger.info("create_subscription: sending to zCredit SuccessUrl=%s CancelUrl=%s CallbackUrl=%s",

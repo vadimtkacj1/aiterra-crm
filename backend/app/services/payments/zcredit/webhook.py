@@ -54,7 +54,11 @@ def resolve_event_type(data: dict[str, Any]) -> str:
     rc = data.get("ReturnCode")
     if rc not in (None, 0, "0"):
         return "payment.failed"
-    if data.get("ReferenceNumber") or data.get("ApprovalNumber"):
+    if (
+        data.get("TransactionSuccess") is True
+        or data.get("ReferenceNumber")
+        or data.get("ApprovalNumber")
+    ):
         return "payment.success"
     return ""
 

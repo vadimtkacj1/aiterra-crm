@@ -1,7 +1,24 @@
 import { App } from "antd";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import type { SubscriptionStatus } from "@/services/admin/AdminService";
 import { useApp } from "../../../../../app/AppProviders";
+
+function extractErrorMessage(e: unknown, fallback: string): string {
+  if (axios.isAxiosError(e)) {
+    const detail = (e.response?.data as { detail?: unknown } | undefined)?.detail;
+    if (typeof detail === "string" && detail) return detail;
+    if (detail && typeof detail === "object") {
+      const d = detail as { error?: string; message?: string; returnCode?: number; logs?: string[] };
+      const parts: string[] = [];
+      if (d.message) parts.push(d.message);
+      if (d.returnCode !== undefined) parts.push(`code: ${d.returnCode}`);
+      if (d.logs?.length) parts.push(d.logs.join(" → "));
+      if (parts.length) return parts.join(" | ");
+    }
+  }
+  return e instanceof Error ? e.message : fallback;
+}
 
 interface UseSubscriptionStatusResult {
   status: SubscriptionStatus | null;
@@ -45,7 +62,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       const data = await services.admin.getContractSubscriptionStatus(contractId);
       setStatus(data);
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to load subscription status");
+      void message.error(extractErrorMessage(e, "Failed to load subscription status"));
     } finally {
       setLoading(false);
     }
@@ -59,7 +76,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       void message.success(result.message);
       await loadStatus();
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to simulate payment");
+      void message.error(extractErrorMessage(e, "Failed to simulate payment"));
     } finally {
       setSimulating(false);
     }
@@ -73,7 +90,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       setStatus(updated);
       void message.success("Billing day updated");
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to update billing day");
+      void message.error(extractErrorMessage(e, "Failed to update billing day"));
     } finally {
       setUpdatingBillingDay(false);
     }
@@ -87,7 +104,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       setStatus(updated);
       void message.success("Subscription paused");
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to pause subscription");
+      void message.error(extractErrorMessage(e, "Failed to pause subscription"));
     } finally {
       setPausingOrResuming(false);
     }
@@ -101,7 +118,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       setStatus(updated);
       void message.success("Subscription resumed");
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to resume subscription");
+      void message.error(extractErrorMessage(e, "Failed to resume subscription"));
     } finally {
       setPausingOrResuming(false);
     }
@@ -115,7 +132,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       setStatus(updated);
       void message.success("Subscription cancelled");
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to cancel subscription");
+      void message.error(extractErrorMessage(e, "Failed to cancel subscription"));
     } finally {
       setCancelling(false);
     }
@@ -129,7 +146,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       setStatus(updated);
       void message.success(minutes ? `Test mode: every ${minutes} min` : "Test mode disabled");
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : "Failed to set test interval");
+      void message.error(extractErrorMessage(e, "Failed to set test interval"));
     } finally {
       setSettingTestInterval(false);
     }

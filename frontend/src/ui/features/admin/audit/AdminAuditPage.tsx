@@ -7,11 +7,13 @@ import { useApp } from "@/app/AppProviders";
 import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
+import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
 
 export function AdminAuditPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const { services } = useApp();
+  const isMobile = useMobileView();
   const [rows, setRows] = useState<AdminAuditLogRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,30 +42,49 @@ export function AdminAuditPage() {
         title={t("admin.audit.title")}
         extra={
           <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
-            {t("common.reload")}
+            {!isMobile && t("common.reload")}
           </Button>
         }
       >
-        <Table<AdminAuditLogRow>
-          rowKey="id"
-          loading={loading}
-          size="small"
-          pagination={{ pageSize: 25, showSizeChanger: true }}
-          dataSource={rows}
-          scroll={{ x: 900 }}
-          columns={[
-            { title: t("admin.audit.columns.time"), dataIndex: "createdAt", key: "createdAt", width: 200 },
-            { title: t("admin.audit.columns.admin"), key: "admin", width: 220, render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-") },
-            { title: t("admin.audit.columns.action"), dataIndex: "action", key: "action", width: 200 },
-            {
-              title: t("admin.audit.columns.resource"),
-              key: "resource",
-              width: 180,
-              render: (_, r) => [r.resourceType, r.resourceId].filter(Boolean).join(" ") || "-",
-            },
-            { title: t("admin.audit.columns.detail"), dataIndex: "detail", key: "detail", ellipsis: true },
-          ]}
-        />
+        {isMobile ? (
+          <ResponsiveCardView
+            items={rows.map((r) => ({
+              id: String(r.id),
+              title: r.action,
+              subtitle: r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-"),
+              description: new Date(r.createdAt).toLocaleString(),
+              tags: r.resourceType ? [{ label: `${r.resourceType} ${r.resourceId || ""}`.trim(), color: "blue" }] : [],
+              extra: r.detail ? (
+                <div style={{ fontSize: 12, color: "var(--ant-color-text-secondary)", marginTop: 4 }}>
+                  {r.detail}
+                </div>
+              ) : undefined,
+            }))}
+            loading={loading}
+            emptyText={t("common.noData")}
+          />
+        ) : (
+          <Table<AdminAuditLogRow>
+            rowKey="id"
+            loading={loading}
+            size="small"
+            pagination={{ pageSize: 25, showSizeChanger: true }}
+            dataSource={rows}
+            scroll={{ x: 900 }}
+            columns={[
+              { title: t("admin.audit.columns.time"), dataIndex: "createdAt", key: "createdAt", width: 200 },
+              { title: t("admin.audit.columns.admin"), key: "admin", width: 220, render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-") },
+              { title: t("admin.audit.columns.action"), dataIndex: "action", key: "action", width: 200 },
+              {
+                title: t("admin.audit.columns.resource"),
+                key: "resource",
+                width: 180,
+                render: (_, r) => [r.resourceType, r.resourceId].filter(Boolean).join(" ") || "-",
+              },
+              { title: t("admin.audit.columns.detail"), dataIndex: "detail", key: "detail", ellipsis: true },
+            ]}
+          />
+        )}
       </ListCard>
     </PageContainer>
   );

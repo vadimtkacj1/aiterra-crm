@@ -1,4 +1,4 @@
-import { Table } from "antd";
+import { Grid, Table } from "antd";
 import type { TableProps } from "antd";
 
 /**
@@ -12,6 +12,9 @@ export function AppTable<T extends object>({
   scroll,
   ...rest
 }: TableProps<T>) {
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+
   const resolvedPagination =
     pagination === false
       ? false
@@ -20,6 +23,7 @@ export function AppTable<T extends object>({
           showSizeChanger: false,
           showTotal: (total: number, range: [number, number]) =>
             `${range[0]}-${range[1]} / ${total}`,
+          simple: isMobile,
           ...pagination,
         };
 

@@ -590,8 +590,9 @@ export function AdminContractsPage() {
         title={t("admin.contracts.create")}
         open={createOpen}
         onCancel={resetCreateForm}
-        width={720}
+        width={isMobile ? "100%" : 720}
         footer={createFooter}
+        styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       >
         <Form
           form={form}
@@ -869,42 +870,45 @@ export function AdminContractsPage() {
                       }}>
                         {/* Quick equal-split tool */}
                         <Flex
-                          align="center"
+                          align={isMobile ? "stretch" : "center"}
                           gap={8}
                           wrap="wrap"
+                          vertical={isMobile}
                           style={{
-                            padding: "9px 12px",
+                            padding: isMobile ? "12px" : "9px 12px",
                             background: "var(--ds-surface-0)",
                             border: "1px solid var(--ds-border-subtle)",
                             borderRadius: 6,
                             marginBottom: 14,
                           }}
                         >
-                          <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                          <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: isMobile ? "normal" : "nowrap" }}>
                             {t("admin.contracts.form.equalSplitTitle")}
                           </Typography.Text>
-                          <InputNumber
-                            size="small"
-                            min={0.01}
-                            value={splitTotal ?? undefined}
-                            onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
-                            placeholder={t("admin.contracts.form.equalSplitTotal")}
-                            style={{ width: 120 }}
-                          />
-                          <Typography.Text type="secondary">÷</Typography.Text>
-                          <InputNumber
-                            size="small"
-                            min={2}
-                            max={60}
-                            precision={0}
-                            value={splitParts}
-                            onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
-                            style={{ width: 60 }}
-                          />
-                          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                            {t("admin.contracts.form.equalSplitPartsLabel")}
-                          </Typography.Text>
-                          <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
+                          <Flex gap={8} align="center" style={{ width: isMobile ? "100%" : "auto" }}>
+                            <InputNumber
+                              size="small"
+                              min={0.01}
+                              value={splitTotal ?? undefined}
+                              onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
+                              placeholder={t("admin.contracts.form.equalSplitTotal")}
+                              style={{ width: isMobile ? "100%" : 120, flex: isMobile ? 1 : undefined }}
+                            />
+                            <Typography.Text type="secondary">÷</Typography.Text>
+                            <InputNumber
+                              size="small"
+                              min={2}
+                              max={60}
+                              precision={0}
+                              value={splitParts}
+                              onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
+                              style={{ width: 60 }}
+                            />
+                            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                              {t("admin.contracts.form.equalSplitPartsLabel")}
+                            </Typography.Text>
+                          </Flex>
+                          <Button size="small" type="primary" ghost onClick={applyEqualSplit} block={isMobile}>
                             {t("admin.contracts.form.equalSplitApply")}
                           </Button>
                         </Flex>
@@ -1123,7 +1127,8 @@ export function AdminContractsPage() {
         onCancel={() => setDetailContract(null)}
         footer={null}
         title={detailContract?.title}
-        width={640}
+        width={isMobile ? "100%" : 640}
+        styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       >
         {detailContract && (() => {
           const [statusColor, statusKey] = statusCfg(detailContract.status);
@@ -1132,7 +1137,7 @@ export function AdminContractsPage() {
               {/* Metadata grid */}
               <Descriptions
                 size="small"
-                column={2}
+                column={isMobile ? 1 : 2}
                 style={{
                   background: "#f8fafc",
                   borderRadius: 8,
@@ -1297,12 +1302,13 @@ export function AdminContractsPage() {
                     {t("admin.contracts.signLink")}
                   </Typography.Text>
                   <Row gutter={8}>
-                    <Col flex="auto">
+                    <Col xs={24} sm="auto" flex={isMobile ? undefined : "auto"}>
                       <Input readOnly value={signUrl(detailContract)} size="small" />
                     </Col>
-                    <Col>
+                    <Col xs={24} sm="auto">
                       <Button
                         size="small"
+                        block={isMobile}
                         icon={
                           copiedId === detailContract.id ? (
                             <CheckCircleOutlined style={{ color: "#22c55e" }} />
@@ -1338,12 +1344,13 @@ export function AdminContractsPage() {
                     {t("admin.contracts.paymentLink")}
                   </Typography.Text>
                   <Row gutter={8}>
-                    <Col flex="auto">
+                    <Col xs={24} sm="auto" flex={isMobile ? undefined : "auto"}>
                       <Input readOnly value={paymentUrl(detailContract)} size="small" />
                     </Col>
-                    <Col>
+                    <Col xs={24} sm="auto">
                       <Button
                         size="small"
+                        block={isMobile}
                         icon={
                           copiedId === detailContract.id ? (
                             <CheckCircleOutlined style={{ color: "#22c55e" }} />

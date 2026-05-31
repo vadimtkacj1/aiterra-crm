@@ -237,6 +237,7 @@ def _create_session_body(
         "UseLightMode": "false",
         "ShowTotalSumInPayButton": "true",
         "Bypass3DS": "false",
+        "SaveToken": "true",
     }
 
 

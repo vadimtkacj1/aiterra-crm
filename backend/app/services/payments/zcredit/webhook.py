@@ -96,6 +96,12 @@ def _save_card_from_webhook(db: Session, account_id: int, data: dict[str, Any]) 
     """Extract card token from Z-Credit webhook payload and upsert into SavedCard."""
     token = _get_field(data, "Token", "token")
     if not token:
+        logger.warning(
+            "zcredit_webhook: no Token in payload for account_id=%s — card not saved. "
+            "Payload keys: %s",
+            account_id,
+            list(data.keys()),
+        )
         return
 
     token_id = _get_field(data, "TokenId", "tokenId") or None

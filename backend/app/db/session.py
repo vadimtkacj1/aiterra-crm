@@ -33,15 +33,21 @@ def _make_async_url() -> str:
         return url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
     if url.startswith("postgresql://"):
         return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("sqlite:///"):
+        return url.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
+    if url.startswith("sqlite://"):
+        return url.replace("sqlite://", "sqlite+aiosqlite://", 1)
     return url
 
 
-async_engine = create_async_engine(
-    _make_async_url(),
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,
-)
+def _make_async_engine():
+    url = _make_async_url()
+    if url.startswith("sqlite"):
+        return create_async_engine(url)
+    return create_async_engine(url, pool_size=10, max_overflow=20, pool_pre_ping=True)
+
+
+async_engine = _make_async_engine()
 
 AsyncSessionLocal = async_sessionmaker(
     async_engine,

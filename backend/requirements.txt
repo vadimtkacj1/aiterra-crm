@@ -3,6 +3,7 @@ uvicorn[standard]
 SQLAlchemy
 psycopg2-binary
 asyncpg>=0.29
+aiosqlite>=0.20
 alembic>=1.13
 dependency-injector>=4.41
 pydantic

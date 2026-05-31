@@ -1,5 +1,6 @@
-import { App } from "antd";
+import { App, theme } from "antd";
 import type { TFunction } from "i18next";
+import { tokens } from "@/styles/designSystem";
 
 interface ErrorHandlerOptions {
   title?: string;
@@ -11,6 +12,7 @@ interface ErrorHandlerOptions {
 
 export function useErrorHandler(t: TFunction) {
   const { notification, message } = App.useApp();
+  const { token } = theme.useToken();
 
   const handleError = (error: unknown, options: ErrorHandlerOptions = {}) => {
     const {
@@ -36,9 +38,9 @@ export function useErrorHandler(t: TFunction) {
               onClick={() => notification.destroy()}
               style={{
                 padding: "4px 12px",
-                border: "1px solid #d9d9d9",
-                borderRadius: 6,
-                background: "#fff",
+                border: `1px solid ${token.colorBorder}`,
+                borderRadius: token.borderRadius,
+                background: token.colorBgContainer,
                 cursor: "pointer",
               }}
             >
@@ -53,8 +55,8 @@ export function useErrorHandler(t: TFunction) {
               style={{
                 padding: "4px 12px",
                 border: "none",
-                borderRadius: 6,
-                background: "#1890ff",
+                borderRadius: token.borderRadius,
+                background: token.colorPrimary,
                 color: "#fff",
                 cursor: "pointer",
               }}
@@ -118,9 +120,9 @@ export function showError(
             onClick={() => notification.destroy()}
             style={{
               padding: "4px 12px",
-              border: "1px solid #d9d9d9",
-              borderRadius: 6,
-              background: "#fff",
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: tokens.radius.sm,
+              background: tokens.colors.bg,
               cursor: "pointer",
             }}
           >
@@ -135,8 +137,8 @@ export function showError(
             style={{
               padding: "4px 12px",
               border: "none",
-              borderRadius: 6,
-              background: "#1890ff",
+              borderRadius: tokens.radius.sm,
+              background: tokens.colors.primary,
               color: "#fff",
               cursor: "pointer",
             }}

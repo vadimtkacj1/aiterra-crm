@@ -1,6 +1,8 @@
 import logging
+from typing import AsyncGenerator
 
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from app.core.settings import settings
@@ -13,16 +15,53 @@ class Base(DeclarativeBase):
 
 
 def _make_engine():
-    return create_engine(
-        settings.database_url,
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True,  # Verify connections before using them
-    )
+    url = settings.database_url
+    if url.startswith("sqlite"):
+        return create_engine(url, connect_args={"check_same_thread": False})
+    return create_engine(url, pool_size=10, max_overflow=20, pool_pre_ping=True)
 
 
 engine = _make_engine()
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+
+# ── Async engine (used by new Clean Architecture routes) ─────────────────────
+
+def _make_async_url() -> str:
+    url = settings.database_url
+    if url.startswith("postgresql+psycopg2://"):
+        return url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return url
+
+
+async_engine = create_async_engine(
+    _make_async_url(),
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False,
+)
+
+
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def init_db() -> None:
@@ -83,7 +122,13 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("billing_instruction_history", "payment_recurring_id", "VARCHAR(255)")
         _ensure_column("billing_instruction_history", "installment_months", "INTEGER")
         _ensure_column("billing_instruction_history", "installment_total_amount", "FLOAT")
+        _ensure_column("account_billing_instructions", "billing_day", "INTEGER")
+        _ensure_column("account_billing_instructions", "billing_week_day", "INTEGER")
+        _ensure_column("account_billing_instructions", "test_interval_minutes", "INTEGER")
+        _ensure_column("billing_instruction_history", "billing_day", "INTEGER")
+        _ensure_column("billing_instruction_history", "billing_week_day", "INTEGER")
         _ensure_column("invoice_templates", "installment_months", "INTEGER")
+        _ensure_column("invoice_templates", "billing_day", "INTEGER")
         _ensure_column("contracts", "pdf_base64", "TEXT")
         _ensure_column("contracts", "signature_png_base64", "TEXT")
         _ensure_column("contracts", "signer_position", "VARCHAR(255)")
@@ -93,6 +138,8 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("contracts", "billing_instruction_id", "INTEGER")
         _ensure_column("contracts", "monthly_amount", "FLOAT")
         _ensure_column("contracts", "subscription_months", "INTEGER")
+        _ensure_column("contracts", "billing_day", "INTEGER")
+        _ensure_column("contract_payment_stages", "paid_at", "TIMESTAMP WITH TIME ZONE")
         # User phone
         _ensure_column("users", "phone", "VARCHAR(50)")
         # Site module columns

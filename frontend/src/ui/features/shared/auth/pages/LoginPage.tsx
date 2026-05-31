@@ -1,19 +1,21 @@
-﻿import { Card, Grid, Typography } from "antd";
+﻿import { GlobalOutlined } from "@ant-design/icons";
+import { Card, Grid, Select, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import logoUrl from "@/assets/logo-black.svg";
+import { defaultLanguage } from "@/i18n";
 import { Paths } from "@/ui/navigation/paths";
-import { LanguageSwitcher } from "@/ui/shared/components/LanguageSwitcher";
 import { LoginForm } from "../components/LoginForm";
 
 export function LoginPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.sm;
 
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? Paths.accounts;
+  const currentLang = i18n.language.startsWith("he") ? "he" : "en";
 
   return (
     <div
@@ -25,44 +27,71 @@ export function LoginPage() {
         justifyContent: "center",
         padding: isMobile ? 16 : 24,
         position: "relative",
-        background: "#ffffff",
+        background: "linear-gradient(145deg, #ece9fd 0%, #f8f7ff 45%, #f0eeff 100%)",
       }}
     >
-      <div style={{ position: "absolute", top: 16, right: 16, zIndex: 1 }}>
-        <LanguageSwitcher />
+      {/* Language switcher — fixed so it's always visible regardless of scroll */}
+      <div
+        style={{
+          position: "fixed",
+          top: 16,
+          right: 16,
+          zIndex: 200,
+          background: "#ffffff",
+          borderRadius: 8,
+          boxShadow: "0 2px 8px rgba(59,40,204,0.12)",
+          padding: "2px",
+        }}
+      >
+        <Select
+          value={currentLang}
+          style={{ minWidth: 130 }}
+          variant="borderless"
+          suffixIcon={<GlobalOutlined style={{ color: "#3b28cc" }} />}
+          aria-label={t("common.language")}
+          options={[
+            { value: "en", label: t("common.english") },
+            { value: "he", label: t("common.hebrew") },
+          ]}
+          onChange={(lng: string) => void i18n.changeLanguage(lng ?? defaultLanguage)}
+        />
       </div>
 
       <Card
         style={{
           width: "100%",
           maxWidth: 420,
-          borderRadius: 12,
-          border: "1px solid rgba(15, 23, 42, 0.06)",
-          boxShadow: "0 16px 48px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04)",
+          borderRadius: 16,
+          border: "1px solid rgba(59,40,204,0.10)",
+          boxShadow: "0 24px 64px rgba(59,40,204,0.10), 0 4px 16px rgba(59,40,204,0.06)",
+          background: "#ffffff",
         }}
-        styles={{ body: { padding: isMobile ? 22 : 28 } }}
+        styles={{ body: { padding: isMobile ? 24 : 36 } }}
       >
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
           <img
             src={logoUrl}
             alt={t("layout.brand")}
-            width={isMobile ? 76 : 92}
-            height={isMobile ? 76 : 92}
+            width={isMobile ? 72 : 88}
+            height={isMobile ? 72 : 88}
             style={{ display: "block" }}
           />
         </div>
+
         <Typography.Title
           level={isMobile ? 4 : 3}
-          style={{ textAlign: "center", marginBottom: 22, fontWeight: 600 }}
+          style={{ textAlign: "center", marginBottom: 6, fontWeight: 700, color: "#0f0a2e" }}
         >
           {t("login.title")}
         </Typography.Title>
 
-        <LoginForm isMobile={isMobile} onSuccess={() => navigate(from, { replace: true })} />
-
-        <Typography.Paragraph type="secondary" style={{ textAlign: "center", marginBottom: 0, fontSize: 12 }}>
+        <Typography.Paragraph
+          style={{ textAlign: "center", marginBottom: 28, color: "#64748b", fontSize: 14, margin: "0 0 28px" }}
+        >
           {t("login.hint")}
         </Typography.Paragraph>
+
+        <LoginForm isMobile={isMobile} onSuccess={() => navigate(from, { replace: true })} />
       </Card>
     </div>
   );

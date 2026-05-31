@@ -25,6 +25,9 @@ class BillingInstructionHistory(Base):
     installment_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
     installment_total_amount: Mapped[float | None] = mapped_column(Float, nullable=True)
 
+    billing_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    billing_week_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     # Z-Credit payment identifiers
     payment_doc_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     payment_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)

@@ -1,6 +1,7 @@
 import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Divider, Flex, Typography } from "antd";
+import { Button, Checkbox, Divider, Flex, Typography, theme } from "antd";
 import { useTranslation } from "react-i18next";
+import { tokens } from "@/styles/designSystem";
 
 interface Props {
   total: string;
@@ -26,16 +27,17 @@ export function CheckoutPaymentPanel({
   onPay,
 }: Props) {
   const { t } = useTranslation();
+  const { token } = theme.useToken();
 
   return (
     <div
       style={{
         flex: "0 0 340px",
         minWidth: 300,
-        background: "#fff",
-        borderRadius: 14,
-        border: "1px solid rgba(15,23,42,.09)",
-        boxShadow: "0 2px 12px rgba(15,23,42,.06)",
+        background: token.colorBgContainer,
+        borderRadius: tokens.radius.lg,
+        border: `1px solid ${token.colorBorderSecondary}`,
+        boxShadow: tokens.shadow.md,
         padding: "28px 28px 24px",
         display: "flex",
         flexDirection: "column",
@@ -61,15 +63,15 @@ export function CheckoutPaymentPanel({
         gap={10}
         style={{
           padding: "12px 14px",
-          borderRadius: 8,
-          background: "#f8fafc",
-          border: "1px solid rgba(15,23,42,.07)",
+          borderRadius: token.borderRadius,
+          background: token.colorBgLayout,
+          border: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
         {intent === "savedCard" ? (
-          <CreditCardOutlined style={{ fontSize: 18, color: "#64748b" }} />
+          <CreditCardOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
         ) : (
-          <WalletOutlined style={{ fontSize: 18, color: "#64748b" }} />
+          <WalletOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
         )}
         <div>
           <Typography.Text strong style={{ fontSize: 13, display: "block" }}>
@@ -115,13 +117,13 @@ export function CheckoutPaymentPanel({
         loading={loading}
         disabled={!consentChecked}
         onClick={onPay}
-        style={{ height: 48, borderRadius: 10, fontWeight: 600, fontSize: 15, boxShadow: "none" }}
+        style={{ height: 48, fontWeight: 600, fontSize: 15, boxShadow: "none" }}
       >
         {intent === "savedCard" ? t("billing.payWithSavedCard") : t("billing.payNow")}
       </Button>
 
       <Flex align="center" justify="center" gap={6}>
-        <CheckCircleFilled style={{ fontSize: 13, color: "#22c55e" }} />
+        <CheckCircleFilled style={{ fontSize: 13, color: token.colorSuccess }} />
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
           {t("billing.invoiceSecureNote")}
         </Typography.Text>

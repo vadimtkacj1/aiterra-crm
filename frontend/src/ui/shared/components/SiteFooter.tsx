@@ -1,4 +1,5 @@
 import { EnvironmentOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import { theme } from "antd";
 import { Link } from "react-router-dom";
 
 const BUSINESS_CONTACTS = {
@@ -15,6 +16,8 @@ const PAYMENT_METHODS = [
 ];
 
 export function SiteFooter() {
+  const { token } = theme.useToken();
+
   return (
     <footer
       dir="rtl"
@@ -37,7 +40,7 @@ export function SiteFooter() {
 
           <a
             href={`tel:${BUSINESS_CONTACTS.phone}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#111827", textDecoration: "none" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText, textDecoration: "none" }}
           >
             <span>{BUSINESS_CONTACTS.phone}</span>
             <PhoneOutlined />
@@ -45,13 +48,13 @@ export function SiteFooter() {
 
           <a
             href={`mailto:${BUSINESS_CONTACTS.email}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#111827", textDecoration: "none" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText, textDecoration: "none" }}
           >
             <span>{BUSINESS_CONTACTS.email}</span>
             <MailOutlined />
           </a>
 
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#111827" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText }}>
             <span>{BUSINESS_CONTACTS.address}</span>
             <EnvironmentOutlined />
           </div>
@@ -81,18 +84,18 @@ export function SiteFooter() {
             flexWrap: "wrap",
             gap: 8,
             justifyContent: "space-between",
-            color: "#4b5563",
+            color: token.colorTextSecondary,
             fontSize: 13,
           }}
         >
           <span>ח.פ / עוסק מורשה: {BUSINESS_CONTACTS.legalEntityNumber}</span>
-          <Link to="/terms" style={{ color: "#111827", textDecoration: "none" }}>
+          <Link to="/terms" style={{ color: token.colorText, textDecoration: "none" }}>
             תקנון ותנאי שימוש
           </Link>
-          <Link to="/cancel-policy" style={{ color: "#111827", textDecoration: "none" }}>
+          <Link to="/cancel-policy" style={{ color: token.colorText, textDecoration: "none" }}>
             מדיניות ביטולים
           </Link>
-          <Link to="/privacy-policy" style={{ color: "#111827", textDecoration: "none" }}>
+          <Link to="/privacy-policy" style={{ color: token.colorText, textDecoration: "none" }}>
             מדיניות פרטיות
           </Link>
         </div>

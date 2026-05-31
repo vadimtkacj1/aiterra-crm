@@ -1,4 +1,4 @@
-import { Card, Skeleton, Space } from "antd";
+import { Card, Flex, Skeleton } from "antd";
 import type { CardProps } from "antd";
 
 interface LoadingCardProps extends Omit<CardProps, "loading"> {
@@ -29,11 +29,11 @@ interface LoadingListProps {
 
 export function LoadingList({ count = 3, rows = 2, avatar = false, gap = 16 }: LoadingListProps) {
   return (
-    <Space direction="vertical" style={{ width: "100%" }} size={gap}>
+    <Flex vertical style={{ width: "100%" }} gap={gap}>
       {Array.from({ length: count }).map((_, index) => (
         <Skeleton key={index} active avatar={avatar} paragraph={{ rows }} />
       ))}
-    </Space>
+    </Flex>
   );
 }
 
@@ -43,10 +43,10 @@ interface LoadingTableProps {
 
 export function LoadingTable({ rows = 5 }: LoadingTableProps) {
   return (
-    <Space direction="vertical" style={{ width: "100%" }} size={16}>
+    <Flex vertical style={{ width: "100%" }} gap={16}>
       {Array.from({ length: rows }).map((_, index) => (
         <Skeleton key={index} active paragraph={{ rows: 1 }} />
       ))}
-    </Space>
+    </Flex>
   );
 }

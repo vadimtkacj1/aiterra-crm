@@ -35,6 +35,7 @@ class Contract(Base):
     # Monthly subscription amount (if this is a subscription contract)
     monthly_amount: Mapped[float | None] = mapped_column(Float, nullable=True)
     subscription_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    billing_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Token used in the public signing URL — never changes once created
     sign_token: Mapped[str] = mapped_column(

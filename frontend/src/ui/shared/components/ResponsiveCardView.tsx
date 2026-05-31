@@ -1,4 +1,4 @@
-import { Card, Space, Typography, Button, Tag, Grid } from "antd";
+import { Card, Flex, Space, Typography, Button, Tag, Grid } from "antd";
 import type { ReactNode } from "react";
 
 const { useBreakpoint } = Grid;
@@ -28,11 +28,11 @@ interface ResponsiveCardViewProps {
 export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCardViewProps) {
   if (loading) {
     return (
-      <Space direction="vertical" style={{ width: "100%" }} size={12}>
+      <Flex vertical style={{ width: "100%" }} gap={12}>
         {[1, 2, 3].map((i) => (
           <Card key={i} loading size="small" />
         ))}
-      </Space>
+      </Flex>
     );
   }
 
@@ -45,7 +45,7 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
   }
 
   return (
-    <Space direction="vertical" style={{ width: "100%" }} size={12}>
+    <Flex vertical style={{ width: "100%" }} gap={12}>
       {items.map((item) => (
         <Card
           key={item.id}
@@ -55,7 +55,7 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
             border: "1px solid rgba(15, 23, 42, 0.06)",
           }}
         >
-          <Space direction="vertical" style={{ width: "100%" }} size={8}>
+          <Flex vertical style={{ width: "100%" }} gap={8}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Typography.Text strong style={{ fontSize: 15 }}>
@@ -106,10 +106,10 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
                 ))}
               </Space>
             )}
-          </Space>
+          </Flex>
         </Card>
       ))}
-    </Space>
+    </Flex>
   );
 }
 

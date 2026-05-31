@@ -20,6 +20,7 @@ from app.models.site import AccountSiteConfig
 from app.schemas.accounts import AccountOut
 from app.schemas.analytics import CampaignSnapshot
 from app.schemas.billing import (
+    BillingHistoryOut,
     BillingOverview,
     CardInfo,
     ContractAcceptanceRequest,
@@ -32,6 +33,7 @@ from app.schemas.billing import (
     parse_stored_line_items,
 )
 from app.services import zcredit_service
+from app.services.payments.zcredit.card_service import upsert_saved_card
 from app.services.meta.analytics import build_meta_campaign_snapshot
 
 router = APIRouter()
@@ -211,27 +213,17 @@ def save_card(
     db.add(account)
     db.commit()
 
-    card = db.query(SavedCard).filter(SavedCard.account_id == account_id).first()
-    if card:
-        card.holder_name = holder_name
-        card.last4 = last4
-        card.brand = brand
-        card.exp_month = exp_month
-        card.exp_year = exp_year
-        card.zcredit_token_id = token_id or card.zcredit_token_id
-        card.zcredit_token = zcredit_token
-    else:
-        card = SavedCard(
-            account_id=account_id,
-            holder_name=holder_name,
-            last4=last4,
-            brand=brand,
-            exp_month=exp_month,
-            exp_year=exp_year,
-            zcredit_token_id=token_id,
-            zcredit_token=zcredit_token,
-        )
-        db.add(card)
+    card = upsert_saved_card(
+        db,
+        account_id=account_id,
+        token=zcredit_token,
+        token_id=token_id,
+        holder_name=holder_name,
+        last4=last4,
+        brand=brand,
+        exp_month=exp_month,
+        exp_year=exp_year,
+    )
     db.commit()
     db.refresh(card)
     return CardInfo(
@@ -532,3 +524,26 @@ def billing_overview(
         pendingPayments=pending_payments if pending_payments else None,
         billingPortalAvailable=billing_portal_available,
     )
+
+
+@router.get("/{account_id}/billing/history", response_model=list[BillingHistoryOut])
+def get_account_billing_history(
+    account_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[BillingHistoryOut]:
+    require_account_member(account_id, db, user)
+    from app.api.routes.admin.common import history_to_out
+    live = (
+        db.query(AccountBillingInstruction)
+        .filter(AccountBillingInstruction.account_id == account_id)
+        .first()
+    )
+    rows = (
+        db.query(BillingInstructionHistory)
+        .filter(BillingInstructionHistory.account_id == account_id)
+        .order_by(BillingInstructionHistory.id.desc())
+        .limit(100)
+        .all()
+    )
+    return [history_to_out(r, live) for r in rows]

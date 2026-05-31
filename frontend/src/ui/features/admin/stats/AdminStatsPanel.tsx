@@ -12,13 +12,14 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import { Line, Pie } from "@ant-design/plots";
-import { App, Button, Card, Col, Row, Skeleton, Space, Typography } from "antd";
+import { App, Button, Card, Col, Row, Skeleton, Space, Typography, theme } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
 import type { AdminPaymentStats, AdminStats } from "@/services/admin/AdminService";
 import { usePlotPalette } from "@/ui/features/user/analytics/chart/analyticsPlotTheme";
+import { tokens } from "@/styles/designSystem";
 import {
   buildCurrencyPieData,
   buildRevenueLineChartData,
@@ -50,6 +51,7 @@ export function AdminStatsPanel() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { services } = useApp();
+  const { token } = theme.useToken();
   const palette = usePlotPalette();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [paymentStats, setPaymentStats] = useState<AdminPaymentStats | null>(null);
@@ -155,6 +157,11 @@ export function AdminStatsPanel() {
     }
   };
 
+  const cardStyle = {
+    borderRadius: token.borderRadiusLG,
+    boxShadow: tokens.shadow.sm,
+  } as const;
+
   return (
     <div style={{ background: "transparent", padding: 0 }}>
       {/* Header */}
@@ -175,7 +182,7 @@ export function AdminStatsPanel() {
           <Button size="small" icon={<SafetyCertificateOutlined />} onClick={() => navigate(Paths.adminAudit)} disabled={loading}>
             {t("admin.audit.title")}
           </Button>
-          <Button size="small" icon={<ReloadOutlined />} onClick={() => void load()} loading={loading} style={{ borderRadius: 10 }}>
+          <Button size="small" icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
             {t("common.reload")}
           </Button>
         </Space>
@@ -186,14 +193,14 @@ export function AdminStatsPanel() {
           <Row gutter={[12, 12]}>
             {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
               <Col key={k} xs={12} sm={8} lg={6}>
-                <Card bordered={false} style={{ borderRadius: 12 }}>
+                <Card bordered={false} style={cardStyle}>
                   <Skeleton active paragraph={{ rows: 1 }} />
                 </Card>
               </Col>
             ))}
           </Row>
           <div style={{ marginTop: 16 }}>
-            <Card bordered={false} style={{ borderRadius: 12 }}>
+            <Card bordered={false} style={cardStyle}>
               <Skeleton active paragraph={{ rows: 6 }} />
             </Card>
           </div>
@@ -206,7 +213,7 @@ export function AdminStatsPanel() {
               <Col key={m.title} xs={12} sm={8} lg={6}>
                 <Card
                   bordered={false}
-                  style={{ borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                  style={cardStyle}
                   bodyStyle={{ padding: "14px 16px 12px" }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -218,7 +225,7 @@ export function AdminStatsPanel() {
                         {m.value}
                       </Typography.Text>
                     </div>
-                    <div style={{ color: "rgba(0,0,0,0.4)", fontSize: 18, paddingTop: 4, flexShrink: 0 }}>
+                    <div style={{ color: token.colorPrimary, fontSize: 18, paddingTop: 4, flexShrink: 0, opacity: 0.7 }}>
                       {m.icon}
                     </div>
                   </div>
@@ -230,14 +237,14 @@ export function AdminStatsPanel() {
           {/* Revenue line chart */}
           <Card
             bordered={false}
-            style={{ marginTop: 16, borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+            style={{ marginTop: 16, ...cardStyle }}
             bodyStyle={{ padding: "20px 24px" }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <Typography.Title level={5} style={{ margin: 0 }}>
                 {t("admin.stats.paymentsChart")}
               </Typography.Title>
-              <div style={{ display: "flex", gap: 0, border: "1px solid #d9d9d9", borderRadius: 8, overflow: "hidden" }}>
+              <div style={{ display: "flex", gap: 0, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, overflow: "hidden" }}>
                 {periodButtons.map((btn) => (
                   <button
                     key={btn.key}
@@ -246,10 +253,10 @@ export function AdminStatsPanel() {
                       padding: "4px 14px",
                       fontSize: 13,
                       border: "none",
-                      borderRight: btn.key !== "year" ? "1px solid #d9d9d9" : "none",
+                      borderRight: btn.key !== "year" ? `1px solid ${token.colorBorder}` : "none",
                       cursor: "pointer",
-                      background: period === btn.key ? "#1677ff" : "#fff",
-                      color: period === btn.key ? "#fff" : "rgba(0,0,0,0.88)",
+                      background: period === btn.key ? token.colorPrimary : token.colorBgContainer,
+                      color: period === btn.key ? "#fff" : token.colorText,
                       fontWeight: period === btn.key ? 600 : 400,
                       transition: "background 0.15s",
                     }}
@@ -288,11 +295,10 @@ export function AdminStatsPanel() {
 
           {/* Bottom row: paid/unpaid counts bar + currency pie */}
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            {/* Views: paid vs unpaid counts per period */}
             <Col xs={24} md={12}>
               <Card
                 bordered={false}
-                style={{ borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                style={cardStyle}
                 bodyStyle={{ padding: "20px 24px" }}
               >
                 <Typography.Title level={5} style={{ margin: "0 0 16px" }}>
@@ -325,11 +331,10 @@ export function AdminStatsPanel() {
               </Card>
             </Col>
 
-            {/* Currency proportion pie */}
             <Col xs={24} md={12}>
               <Card
                 bordered={false}
-                style={{ borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                style={cardStyle}
                 bodyStyle={{ padding: "20px 24px" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>

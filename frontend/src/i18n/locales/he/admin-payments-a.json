@@ -32,6 +32,9 @@
       "splitMonthsLabel": "חלוקה לחודשים",
       "splitMonthsHint": "לחלק את הסכום הכולל לתשלומים חודשיים שווים (מינימום 2).",
       "splitMonthsPlaceholder": "חודשים",
+      "billingDayLabel": "יום חיוב בחודש",
+      "billingDayHint": "יום בחודש (1–28) שבו החיוב החוזר מתבצע. ריק = לפי תאריך ההרשמה.",
+      "billingDayPlaceholder": "יום (1–28)",
       "splitPreviewHelp": "{{perMonth}} × {{months}} חודשים (סה\"כ {{total}})",
       "selectUser": "לקוח",
       "selectUserPlaceholder": "בחרו משתמש לקוח",
@@ -51,6 +54,7 @@
       "historyCollapse": "היסטוריית חיובים",
       "libraryDrawerTitle": "תבניות חשבוניות",
       "libraryDrawerTrigger": "תבניות",
+      "templatesHint": "תבניות חשבונית לשימוש חוזר. טענו לטופס או החילו ישירות על הלקוח שנבחר.",
       "allInvoicesTitle": "כל החשבוניות",
       "allInvoicesHint": "כל חיובי העסקים: הורדת PDF כאן. שורות ששולמו ולא ששולמו מופיעות יחד; אין סינון לפי משתמש.",
       "createSubmit": "צור",
@@ -96,7 +100,25 @@
       "useItemizedBreakdown": "להשתמש בפירוט שורות?",
       "monthlyChargeInfo": "חיוב חודשי חוזר",
       "monthlyChargeInfoDesc": "פעולה זו תיצור מנוי חודשי אוטומטי. הלקוח יחויב מדי חודש עד לביטול.",
-      "saveAsTemplate": "שמירה כתבנית"
+      "saveAsTemplate": "שמירה כתבנית",
+      "billingScheduleLabel": "תדירות חיוב",
+      "billingScheduleMonthly": "חודשי",
+      "billingScheduleWeekly": "שבועי",
+      "billingScheduleMinutely": "כל N דקות (בדיקה)",
+      "billingWeekDayLabel": "יום בשבוע",
+      "billingWeekDayPlaceholder": "בחרו יום",
+      "testIntervalLabel": "מרווח",
+      "testIntervalUnit": "דק׳",
+      "testIntervalPlaceholder": "למשל 10",
+      "weekDay": {
+        "Mon": "שני",
+        "Tue": "שלישי",
+        "Wed": "רביעי",
+        "Thu": "חמישי",
+        "Fri": "שישי",
+        "Sat": "שבת",
+        "Sun": "ראשון"
+      }
     }
   }
 }

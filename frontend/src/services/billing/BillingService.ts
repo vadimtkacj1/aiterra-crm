@@ -7,6 +7,7 @@ import type {
   HostedCheckoutRequest,
   HostedCheckoutResponse,
   IBillingService,
+  UserBillingHistoryRow,
 } from "./IBillingService";
 
 export class BillingService implements IBillingService {
@@ -26,6 +27,10 @@ export class BillingService implements IBillingService {
 
   fetchOverview(accountId: string): Promise<BillingOverview> {
     return this.http.get<BillingOverview>(`${this.base(accountId)}/billing/overview`);
+  }
+
+  fetchBillingHistory(accountId: string): Promise<UserBillingHistoryRow[]> {
+    return this.http.get<UserBillingHistoryRow[]>(`${this.base(accountId)}/billing/history`);
   }
 
   async getCard(accountId: string): Promise<CardInfo | null> {

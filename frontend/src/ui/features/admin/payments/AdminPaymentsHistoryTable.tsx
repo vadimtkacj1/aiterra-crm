@@ -3,7 +3,8 @@ import {
   DownloadOutlined,
   RollbackOutlined,
 } from "@ant-design/icons";
-import { Button, Popconfirm, Space, Spin, Table, Tag, Tooltip, Typography } from "antd";
+import { Button, Popconfirm, Space, Spin, Tag, Tooltip, Typography } from "antd";
+import { AppTable } from "@/ui/shared/components/AppTable";
 import type { TFunction } from "i18next";
 import type {
   AdminService,
@@ -137,10 +138,9 @@ export function AdminPaymentsHistoryTable({
 
   return (
     <Spin spinning={loading}>
-      <Table<BillingHistoryWithAccountRow>
-        size="small"
+      <AppTable<BillingHistoryWithAccountRow>
         rowKey={(r) => `${r.accountId}-${r.id}`}
-        pagination={{ pageSize: 12, showSizeChanger: false }}
+        pagination={{ pageSize: 12 }}
         scroll={{ x: 1100 }}
         locale={{ emptyText: t("admin.payments.historyEmpty") }}
         dataSource={rows}

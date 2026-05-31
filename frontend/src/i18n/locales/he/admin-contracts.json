@@ -63,7 +63,17 @@
         "bodyPlaceholder": "הכנס את תנאי החוזה...",
         "bodyFormatHint": "שורות ריקות נשמרות. הלקוח רואה את אותו מבנה בדף החתימה.",
         "stages": "שלבי תשלום",
-        "paymentStages": "שלבי תשלום חד-פעמיים",
+        "paymentStages": "תשלום",
+        "typeOneTime": "חד-פעמי / תשלומים",
+        "typeOneTimeDesc": "תשלום יחיד או פיצול לאבני דרך",
+        "typeSubscription": "מנוי חודשי",
+        "typeSubscriptionDesc": "חיוב חודשי חוזר, מתחדש אוטומטית",
+        "equalSplitPartsLabel": "תשלומים",
+        "stagesCount": "תשלומים",
+        "month": "חודש",
+        "months": "חודשים",
+        "openEnded": "ללא הגבלה",
+        "subscriptionMonthsPlaceholder": "לדוגמה: 12",
         "addStage": "הוסף שלב",
         "stageDescription": "תיאור (לדוגמה: תשלום ראשון)",
         "stagesRequired": "יש להוסיף לפחות שלב תשלום אחד",
@@ -84,12 +94,28 @@
         "monthlyAmount": "סכום חיוב חודשי",
         "subscriptionMonths": "משך (חודשים)",
         "subscriptionMonthsHint": "השאר ריק לחיוב חוזר ללא הגבלה",
+        "billingDay": "יום חיוב בחודש",
+        "billingDayHint": "יום (1–28) בו מתבצע החיוב החוזר. השאר ריק לחיוב בתאריך ההרשמה.",
+        "billingDayPlaceholder": "יום (1–28)",
+        "billingDayPreview": "חיוב ביום {{day}}",
         "subscriptionAutoStages": "שלבי תשלום מנוי",
         "subscriptionSummary": "תשלומים חודשיים של {{amount}} למשך {{months}} חודשים יחויבו אוטומטית",
         "subscriptionConfigureFirst": "הגדר סכום חודשי ומשך בשלב הקודם",
         "monthlyAmountRequired": "סכום חודשי נדרש למנויים",
         "basicInfo": "מידע בסיסי",
-        "titlePlaceholder": "לדוגמה: הסכם שירות שנתי"
+        "titlePlaceholder": "לדוגמה: הסכם שירות שנתי",
+        "submit": "צור חוזה",
+        "stageDescriptionRequired": "תיאור נדרש",
+        "stageAmountRequired": "הזן סכום חיובי",
+        "stagesTotal": "סה\"כ",
+        "pdfBodyNote": "טקסט החוזה מוחלף על ידי ה-PDF שהועלה",
+        "pdfSizeError": "גודל ה-PDF חייב להיות פחות מ-5 מגה-בייט",
+        "equalSplitConfirmTitle": "להחליף שלבים קיימים?",
+        "equalSplitConfirmContent": "פעולה זו תחליף את שלבי התשלום הנוכחיים.",
+        "equalSplitConfirmOk": "החלף"
+      },
+      "stage": {
+        "paidAt": "שולם: {{date}}"
       },
       "subscription": {
         "title": "סטטוס מנוי",
@@ -113,7 +139,12 @@
         "amount": "סכום",
         "status": "סטטוס",
         "paidAt": "שולם ב",
-        "transactionId": "מזהה עסקה"
+        "transactionId": "מזהה עסקה",
+        "quickTest": "התחל בדיקה כל 10 דקות",
+        "quickTestConfirmTitle": "להתחיל בדיקת חיוב כל 10 דקות?",
+        "quickTestConfirmContent": "הכרטיס השמור יחויב כל 10 דקות (מחקה תשלום חודשי אחד לכל מחזור). ניתן לעצור בכל עת מפאנל המנוי.",
+        "quickTestConfirmOk": "התחל בדיקה",
+        "quickTestStarted": "בדיקת חיוב כל 10 דקות הופעלה"
       }
     }
   }

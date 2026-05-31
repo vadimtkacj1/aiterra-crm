@@ -21,6 +21,7 @@ class InvoiceTemplate(Base):
     line_items_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     """When set with charge_type monthly: total contract split across N months (amount = total)."""
     installment_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    billing_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[str] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

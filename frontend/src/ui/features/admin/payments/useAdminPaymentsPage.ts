@@ -1,5 +1,5 @@
 import { App, theme } from "antd";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/app/AppProviders";
 import type { BillingHistoryWithAccountRow, InvoiceTemplateCreateInput } from "@/services/admin/AdminService";
@@ -33,6 +33,14 @@ export function useAdminPaymentsPage() {
   const [saveTemplateTitle, setSaveTemplateTitle] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+
+  const visibleBillingRows = useMemo(
+    () =>
+      session.userMeta?.accountId != null
+        ? lists.allBillingRows.filter((r) => r.accountId === session.userMeta!.accountId)
+        : lists.allBillingRows,
+    [lists.allBillingRows, session.userMeta?.accountId],
+  );
 
   const buildTemplatePayloadFromForm = (): InvoiceTemplateCreateInput | null => {
     const values = session.form.getFieldsValue();
@@ -120,6 +128,7 @@ export function useAdminPaymentsPage() {
     }
 
     try {
+      const schedule = values.billingSchedule;
       await services.admin.setAccountBillingInstruction(accountId, {
         chargeType,
         amount: chargeType === "none" ? null : parsed.amount,
@@ -127,6 +136,9 @@ export function useAdminPaymentsPage() {
         description: values.description?.trim() || null,
         lineItems: parsed.lineItems,
         splitAcrossMonths: parsed.splitAcrossMonths ?? null,
+        billingDay: chargeType === "monthly" && (!schedule || schedule === "monthly") ? (values.billingDay ?? null) : null,
+        billingWeekDay: chargeType === "monthly" && schedule === "weekly" ? (values.billingWeekDay ?? null) : null,
+        testIntervalMinutes: chargeType === "monthly" && schedule === "minutely" ? (values.testIntervalMinutes ?? null) : null,
       });
       message.success(t("admin.payments.createdSuccess"));
       session.form.resetFields();
@@ -136,6 +148,10 @@ export function useAdminPaymentsPage() {
         useBreakdown: true,
         lineItems: [],
         splitAcrossMonths: undefined,
+        billingSchedule: undefined,
+        billingDay: undefined,
+        billingWeekDay: undefined,
+        testIntervalMinutes: undefined,
       });
       await session.onUserChange("");
       await lists.loadAllBillingHistory();
@@ -203,6 +219,7 @@ export function useAdminPaymentsPage() {
     loadingUsers,
     form: session.form,
     allBillingRows: lists.allBillingRows,
+    visibleBillingRows,
     allBillingLoading: lists.allBillingLoading,
     revokingId,
     deletingId,
@@ -239,6 +256,7 @@ export function useAdminPaymentsPage() {
     billBlockedForAdmin: session.billBlockedForAdmin,
     canSaveTemplate: session.canSaveTemplate,
     openSaveTemplateModal,
+    refreshBillingFormForAccount: session.refreshBillingFormForAccount,
     downloadRowPdf,
     onFormFinish,
     onSaveTemplateOk,

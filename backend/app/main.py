@@ -38,22 +38,52 @@ async def lifespan(app: FastAPI):
     _log_smtp_env()
 
     scheduler = None
-    if (
-        settings.meta_analytics_cache_cron_enabled
-        and settings.meta_analytics_cache_enabled
-        and not settings.meta_snapshot_mock
-    ):
-        try:
-            from apscheduler.schedulers.background import BackgroundScheduler
-        except ImportError:
-            logger.warning(
-                "APScheduler not installed — Meta analytics cron disabled. "
-                'Install: pip install "APScheduler>=3.10,<4" (see requirements.txt)'
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+    except ImportError:
+        logger.warning(
+            "APScheduler not installed — background jobs disabled. "
+            'Install: pip install "APScheduler>=3.10,<4" (see requirements.txt)'
+        )
+    else:
+        scheduler = BackgroundScheduler(timezone="UTC")
+
+        if settings.subscription_billing_cron_enabled:
+            from app.jobs.billing_charge_job import run_subscription_billing_sync
+
+            # Daily subscription billing — runs at 06:00 UTC every day
+            scheduler.add_job(
+                run_subscription_billing_sync,
+                "cron",
+                hour=6,
+                minute=0,
+                id="subscription_daily_billing",
+                replace_existing=True,
             )
+            logger.info("subscription billing job scheduled (06:00 UTC daily)")
         else:
+            logger.info("subscription billing job disabled (SUBSCRIPTION_BILLING_CRON_ENABLED=false)")
+
+        # Test billing — always scheduled; only fires for subscriptions with test_interval_minutes set.
+        # Safe in production: if no subscription has test_interval_minutes, the job does nothing.
+        from app.jobs.billing_charge_job import run_test_billing_sync
+
+        scheduler.add_job(
+            run_test_billing_sync,
+            "interval",
+            minutes=1,
+            id="subscription_test_billing",
+            replace_existing=True,
+        )
+        logger.info("test billing job scheduled (every 1 minute, fires only when test_interval_minutes is set)")
+
+        if (
+            settings.meta_analytics_cache_cron_enabled
+            and settings.meta_analytics_cache_enabled
+            and not settings.meta_snapshot_mock
+        ):
             from app.jobs.meta_analytics_cache_job import run_meta_analytics_cache_refresh_sync
 
-            scheduler = BackgroundScheduler(timezone="UTC")
             scheduler.add_job(
                 run_meta_analytics_cache_refresh_sync,
                 "cron",
@@ -62,7 +92,8 @@ async def lifespan(app: FastAPI):
                 id="meta_analytics_daily_cache",
                 replace_existing=True,
             )
-            scheduler.start()
+
+        scheduler.start()
 
     yield
 

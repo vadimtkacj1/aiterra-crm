@@ -4,6 +4,7 @@ export interface ContractStage {
   description: string;
   amount: number;
   status: "pending" | "invoiced" | "paid";
+  paidAt?: string | null;
 }
 
 export interface Contract {
@@ -26,6 +27,7 @@ export interface Contract {
   billingInstructionId?: number | null;
   monthlyAmount?: number | null;
   subscriptionMonths?: number | null;
+  billingDay?: number | null;
 }
 
 export interface ContractPublic {
@@ -56,6 +58,7 @@ export interface ContractCreateInput {
   isSubscription?: boolean;
   monthlyAmount?: number | null;
   subscriptionMonths?: number | null;
+  billingDay?: number | null;
 }
 
 export interface ContractMemberRow {

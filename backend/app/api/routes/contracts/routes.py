@@ -56,6 +56,7 @@ def _stage_out(s: ContractPaymentStage) -> ContractStageOut:
         description=s.description,
         amount=s.amount,
         status=s.status,
+        paidAt=s.paid_at,
     )
 
 
@@ -80,6 +81,7 @@ def _contract_out(c: Contract) -> ContractOut:
         billingInstructionId=c.billing_instruction_id,
         monthlyAmount=c.monthly_amount,
         subscriptionMonths=c.subscription_months,
+        billingDay=c.billing_day,
     )
 
 
@@ -159,25 +161,14 @@ def create_contract(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ) -> ContractOut:
-    # Debug logging
-    print(f"DEBUG: Received contract creation request")
-    print(f"  isSubscription: {body.isSubscription}")
-    print(f"  monthlyAmount: {body.monthlyAmount}")
-    print(f"  stages: {body.stages}")
-    print(f"  subscriptionMonths: {body.subscriptionMonths}")
-
-    # For subscriptions, generate a single stage with monthly amount
-    if body.isSubscription and not body.stages:
-        if not body.monthlyAmount or body.monthlyAmount <= 0:
-            raise HTTPException(status_code=400, detail="monthlyAmount required for subscriptions")
-        # Create a single stage representing the subscription
+    if body.isSubscription:
         stages_to_create = [
             ContractStageIn(
                 description=f"Monthly subscription ({body.subscriptionMonths or '∞'} months)",
-                amount=body.monthlyAmount
+                amount=body.monthlyAmount,  # type: ignore[arg-type]  # validated by schema
             )
         ]
-        total = body.monthlyAmount
+        total = body.monthlyAmount  # type: ignore[assignment]
     else:
         stages_to_create = body.stages
         total = sum(s.amount for s in body.stages)
@@ -193,6 +184,7 @@ def create_contract(
         created_by_admin_id=admin.id,
         monthly_amount=body.monthlyAmount if body.isSubscription else None,
         subscription_months=body.subscriptionMonths if body.isSubscription else None,
+        billing_day=body.billingDay if body.isSubscription else None,
     )
     db.add(contract)
     db.flush()
@@ -218,7 +210,7 @@ def list_contracts(
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ) -> list[ContractOut]:
-    q = db.query(Contract)
+    q = db.query(Contract).options(joinedload(Contract.stages))
     if account_id is not None:
         q = q.filter(Contract.account_id == account_id)
     contracts = q.order_by(Contract.id.desc()).all()
@@ -387,6 +379,7 @@ def sign_contract(
             description=f"Monthly subscription: {c.title}",
             lineItems=None,
             splitAcrossMonths=c.subscription_months,
+            billingDay=c.billing_day,
         )
 
         from app.models.core import User

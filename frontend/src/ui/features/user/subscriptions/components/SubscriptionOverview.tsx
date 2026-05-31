@@ -1,5 +1,5 @@
 import { CalendarOutlined, CheckCircleOutlined, DollarOutlined } from "@ant-design/icons";
-import { Descriptions, Space, Tag, Typography } from "antd";
+import { Descriptions, Space, Tag, Typography, theme } from "antd";
 import type { TFunction } from "i18next";
 import type { SubscriptionStatus } from "@/services/admin/AdminService";
 import { formatDate, formatMoney, getSubscriptionStatusColor } from "@/ui/shared/utils/subscriptionUtils";
@@ -10,6 +10,8 @@ interface Props {
 }
 
 export function SubscriptionOverview({ status, t }: Props) {
+  const { token } = theme.useToken();
+
   return (
     <Descriptions column={2} bordered size="small">
       <Descriptions.Item label={t("admin.contracts.subscription.contractTitle")} span={2}>
@@ -54,7 +56,7 @@ export function SubscriptionOverview({ status, t }: Props) {
         </Space>
       </Descriptions.Item>
       <Descriptions.Item label={t("admin.contracts.subscription.totalPaid")}>
-        <Typography.Text strong style={{ fontSize: 16, color: "#52c41a" }}>
+        <Typography.Text strong style={{ fontSize: 16, color: token.colorSuccess }}>
           <DollarOutlined /> {formatMoney(status.total_paid, status.currency)}
         </Typography.Text>
       </Descriptions.Item>

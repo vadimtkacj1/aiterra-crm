@@ -1,7 +1,7 @@
 import {
-  Table,
   Input,
   Button,
+  Flex,
   Space,
   Dropdown,
   Alert,
@@ -12,6 +12,7 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 import type { TableProps, ColumnsType } from "antd/es/table";
+import { AppTable } from "./AppTable";
 import { useState, useMemo } from "react";
 import type { TFunction } from "i18next";
 import { exportToCSV, exportToExcel, exportToJSON } from "../utils/exportUtils";
@@ -108,7 +109,7 @@ export function EnhancedTable<T extends { id?: string | number; [key: string]: a
   if (isMobile && mobileCardView) {
     const cardItems = filteredData.map(mobileCardView);
     return (
-      <Space direction="vertical" style={{ width: "100%" }} size={16}>
+      <Flex vertical style={{ width: "100%" }} gap={16}>
         {searchable && (
           <Input.Search
             placeholder={searchPlaceholder || t("common.search")}
@@ -124,12 +125,12 @@ export function EnhancedTable<T extends { id?: string | number; [key: string]: a
           loading={typeof tableProps.loading === "boolean" ? tableProps.loading : !!tableProps.loading}
           emptyText={t("common.noData")}
         />
-      </Space>
+      </Flex>
     );
   }
 
   return (
-    <Space direction="vertical" style={{ width: "100%" }} size={16}>
+    <Flex vertical style={{ width: "100%" }} gap={16}>
       {/* Search and Actions Bar */}
       {(searchable || exportable || filters) && (
         <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
@@ -181,7 +182,7 @@ export function EnhancedTable<T extends { id?: string | number; [key: string]: a
       {/* Bulk Actions Bar */}
       {bulkActions && selectedRowKeys.length > 0 && (
         <Alert
-          message={
+          title={
             <Space>
               <Typography.Text>
                 {t("table.selectedCount", { count: selectedRowKeys.length })}
@@ -211,13 +212,12 @@ export function EnhancedTable<T extends { id?: string | number; [key: string]: a
       )}
 
       {/* Table */}
-      <Table<T>
+      <AppTable<T>
         {...tableProps}
         columns={columns}
         dataSource={filteredData}
         rowSelection={rowSelection}
-        rowKey={(record) => record.id || record.key || Math.random()}
       />
-    </Space>
+    </Flex>
   );
 }

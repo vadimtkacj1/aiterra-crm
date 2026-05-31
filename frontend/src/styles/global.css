@@ -1,29 +1,432 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+@import "./tokens.css";
 
-html,
-body,
-#root {
+/* ============================================================
+   CRM Pro Admin — Global Styles & Ant Design Overrides
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
   min-height: 100vh;
   height: 100%;
   margin: 0;
 }
 
 body {
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
-  color: rgba(0, 0, 0, 0.88);
-  background: #f5f5f5;
+  font-family: var(--ds-font-family);
+  font-size: var(--ds-font-size-base);
+  font-weight: var(--ds-font-weight-regular);
+  color: var(--ds-text-primary);
+  background: var(--ds-surface-1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  line-height: var(--ds-line-height-normal);
+}
+
+/* ── Scrollbar: thin, branded ────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--ds-border-default);
+  border-radius: var(--ds-radius-full);
+  transition: background var(--ds-duration-base);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ds-border-strong); }
+
+/* ── Focus ring: accessible + branded ───────────────────── */
+:focus-visible {
+  outline: 2px solid var(--ds-color-primary);
+  outline-offset: 2px;
+  border-radius: var(--ds-radius-xs);
+}
+
+/* ── Text selection ──────────────────────────────────────── */
+::selection {
+  background: var(--ds-color-primary-surface-deep);
+  color: var(--ds-color-primary-dark);
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+
+/* Column headers: uppercase, semibold, muted */
+.ant-table-thead > tr > th,
+.ant-table-thead > tr > td {
+  font-weight:    var(--ds-font-weight-semibold) !important;
+  font-size:      var(--ds-font-size-xs) !important;
+  text-transform: uppercase !important;
+  letter-spacing: var(--ds-letter-spacing-caps) !important;
+  color:          var(--ds-text-secondary) !important;
+}
+
+/* Body rows: comfortable line height */
+.ant-table-tbody > tr > td {
+  font-size:   var(--ds-font-size-base) !important;
+  line-height: var(--ds-line-height-snug) !important;
+}
+
+/* Zebra stripe: very subtle violet tint */
+.ant-table-tbody > tr:nth-child(even) > td {
+  background: var(--ds-surface-1);
+}
+
+/* Row hover */
+.ant-table-tbody > tr.ant-table-row:hover > td {
+  background: var(--ds-surface-2) !important;
+  transition: background var(--ds-duration-fast) var(--ds-ease-out);
+}
+
+/* ============================================================
+   INPUTS / FORMS
+   ============================================================ */
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker,
+.ant-input-number {
+  transition:
+    border-color var(--ds-duration-base) var(--ds-ease-out),
+    box-shadow   var(--ds-duration-base) var(--ds-ease-out) !important;
+}
+
+/* Form labels: medium weight, muted */
+.ant-form-item-label > label {
+  font-weight: var(--ds-font-weight-medium) !important;
+  font-size:   var(--ds-font-size-sm) !important;
+  color:       var(--ds-text-secondary) !important;
+}
+
+/* Error message: tight, near-field */
+.ant-form-item-explain-error {
+  font-size: var(--ds-font-size-xs) !important;
+  margin-top: var(--ds-space-0-5) !important;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+
+.ant-card {
+  box-shadow: var(--ds-shadow-card) !important;
+  transition: box-shadow var(--ds-duration-base) var(--ds-ease-out);
+}
+.ant-card:hover {
+  box-shadow: var(--ds-shadow-sm) !important;
+}
+.ant-card-head {
+  border-bottom-color: var(--ds-border-subtle) !important;
+}
+
+/* ============================================================
+   SIDEBAR MENU
+   ============================================================ */
+
+/* Active item: branded purple bg + left indicator bar */
+.ant-menu-dark .ant-menu-item-selected {
+  background: var(--ds-sidebar-item-active-bg) !important;
+  position: relative;
+}
+.ant-menu-dark .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 0 var(--ds-radius-full) var(--ds-radius-full) 0;
+  background: var(--ds-sidebar-active-indicator);
+}
+
+/* Hover: subtle white tint */
+.ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover {
+  background: var(--ds-sidebar-item-hover) !important;
+}
+
+/* ============================================================
+   TAGS & BADGES
+   ============================================================ */
+
+.ant-tag {
+  border-radius:  var(--ds-radius-sm) !important;
+  font-size:      var(--ds-font-size-xs) !important;
+  font-weight:    var(--ds-font-weight-medium) !important;
+  line-height:    20px !important;
+  padding-inline: var(--ds-space-1-5) !important;
+}
+
+.ant-badge-count {
+  font-size:   var(--ds-font-size-2xs) !important;
+  font-weight: var(--ds-font-weight-semibold) !important;
+  min-width:   18px !important;
+  height:      18px !important;
+  line-height: 18px !important;
+  border-radius: var(--ds-radius-full) !important;
+}
+
+/* ============================================================
+   STATISTICS / KPI
+   ============================================================ */
+
+.ant-statistic-content-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--ds-font-weight-bold) !important;
+  letter-spacing: var(--ds-letter-spacing-tight);
+}
+
+.ant-statistic-title {
+  font-size:   var(--ds-font-size-xs) !important;
+  font-weight: var(--ds-font-weight-medium) !important;
+  text-transform: uppercase;
+  letter-spacing: var(--ds-letter-spacing-caps);
+  color: var(--ds-text-secondary) !important;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  font-weight: var(--ds-font-weight-semibold) !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: var(--ds-font-size-sm) !important;
+  transition: color var(--ds-duration-base) var(--ds-ease-out);
+}
+
+/* ============================================================
+   STEPS
+   ============================================================ */
+
+.ant-steps-item-title {
+  font-weight: var(--ds-font-weight-medium) !important;
+  font-size:   var(--ds-font-size-sm) !important;
+}
+.ant-steps-item-description {
+  font-size: var(--ds-font-size-xs) !important;
+}
+
+/* ============================================================
+   OVERLAYS: Modal / Drawer / Dropdown
+   ============================================================ */
+
+.ant-modal-content {
+  box-shadow:    var(--ds-shadow-modal) !important;
+  border-radius: var(--ds-radius-xl) !important;
+}
+.ant-modal-header {
+  border-radius: var(--ds-radius-xl) var(--ds-radius-xl) 0 0 !important;
+  padding-bottom: var(--ds-space-4) !important;
+  border-bottom-color: var(--ds-border-subtle) !important;
+}
+.ant-modal-title {
+  font-size:   var(--ds-font-size-md) !important;
+  font-weight: var(--ds-font-weight-semibold) !important;
+}
+.ant-modal-footer {
+  border-top-color: var(--ds-border-subtle) !important;
+}
+
+.ant-drawer-content {
+  box-shadow: var(--ds-shadow-modal) !important;
+}
+.ant-drawer-header {
+  border-bottom-color: var(--ds-border-subtle) !important;
+}
+.ant-drawer-title {
+  font-weight: var(--ds-font-weight-semibold) !important;
+}
+
+.ant-dropdown,
+.ant-select-dropdown,
+.ant-picker-dropdown {
+  box-shadow:    var(--ds-shadow-dropdown) !important;
+  border-radius: var(--ds-radius-lg) !important;
+}
+
+.ant-select-item {
+  border-radius: var(--ds-radius-sm) !important;
+  font-size: var(--ds-font-size-base) !important;
+}
+
+/* ============================================================
+   TOOLTIPS
+   ============================================================ */
+
+.ant-tooltip-inner {
+  font-size:     var(--ds-font-size-xs) !important;
+  border-radius: var(--ds-radius-md) !important;
+  padding:       var(--ds-space-1) var(--ds-space-2) !important;
+}
+
+/* ============================================================
+   TOASTS / NOTIFICATIONS
+   ============================================================ */
+
+.ant-message-notice-content {
+  border-radius: var(--ds-radius-lg) !important;
+  box-shadow:    var(--ds-shadow-lg) !important;
+  font-weight:   var(--ds-font-weight-medium) !important;
+  font-size:     var(--ds-font-size-sm) !important;
+}
+
+.ant-notification-notice {
+  border-radius: var(--ds-radius-xl) !important;
+  box-shadow:    var(--ds-shadow-modal) !important;
+}
+.ant-notification-notice-message {
+  font-weight: var(--ds-font-weight-semibold) !important;
+  font-size:   var(--ds-font-size-base) !important;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.ant-btn {
+  font-weight: var(--ds-font-weight-medium) !important;
+  transition:
+    background    var(--ds-duration-base) var(--ds-ease-out),
+    border-color  var(--ds-duration-base) var(--ds-ease-out),
+    box-shadow    var(--ds-duration-base) var(--ds-ease-out),
+    opacity       var(--ds-duration-base) var(--ds-ease-out) !important;
+}
+.ant-btn:active {
+  transform: scale(0.98);
+  transition-duration: var(--ds-duration-fast) !important;
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+
+.ant-progress-bg {
+  transition: width var(--ds-duration-slow) var(--ds-ease-out) !important;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+
+.ant-pagination-item {
+  border-radius: var(--ds-radius-md) !important;
+  font-size: var(--ds-font-size-sm) !important;
+}
+.ant-pagination-item-active {
+  font-weight: var(--ds-font-weight-semibold) !important;
+}
+
+/* ============================================================
+   BREADCRUMB
+   ============================================================ */
+
+.ant-breadcrumb-link {
+  font-size: var(--ds-font-size-sm) !important;
+}
+
+/* ============================================================
+   ALERT
+   ============================================================ */
+
+.ant-alert {
+  border-radius: var(--ds-radius-lg) !important;
+}
+.ant-alert-message {
+  font-weight: var(--ds-font-weight-medium) !important;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.ant-empty-description {
+  font-size: var(--ds-font-size-sm) !important;
+  color: var(--ds-text-tertiary) !important;
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* Page header title */
+.ds-page-title {
+  font-size:      var(--ds-font-size-xl);
+  font-weight:    var(--ds-font-weight-bold);
+  color:          var(--ds-text-primary);
+  line-height:    var(--ds-line-height-tight);
+  letter-spacing: var(--ds-letter-spacing-tight);
+  margin: 0;
+}
+
+/* Page sub-title / description */
+.ds-page-subtitle {
+  font-size:  var(--ds-font-size-base);
+  color:      var(--ds-text-secondary);
+  line-height:var(--ds-line-height-normal);
+  margin: 0;
+}
+
+/* KPI / metric value */
+.ds-kpi-value {
+  font-size:            var(--ds-font-size-4xl);
+  font-weight:          var(--ds-font-weight-extrabold);
+  color:                var(--ds-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing:       var(--ds-letter-spacing-tight);
+  line-height:          1;
+}
+
+/* KPI label */
+.ds-kpi-label {
+  font-size:      var(--ds-font-size-xs);
+  font-weight:    var(--ds-font-weight-medium);
+  color:          var(--ds-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--ds-letter-spacing-caps);
+}
+
+/* Section divider */
+.ds-divider {
+  border: none;
+  border-top: 1px solid var(--ds-border-subtle);
+  margin: var(--ds-space-6) 0;
+}
+
+/* Monospaced data: IDs, codes, phone numbers */
+.ds-mono {
+  font-family:          var(--ds-font-family-mono);
+  font-size:            var(--ds-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing:       var(--ds-letter-spacing-tight);
+}
+
+/* Status indicator dot */
+.ds-status-dot {
+  display:      inline-block;
+  width:        8px;
+  height:       8px;
+  border-radius:var(--ds-radius-full);
+  flex-shrink:  0;
+}
+.ds-status-dot--active  { background: var(--ds-color-success); }
+.ds-status-dot--warning { background: var(--ds-color-warning); }
+.ds-status-dot--error   { background: var(--ds-color-error);   }
+.ds-status-dot--neutral { background: var(--ds-text-tertiary); }
+
+/* Truncate with ellipsis */
+.ds-truncate {
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+/* Card content section with consistent padding */
+.ds-card-section {
+  padding: var(--ds-space-6);
+}
+.ds-card-section + .ds-card-section {
+  border-top: 1px solid var(--ds-border-subtle);
 }

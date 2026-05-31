@@ -90,6 +90,21 @@
     "flowMonthly": "Monthly subscription",
     "flowOneTimeShort": "One-time",
     "flowMonthlyShort": "Subscription",
-    "payNow": "Pay Now"
+    "payNow": "Pay Now",
+    "downloadPdf": "Download PDF",
+    "historyTitle": "Billing history",
+    "historyCardTitle": "All charges & subscriptions",
+    "historyEmpty": "No billing records yet.",
+    "historyColType": "Type",
+    "historyStatusPaid": "Paid",
+    "historyStatusUnpaid": "Unpaid",
+    "historyStatusOngoing": "Active",
+    "historyStatusVoided": "Void",
+    "historyStatusCancelled": "Cancelled",
+    "historyStatusSuperseded": "Replaced",
+    "historyStatusUnknown": "Unknown",
+    "historyInstallmentNote": "{{months}}×  total {{total}}",
+    "chargeTypeOneTime": "One-time",
+    "chargeTypeMonthly": "Monthly"
   }
 }

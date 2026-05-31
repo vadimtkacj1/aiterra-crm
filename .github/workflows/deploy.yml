@@ -119,6 +119,9 @@ jobs:
               git checkout main
             fi
 
+            # guard: abort if .env is missing (written by previous step from GitHub secret)
+            [ -f ~/crm/.env ] || { echo "ERROR: ~/crm/.env not found — aborting deploy"; exit 1; }
+
             # deploy
             docker compose pull || true
             docker compose up -d --build --remove-orphans || {

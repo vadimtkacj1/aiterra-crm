@@ -32,6 +32,9 @@
       "splitMonthsLabel": "Split across months",
       "splitMonthsHint": "Split the total into equal monthly charges (min 2).",
       "splitMonthsPlaceholder": "Months",
+      "billingDayLabel": "Charge day of month",
+      "billingDayHint": "Day of the month (1–28) when the recurring charge runs. Leave blank to charge on the signup date.",
+      "billingDayPlaceholder": "Day (1–28)",
       "splitPreviewHelp": "{{perMonth}} × {{months}} months (total {{total}})",
       "selectUser": "Client",
       "selectUserPlaceholder": "Select a client user",
@@ -53,6 +56,8 @@
       "libraryDrawerTitle": "Invoice Templates",
       "templatesTitle": "Saved Templates",
       "templatesHint": "Reusable invoice templates. Load into the form or apply directly to the selected client.",
+      "allInvoicesTitle": "All Invoices",
+      "allInvoicesHint": "All business charges: download PDFs here. Paid and unpaid rows appear together; no filter by user.",
       "createSubmit": "Create",
       "createdSuccess": "Invoice created, the client can pay from Billing.",
       "createdDownloadHint": "You can download the PDF anytime from «Templates & billing history» in the header.",
@@ -96,7 +101,25 @@
       "useItemizedBreakdown": "Use itemized breakdown?",
       "monthlyChargeInfo": "Monthly Recurring Charge",
       "monthlyChargeInfoDesc": "This will create an automatic monthly subscription. The client will be charged every month until cancelled.",
-      "saveAsTemplate": "Save as Template"
+      "saveAsTemplate": "Save as Template",
+      "billingScheduleLabel": "Billing schedule",
+      "billingScheduleMonthly": "Monthly",
+      "billingScheduleWeekly": "Weekly",
+      "billingScheduleMinutely": "Every N minutes (test)",
+      "billingWeekDayLabel": "Day of week",
+      "billingWeekDayPlaceholder": "Select day",
+      "testIntervalLabel": "Interval",
+      "testIntervalUnit": "min",
+      "testIntervalPlaceholder": "e.g. 10",
+      "weekDay": {
+        "Mon": "Monday",
+        "Tue": "Tuesday",
+        "Wed": "Wednesday",
+        "Thu": "Thursday",
+        "Fri": "Friday",
+        "Sat": "Saturday",
+        "Sun": "Sunday"
+      }
     }
   }
 }

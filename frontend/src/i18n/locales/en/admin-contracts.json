@@ -63,7 +63,17 @@
         "bodyPlaceholder": "Enter the contract terms...",
         "bodyFormatHint": "Line breaks are preserved. The client sees the same paragraphs on the signing page.",
         "stages": "Payment stages",
-        "paymentStages": "One-time payment stages",
+        "paymentStages": "Payment",
+        "typeOneTime": "One-time / Installments",
+        "typeOneTimeDesc": "Single payment or split into milestones",
+        "typeSubscription": "Monthly Subscription",
+        "typeSubscriptionDesc": "Recurring monthly charge, automatically renewed",
+        "equalSplitPartsLabel": "payments",
+        "stagesCount": "installments",
+        "month": "month",
+        "months": "months",
+        "openEnded": "open-ended",
+        "subscriptionMonthsPlaceholder": "e.g. 12",
         "addStage": "Add stage",
         "stageDescription": "Description (e.g. First payment)",
         "stagesRequired": "Add at least one payment stage",
@@ -84,12 +94,28 @@
         "monthlyAmount": "Monthly charge amount",
         "subscriptionMonths": "Duration (months)",
         "subscriptionMonthsHint": "Leave empty for unlimited recurring billing",
+        "billingDay": "Charge day of month",
+        "billingDayHint": "Day (1–28) on which the recurring charge runs. Leave blank to charge on the signup date.",
+        "billingDayPlaceholder": "Day (1–28)",
+        "billingDayPreview": "charged on day {{day}}",
         "subscriptionAutoStages": "Subscription Payment Stages",
         "subscriptionSummary": "Monthly payments of {{amount}} for {{months}} months will be automatically charged",
         "subscriptionConfigureFirst": "Configure monthly amount and duration in the previous step",
         "monthlyAmountRequired": "Monthly amount is required for subscriptions",
         "basicInfo": "Basic Information",
-        "titlePlaceholder": "e.g. Annual Service Agreement"
+        "titlePlaceholder": "e.g. Annual Service Agreement",
+        "submit": "Create",
+        "stageDescriptionRequired": "Description is required",
+        "stageAmountRequired": "Enter a positive amount",
+        "stagesTotal": "Total",
+        "pdfBodyNote": "Contract text is replaced by the uploaded PDF",
+        "pdfSizeError": "PDF must be under 5 MB",
+        "equalSplitConfirmTitle": "Replace existing stages?",
+        "equalSplitConfirmContent": "This will overwrite your current payment stages.",
+        "equalSplitConfirmOk": "Replace"
+      },
+      "stage": {
+        "paidAt": "Paid: {{date}}"
       },
       "subscription": {
         "title": "Subscription Status",
@@ -113,7 +139,12 @@
         "amount": "Amount",
         "status": "Status",
         "paidAt": "Paid At",
-        "transactionId": "Transaction ID"
+        "transactionId": "Transaction ID",
+        "quickTest": "Start 10-min test billing",
+        "quickTestConfirmTitle": "Start 10-minute test billing?",
+        "quickTestConfirmContent": "This will charge the saved card every 10 minutes (simulating 1 monthly payment per cycle). Stop it anytime from the Subscription panel.",
+        "quickTestConfirmOk": "Start test",
+        "quickTestStarted": "10-minute test billing started"
       }
     }
   }

@@ -83,7 +83,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
-        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { colorFillTertiary: "rgba(255,255,255,0.1)", colorBgElevated: "#1e293b", colorText: "rgba(255,255,255,0.85)", colorTextPlaceholder: "rgba(255,255,255,0.45)" } }}>
           <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,0.12)", background: SIDEBAR_DARK_BG }}>
             <LanguageSwitcher variant="sidebar" />
           </div>
@@ -113,7 +113,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
-        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { colorFillTertiary: "rgba(255,255,255,0.1)", colorBgElevated: "#1e293b", colorText: "rgba(255,255,255,0.85)", colorTextPlaceholder: "rgba(255,255,255,0.45)" } }}>
           <div style={{ padding: "14px 16px 20px", borderTop: "1px solid rgba(255,255,255,0.08)", background: SIDEBAR_DARK_BG }}>
             <LanguageSwitcher variant="sidebar" />
           </div>

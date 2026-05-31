@@ -1,5 +1,6 @@
 import { TeamOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Button, Table } from "antd";
+import { Button } from "antd";
+import { AppTable } from "@/ui/shared/components/AppTable";
 import type { TFunction } from "i18next";
 import type { User, UserRole } from "@/domain/User";
 import { ListCard } from "@/ui/shared/components/ListCard";
@@ -46,11 +47,10 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
           emptyText={t("common.noData")}
         />
       ) : (
-        <Table
+        <AppTable
           loading={loading}
           rowKey="id"
           dataSource={users}
-          pagination={{ pageSize: 10, showSizeChanger: false }}
           columns={[
             { title: t("admin.table.email"), dataIndex: "email", key: "email", ellipsis: true },
             { title: t("admin.table.displayName"), dataIndex: "displayName", key: "displayName", ellipsis: true },

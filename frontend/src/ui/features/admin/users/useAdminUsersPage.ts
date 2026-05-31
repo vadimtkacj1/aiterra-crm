@@ -19,7 +19,7 @@ export function useAdminUsersPage() {
   messageRef.current = message;
   tRef.current = t;
 
-  const { services, users, usersLoading: loading, createUser, updateUser, resetPassword } = useApp();
+  const { services, users, usersLoading: loading, createUser, updateUser, resetPassword, refreshUsers } = useApp();
   const [form] = Form.useForm<AdminCreateUserFormValues>();
   const [metaCampaigns, setMetaCampaigns] = useState<MetaCampaignOption[]>([]);
   const [metaCampaignsLoading, setMetaCampaignsLoading] = useState(false);
@@ -222,8 +222,7 @@ export function useAdminUsersPage() {
         try {
           await services.admin.deleteUser(Number(u.id));
           message.success(t("admin.userDeleted"));
-          // Refresh users list
-          window.location.reload();
+          await refreshUsers();
         } catch (e) {
           message.error(e instanceof Error ? e.message : t("errors.generic"));
         }

@@ -1,4 +1,4 @@
-import { App as AntdApp, ConfigProvider, theme } from "antd";
+import { App as AntdApp, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import heIL from "antd/locale/he_IL";
 import { useEffect, type ReactNode } from "react";
@@ -7,39 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { i18n } from "@/i18n";
 import { AppProviders } from "./AppProviders";
 import { AppRoutes } from "@/ui/routes/AppRoutes";
-
-const appTheme = {
-  algorithm: theme.defaultAlgorithm,
-  token: {
-    colorPrimary: "#2563eb",
-    colorInfo: "#2563eb",
-    colorSuccess: "#16a34a",
-    colorWarning: "#d97706",
-    colorError: "#dc2626",
-    colorBgLayout: "#f5f5f5",
-    borderRadius: 8,
-    borderRadiusLG: 12,
-    fontFamily:
-      'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-  components: {
-    Layout: {
-      headerHeight: 56,
-      headerPadding: "0 20px",
-    },
-    Card: {
-      headerFontSize: 15,
-    },
-    Menu: {
-      itemBorderRadius: 8,
-      itemMarginInline: 12,
-      itemHeight: 40,
-    },
-    Button: {
-      borderRadius: 8,
-    },
-  },
-};
+import { appTheme } from "@/styles/designSystem";
 
 function DirectionAndAntLocale({ children }: { children: ReactNode }) {
   const { i18n: i18nInstance } = useTranslation();

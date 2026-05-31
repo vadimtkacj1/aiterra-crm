@@ -78,6 +78,21 @@
     "flowMonthly": "מנוי חודשי",
     "flowOneTimeShort": "חד־פעמי",
     "flowMonthlyShort": "מנוי",
-    "payNow": "לתשלום"
+    "payNow": "לתשלום",
+    "downloadPdf": "הורד PDF",
+    "historyTitle": "היסטוריית חיובים",
+    "historyCardTitle": "כל החיובים והמנויים",
+    "historyEmpty": "אין רשומות חיוב עדיין.",
+    "historyColType": "סוג",
+    "historyStatusPaid": "שולם",
+    "historyStatusUnpaid": "לא שולם",
+    "historyStatusOngoing": "פעיל",
+    "historyStatusVoided": "בוטל",
+    "historyStatusCancelled": "מבוטל",
+    "historyStatusSuperseded": "הוחלף",
+    "historyStatusUnknown": "לא ידוע",
+    "historyInstallmentNote": "{{months}}× סה״כ {{total}}",
+    "chargeTypeOneTime": "חד־פעמי",
+    "chargeTypeMonthly": "מנוי חודשי"
   }
 }

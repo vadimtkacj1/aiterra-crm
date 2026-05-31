@@ -1,4 +1,4 @@
-import { Empty, Button, Space, Typography } from "antd";
+import { Empty, Button, Flex, Space, Typography } from "antd";
 import type { ReactNode } from "react";
 import { InboxOutlined } from "@ant-design/icons";
 
@@ -35,7 +35,7 @@ export function EmptyState({
       image={image || icon || defaultIcon}
       description={
         title || description ? (
-          <Space direction="vertical" size="small" style={{ marginTop: 8 }}>
+          <Flex vertical gap="small" style={{ marginTop: 8 }}>
             {title && (
               <Typography.Text strong style={{ fontSize: 16 }}>
                 {title}
@@ -46,7 +46,7 @@ export function EmptyState({
                 {description}
               </Typography.Text>
             )}
-          </Space>
+          </Flex>
         ) : undefined
       }
       style={{ padding: "40px 20px", ...style }}

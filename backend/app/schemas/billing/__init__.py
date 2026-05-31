@@ -112,6 +112,9 @@ class BillingInstructionOut(BaseModel):
     paymentUrl: str | None = None
     installmentMonths: int | None = None
     installmentTotalAmount: float | None = None
+    billingDay: int | None = None
+    billingWeekDay: int | None = None
+    testIntervalMinutes: int | None = None
 
 
 class BillingInstructionIn(BaseModel):
@@ -122,6 +125,12 @@ class BillingInstructionIn(BaseModel):
     lineItems: list[BillingLineItemIn] | None = None
     """Split a total contract across N equal monthly charges (monthly only; no line items)."""
     splitAcrossMonths: int | None = Field(default=None, ge=2, le=60)
+    """Day of month (1–28) on which to charge. Monthly only."""
+    billingDay: int | None = Field(default=None, ge=1, le=28)
+    """Day of week (0=Mon … 6=Sun) for weekly billing. Monthly charge_type only."""
+    billingWeekDay: int | None = Field(default=None, ge=0, le=6)
+    """Charge every N minutes (test mode). Monthly charge_type only."""
+    testIntervalMinutes: int | None = Field(default=None, ge=1, le=1440)
 
     @model_validator(mode="after")
     def line_items_sum_matches_amount(self) -> "BillingInstructionIn":
@@ -129,6 +138,12 @@ class BillingInstructionIn(BaseModel):
             return self
         if self.amount is None or self.amount <= 0:
             raise ValueError("amount required when charge type is not none")
+        if self.billingDay is not None and self.chargeType != "monthly":
+            raise ValueError("billing_day_only_for_monthly")
+        if self.billingWeekDay is not None and self.chargeType != "monthly":
+            raise ValueError("billing_week_day_only_for_monthly")
+        if self.testIntervalMinutes is not None and self.chargeType != "monthly":
+            raise ValueError("test_interval_only_for_monthly")
         if self.splitAcrossMonths is not None:
             if self.chargeType != "monthly":
                 raise ValueError("split_across_months_only_for_monthly")
@@ -153,9 +168,12 @@ class InvoiceTemplateCreate(BaseModel):
     description: str | None = Field(default=None, max_length=500)
     lineItems: list[BillingLineItemIn] | None = None
     splitAcrossMonths: int | None = Field(default=None, ge=2, le=60)
+    billingDay: int | None = Field(default=None, ge=1, le=28)
 
     @model_validator(mode="after")
     def line_items_sum_matches_amount(self) -> "InvoiceTemplateCreate":
+        if self.billingDay is not None and self.chargeType != "monthly":
+            raise ValueError("billing_day_only_for_monthly")
         if self.splitAcrossMonths is not None:
             if self.chargeType != "monthly":
                 raise ValueError("split_across_months_only_for_monthly")
@@ -180,6 +198,7 @@ class InvoiceTemplateOut(BaseModel):
     lineItems: list[BillingLineItemOut] | None = None
     createdAt: str
     installmentMonths: int | None = None
+    billingDay: int | None = None
 
 
 class BillingHistoryOut(BaseModel):
@@ -204,6 +223,8 @@ class BillingHistoryOut(BaseModel):
     createdAt: str
     closedAt: str | None = None
     isCurrent: bool = False
+    billingDay: int | None = None
+    billingWeekDay: int | None = None
 
 
 class BillingHistoryWithAccountOut(BillingHistoryOut):

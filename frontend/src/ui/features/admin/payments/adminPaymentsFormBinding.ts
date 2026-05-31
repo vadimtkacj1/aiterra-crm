@@ -4,7 +4,14 @@
 
 import type { AccountBillingInstruction, InvoiceTemplateRow } from "@/services/admin/AdminService";
 import { billingInstructionAmountForForm } from "./adminPaymentsFormModel";
-import type { AdminPaymentsFormValues, LineFormRow } from "./types";
+import type { AdminPaymentsFormValues, BillingSchedule, LineFormRow } from "./types";
+
+function scheduleFromInstruction(bi: AccountBillingInstruction): BillingSchedule | undefined {
+  if (bi.testIntervalMinutes != null) return "minutely";
+  if (bi.billingWeekDay != null) return "weekly";
+  if (bi.billingDay != null) return "monthly";
+  return undefined;
+}
 
 export function formPatchFromBillingInstruction(bi: AccountBillingInstruction): Partial<AdminPaymentsFormValues> {
   const hasLines = Boolean(bi.lineItems && bi.lineItems.length > 0);
@@ -24,6 +31,10 @@ export function formPatchFromBillingInstruction(bi: AccountBillingInstruction): 
         )
       : [],
     splitAcrossMonths: bi.installmentMonths ?? undefined,
+    billingSchedule: scheduleFromInstruction(bi),
+    billingDay: bi.billingDay ?? undefined,
+    billingWeekDay: bi.billingWeekDay ?? undefined,
+    testIntervalMinutes: bi.testIntervalMinutes ?? undefined,
   };
 }
 
@@ -46,6 +57,7 @@ export function formPatchFromInvoiceTemplate(tpl: InvoiceTemplateRow): Partial<A
         )
       : [],
     splitAcrossMonths: typeof splitM === "number" && splitM >= 2 ? splitM : undefined,
+    billingDay: tpl.billingDay ?? undefined,
   };
 }
 

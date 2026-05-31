@@ -7,8 +7,9 @@ import {
   EyeOutlined,
   MinusCircleOutlined,
   SendOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
-import { Space } from "antd";
+import { Space, theme } from "antd";
 import { useTranslation } from "react-i18next";
 import type { Contract } from "../../../../domain/Contract";
 import { TableActionButton } from "../../../shared/components/TableActionButton";
@@ -20,6 +21,7 @@ interface Props {
   onCopyLink: (c: Contract) => void;
   onCopyPaymentLink: (c: Contract) => void;
   onSubscription: (id: number) => void;
+  onQuickTest: (id: number) => void;
   onSend: (c: Contract) => void;
   onVoid: (c: Contract) => void;
   onDelete: (c: Contract) => void;
@@ -32,11 +34,13 @@ export function ContractRowActions({
   onCopyLink,
   onCopyPaymentLink,
   onSubscription,
+  onQuickTest,
   onSend,
   onVoid,
   onDelete,
 }: Props) {
   const { t } = useTranslation();
+  const { token } = theme.useToken();
   const wasCopied = copiedId === c.id;
 
   return (
@@ -50,7 +54,7 @@ export function ContractRowActions({
       {(c.status === "draft" || c.status === "pending_signature") && (
         <TableActionButton
           tooltip={wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyLink")}
-          icon={wasCopied ? <CheckCircleOutlined style={{ color: "#22c55e" }} /> : <CopyOutlined />}
+          icon={wasCopied ? <CheckCircleOutlined style={{ color: token.colorSuccess }} /> : <CopyOutlined />}
           onClick={() => onCopyLink(c)}
         />
       )}
@@ -58,7 +62,7 @@ export function ContractRowActions({
       {c.status === "signed" && (
         <TableActionButton
           tooltip={wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyPaymentLink")}
-          icon={wasCopied ? <CheckCircleOutlined style={{ color: "#22c55e" }} /> : <CreditCardOutlined />}
+          icon={wasCopied ? <CheckCircleOutlined style={{ color: token.colorSuccess }} /> : <CreditCardOutlined />}
           onClick={() => onCopyPaymentLink(c)}
         />
       )}
@@ -68,6 +72,14 @@ export function ContractRowActions({
           tooltip={t("admin.contracts.subscription.viewStatus")}
           icon={<CalendarOutlined />}
           onClick={() => onSubscription(c.id)}
+        />
+      )}
+
+      {c.status === "signed" && c.monthlyAmount && c.monthlyAmount > 0 && (
+        <TableActionButton
+          tooltip={t("admin.contracts.subscription.quickTest")}
+          icon={<ThunderboltOutlined />}
+          onClick={() => onQuickTest(c.id)}
         />
       )}
 

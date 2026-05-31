@@ -100,6 +100,9 @@ export interface AccountBillingInstruction {
   installmentMonths?: number | null;
   installmentTotalAmount?: number | null;
   splitAcrossMonths?: number | null;
+  billingDay?: number | null;
+  billingWeekDay?: number | null;
+  testIntervalMinutes?: number | null;
 }
 
 export interface InvoiceTemplateRow {
@@ -112,6 +115,7 @@ export interface InvoiceTemplateRow {
   lineItems?: BillingLineItem[] | null;
   createdAt: string;
   installmentMonths?: number | null;
+  billingDay?: number | null;
 }
 
 export interface InvoiceTemplateCreateInput {
@@ -147,6 +151,8 @@ export interface SubscriptionStatus {
   payments_made: number;
   payments_remaining: number | null;
   total_paid: number;
+  billing_day: number | null;
+  test_interval_minutes: number | null;
   payments: SubscriptionPayment[];
 }
 
@@ -180,6 +186,7 @@ export interface BillingHistoryRow {
   createdAt: string;
   closedAt: string | null;
   isCurrent: boolean;
+  billingDay?: number | null;
 }
 
 export interface BillingHistoryWithAccountRow extends BillingHistoryRow {
@@ -351,8 +358,8 @@ export class AdminService {
       isSubscription: input.isSubscription ?? false,
       monthlyAmount: input.monthlyAmount ?? null,
       subscriptionMonths: input.subscriptionMonths ?? null,
+      billingDay: input.billingDay ?? null,
     };
-    console.log("DEBUG: Creating contract with payload:", JSON.stringify(payload, null, 2));
     return this.http.post<Contract>("/admin/contracts", payload);
   }
 
@@ -374,5 +381,25 @@ export class AdminService {
 
   async simulateMonthlyPayment(contractId: number): Promise<{ success: boolean; payment_number: number; amount: number; currency: string; message: string }> {
     return this.http.post(`/subscriptions/contracts/${contractId}/subscription/simulate-payment`, {});
+  }
+
+  async updateContractBillingDay(contractId: number, billingDay: number | null): Promise<SubscriptionStatus> {
+    return this.http.patch<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription/billing-day`, { billing_day: billingDay });
+  }
+
+  async pauseSubscription(contractId: number): Promise<SubscriptionStatus> {
+    return this.http.patch<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription/pause`, {});
+  }
+
+  async resumeSubscription(contractId: number): Promise<SubscriptionStatus> {
+    return this.http.patch<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription/resume`, {});
+  }
+
+  async cancelSubscription(contractId: number): Promise<SubscriptionStatus> {
+    return this.http.patch<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription/cancel`, {});
+  }
+
+  async setTestInterval(contractId: number, minutes: number | null): Promise<SubscriptionStatus> {
+    return this.http.patch<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription/test-interval`, { minutes });
   }
 }

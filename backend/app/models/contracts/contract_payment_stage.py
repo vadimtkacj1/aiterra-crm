@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from sqlalchemy import Float, ForeignKey, Integer, String, Text
+from datetime import datetime
+
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -25,6 +27,9 @@ class ContractPaymentStage(Base):
 
     # Z-Credit session ID set when checkout is created; used to match webhook callback
     payment_doc_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+
+    # Timestamp when Z-Credit confirmed payment
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     contract: Mapped[Contract] = relationship("Contract", back_populates="stages")
 

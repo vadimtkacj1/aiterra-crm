@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import Response as StarletteResponse
@@ -97,6 +100,9 @@ def get_billing_instruction(
         paymentUrl=instruction.payment_url,
         installmentMonths=instruction.installment_months,
         installmentTotalAmount=instruction.installment_total_amount,
+        billingDay=instruction.billing_day,
+        billingWeekDay=getattr(instruction, "billing_week_day", None),
+        testIntervalMinutes=instruction.test_interval_minutes,
     )
 
 
@@ -117,6 +123,47 @@ def set_billing_instruction(
     return billing_sync.sync_account_billing_instruction(db, account_id, admin, payload)
 
 
+@router.put(
+    "/accounts/{account_id}/billing-instruction/test-interval",
+    response_model=BillingInstructionOut,
+)
+def set_test_billing_interval(
+    account_id: int,
+    minutes: int | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> BillingInstructionOut:
+    """Set or clear the test interval (minutes) on an existing billing instruction.
+
+    Pass ?minutes=10 to charge every 10 minutes (requires SUBSCRIPTION_BILLING_TEST_ENABLED=true).
+    Pass ?minutes= (omit) to clear and revert to normal monthly billing.
+    """
+    instruction = (
+        db.query(AccountBillingInstruction)
+        .filter(AccountBillingInstruction.account_id == account_id)
+        .first()
+    )
+    if not instruction:
+        raise HTTPException(status_code=404, detail="billing_instruction_not_found")
+    instruction.test_interval_minutes = minutes
+    db.add(instruction)
+    db.commit()
+    db.refresh(instruction)
+    return BillingInstructionOut(
+        chargeType=instruction.charge_type,
+        amount=instruction.amount,
+        currency=instruction.currency,
+        description=instruction.description,
+        lineItems=parse_stored_line_items(instruction.line_items_json),
+        paymentUrl=instruction.payment_url,
+        installmentMonths=instruction.installment_months,
+        installmentTotalAmount=instruction.installment_total_amount,
+        billingDay=instruction.billing_day,
+        billingWeekDay=getattr(instruction, "billing_week_day", None),
+        testIntervalMinutes=instruction.test_interval_minutes,
+    )
+
+
 def _invoice_template_to_out(row: InvoiceTemplate) -> InvoiceTemplateOut:
     ca = row.created_at
     created = ca.isoformat() if hasattr(ca, "isoformat") else str(ca)
@@ -130,6 +177,7 @@ def _invoice_template_to_out(row: InvoiceTemplate) -> InvoiceTemplateOut:
         lineItems=parse_stored_line_items(row.line_items_json),
         createdAt=created,
         installmentMonths=row.installment_months,
+        billingDay=row.billing_day,
     )
 
 
@@ -162,6 +210,7 @@ def create_invoice_template(
         description=(body.description or "").strip() or None,
         line_items_json=li_json,
         installment_months=body.splitAcrossMonths,
+        billing_day=body.billingDay,
         created_by_admin_id=admin.id,
     )
     db.add(row)
@@ -227,17 +276,24 @@ def apply_invoice_template_to_account(
         description=tpl.description,
         lineItems=items,
         splitAcrossMonths=tpl.installment_months,
+        billingDay=tpl.billing_day if tpl.charge_type == "monthly" else None,
     )
     out = billing_sync.sync_account_billing_instruction(db, account_id, admin, payload)
-    log_admin_action(
-        db,
-        admin,
-        "invoice_template_applied",
-        resource_type="invoice_template",
-        resource_id=str(template_id),
-        detail={"accountId": account_id},
-    )
-    db.commit()
+    # sync_account_billing_instruction commits internally; this second commit persists the
+    # "invoice_template_applied" audit entry. Wrap so a commit failure here never masks the
+    # billing change that already landed.
+    try:
+        log_admin_action(
+            db,
+            admin,
+            "invoice_template_applied",
+            resource_type="invoice_template",
+            resource_id=str(template_id),
+            detail={"accountId": account_id},
+        )
+        db.commit()
+    except Exception:
+        logger.warning("billing_routes: could not write invoice_template_applied audit log", exc_info=True)
     return out
 
 
@@ -359,6 +415,7 @@ def revoke_billing_history_row(
             instruction.payment_recurring_id = None
             instruction.payment_plan_id = None
             instruction.subscription_status = None
+            instruction.billing_day = None
             instruction.currency = "ILS"
             db.add(instruction)
 

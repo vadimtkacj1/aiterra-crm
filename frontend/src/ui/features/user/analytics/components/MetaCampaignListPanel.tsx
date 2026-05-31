@@ -256,7 +256,7 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
                 color={goalKindColor(classifyCampaignObjective(row.objective))}
                 style={{ fontSize: 10, padding: "0 4px", lineHeight: "16px", width: "fit-content" }}
               >
-                {row.objective.replace(/_/g, " ")}
+                {row.objective.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
               </Tag>
             )}
           </Flex>

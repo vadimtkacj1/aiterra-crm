@@ -1,5 +1,10 @@
 {
   "contracts": {
+    "pdf": {
+      "loadError": "Failed to load document",
+      "loading": "Loading document…",
+      "open": "Open PDF document"
+    },
     "sign": {
       "secureLabel": "Secure signing",
       "encryptionNote": "TLS · Encrypted session",

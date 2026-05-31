@@ -154,6 +154,8 @@ def history_to_out(
         lineItems=parse_stored_line_items(row.line_items_json),
         installmentMonths=row.installment_months,
         installmentTotalAmount=row.installment_total_amount,
+        billingDay=row.billing_day,
+        billingWeekDay=getattr(row, "billing_week_day", None),
         paymentDocId=row.payment_doc_id,
         paymentUrl=row.payment_url,
         paymentRecurringId=row.payment_recurring_id,

@@ -30,6 +30,7 @@ class ContractCreate(BaseModel):
     isSubscription: bool = Field(default=False, validation_alias=AliasChoices("isSubscription", "is_subscription"))
     monthlyAmount: float | None = Field(default=None, validation_alias=AliasChoices("monthlyAmount", "monthly_amount"))
     subscriptionMonths: int | None = Field(default=None, validation_alias=AliasChoices("subscriptionMonths", "subscription_months"))
+    billingDay: int | None = Field(default=None, ge=1, le=28, validation_alias=AliasChoices("billingDay", "billing_day"))
 
     @model_validator(mode='after')
     def validate_stages_or_subscription(self):
@@ -68,6 +69,7 @@ class ContractStageOut(BaseModel):
     description: str
     amount: float
     status: str
+    paidAt: datetime | None = None
 
 
 class ContractOut(BaseModel):
@@ -91,6 +93,7 @@ class ContractOut(BaseModel):
     billingInstructionId: int | None = None
     monthlyAmount: float | None = None
     subscriptionMonths: int | None = None
+    billingDay: int | None = None
 
 
 class ContractPublicOut(BaseModel):

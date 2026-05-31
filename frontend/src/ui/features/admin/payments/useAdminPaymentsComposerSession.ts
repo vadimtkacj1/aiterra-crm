@@ -29,7 +29,7 @@ export function useAdminPaymentsComposerSession(
 
   useEffect(() => {
     if (chargeTypeW !== "monthly") {
-      form.setFieldsValue({ splitAcrossMonths: undefined });
+      form.setFieldsValue({ splitAcrossMonths: undefined, billingDay: undefined });
     }
   }, [chargeTypeW, form]);
 

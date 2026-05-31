@@ -1,20 +1,8 @@
-import { theme } from "antd";
+import { chartPalette } from "@/styles/designSystem";
 
-/** Distinct series colors from the active Ant Design theme. */
+/** Distinct series colors aligned to the AITERRA design system. */
 export function usePlotPalette(): string[] {
-  const { token } = theme.useToken();
-  return [
-    token.colorPrimary,
-    token.colorSuccess,
-    token.colorWarning,
-    token.colorError,
-    "#722ed1",
-    "#13c2c2",
-    "#eb2f96",
-    "#2f54eb",
-    "#ff7a45",
-    "#36cfc9",
-  ];
+  return [...chartPalette];
 }
 
 export const chartLegendStyle = { fontSize: 12 };

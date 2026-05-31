@@ -1,5 +1,10 @@
 {
   "contracts": {
+    "pdf": {
+      "loadError": "שגיאה בטעינת המסמך",
+      "loading": "טוען מסמך…",
+      "open": "פתח מסמך PDF"
+    },
     "sign": {
       "secureLabel": "חתימה מאובטחת",
       "encryptionNote": "TLS · חיבור מוצפן",

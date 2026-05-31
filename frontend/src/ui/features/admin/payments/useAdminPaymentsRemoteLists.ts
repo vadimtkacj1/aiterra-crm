@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AdminService, BillingHistoryWithAccountRow, InvoiceTemplateRow } from "@/services/admin/AdminService";
 
 export function useAdminPaymentsRemoteLists(admin: AdminService) {
@@ -6,8 +6,18 @@ export function useAdminPaymentsRemoteLists(admin: AdminService) {
   const [allBillingLoading, setAllBillingLoading] = useState(false);
   const [invoiceTemplates, setInvoiceTemplates] = useState<InvoiceTemplateRow[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
+  const billingLoadingRef = useRef(false);
+
+  // When admin identity changes, reset the in-flight guard so the new admin can load.
+  useEffect(() => {
+    return () => {
+      billingLoadingRef.current = false;
+    };
+  }, [admin]);
 
   const loadAllBillingHistory = useCallback(async () => {
+    if (billingLoadingRef.current) return;
+    billingLoadingRef.current = true;
     setAllBillingLoading(true);
     try {
       const rows = await admin.listAllBillingHistory();
@@ -16,6 +26,7 @@ export function useAdminPaymentsRemoteLists(admin: AdminService) {
       setAllBillingRows([]);
     } finally {
       setAllBillingLoading(false);
+      billingLoadingRef.current = false;
     }
   }, [admin]);
 
@@ -33,7 +44,8 @@ export function useAdminPaymentsRemoteLists(admin: AdminService) {
 
   useEffect(() => {
     void loadInvoiceTemplates();
-  }, [loadInvoiceTemplates]);
+    void loadAllBillingHistory();
+  }, [loadInvoiceTemplates, loadAllBillingHistory]);
 
   return {
     allBillingRows,

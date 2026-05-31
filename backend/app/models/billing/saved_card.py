@@ -18,6 +18,7 @@ class SavedCard(Base):
     holder_name: Mapped[str] = mapped_column(String(200), nullable=False)
     last4: Mapped[str] = mapped_column(String(4), nullable=False)
     brand: Mapped[str] = mapped_column(String(32), nullable=False, default="unknown")
+    # Sentinel values when expiry is unknown from webhook: exp_month=1, exp_year=2099.
     exp_month: Mapped[int] = mapped_column(Integer, nullable=False)
     exp_year: Mapped[int] = mapped_column(Integer, nullable=False)
 

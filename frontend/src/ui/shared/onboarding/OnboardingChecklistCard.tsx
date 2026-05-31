@@ -85,7 +85,7 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
         type="info"
         showIcon
         style={{ marginBottom: 16, borderRadius: token.borderRadiusLG }}
-        message={
+        title={
           <Flex align="center" justify="space-between" gap={12} wrap="wrap">
             <Flex align="center" gap={12} style={{ flex: 1, minWidth: 0 }}>
               <Typography.Text strong style={{ whiteSpace: "nowrap" }}>

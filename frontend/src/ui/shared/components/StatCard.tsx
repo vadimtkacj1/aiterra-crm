@@ -33,7 +33,7 @@ export function StatCard({
       hoverable={!!onClick}
       onClick={onClick}
       style={{
-        borderRadius: 12,
+        borderRadius: token.borderRadiusLG,
         border: `1px solid ${token.colorBorderSecondary}`,
         cursor: onClick ? "pointer" : "default",
       }}
@@ -44,7 +44,7 @@ export function StatCard({
           value={value}
           prefix={prefix}
           suffix={suffix}
-          valueStyle={{ fontSize: 28, fontWeight: 600 }}
+          styles={{ content: { fontSize: 28, fontWeight: 600 } }}
         />
         {icon && (
           <div

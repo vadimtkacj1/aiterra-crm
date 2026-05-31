@@ -58,9 +58,33 @@ export interface HostedCheckoutResponse {
   paymentUrl?: string | null;
 }
 
+export type BillingHistoryPaymentStatus =
+  | "paid"
+  | "unpaid"
+  | "voided"
+  | "cancelled"
+  | "superseded"
+  | "ongoing"
+  | "unknown";
+
+export interface UserBillingHistoryRow {
+  id: number;
+  chargeType: "one_time" | "monthly";
+  amount: number | null;
+  currency: string;
+  description: string | null;
+  installmentMonths?: number | null;
+  installmentTotalAmount?: number | null;
+  recordStatus: "active" | "superseded" | "revoked";
+  paymentStatus: BillingHistoryPaymentStatus;
+  createdAt: string;
+  isCurrent: boolean;
+}
+
 export interface IBillingService {
   fetchAccountContracts(accountId: string): Promise<ContractMemberRow[]>;
   fetchOverview(accountId: string): Promise<BillingOverview>;
+  fetchBillingHistory(accountId: string): Promise<UserBillingHistoryRow[]>;
   getCard(accountId: string): Promise<CardInfo | null>;
   deleteCard(accountId: string): Promise<void>;
   payOpenInvoice(accountId: string): Promise<{ status: string; hostedInvoiceUrl?: string | null }>;

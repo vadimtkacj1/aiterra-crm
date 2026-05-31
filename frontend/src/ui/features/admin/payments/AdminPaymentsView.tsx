@@ -1,5 +1,6 @@
 import { Button, Card, Empty, Flex, Form, Input, Modal, Spin, Steps, Typography } from "antd";
 import { useState } from "react";
+import { AdminPaymentsHistoryTable } from "./AdminPaymentsHistoryTable";
 import { AdminPaymentsLibraryDrawer } from "./AdminPaymentsLibraryDrawer";
 import { AdminPaymentsPageHeader } from "./AdminPaymentsPageHeader";
 import { InvoiceComposerCard } from "./InvoiceComposerCard";
@@ -80,6 +81,10 @@ export function AdminPaymentsPage() {
                 useBreakdown: true,
                 lineItems: [],
                 splitAcrossMonths: undefined,
+                billingSchedule: undefined,
+                billingDay: undefined,
+                billingWeekDay: undefined,
+                testIntervalMinutes: undefined,
               }}
               onFinish={(values) => void p.onFormFinish(values)}
             >
@@ -152,6 +157,35 @@ export function AdminPaymentsPage() {
 
               <AdminPaymentsLibraryDrawer model={p.libraryDrawer} />
             </Form>
+
+            {/* Payment History */}
+            <Card
+              title={p.t("admin.payments.historyTitle")}
+              size="small"
+              style={{
+                marginTop: 24,
+                borderRadius: p.shellRadius,
+                border: `1px solid ${p.token.colorBorderSecondary}`,
+                boxShadow: p.shellShadow,
+              }}
+              styles={{ body: { padding: 0 } }}
+            >
+              <AdminPaymentsHistoryTable
+                t={p.t}
+                admin={p.services.admin}
+                message={p.message}
+                userMeta={p.userMeta}
+                rows={p.visibleBillingRows}
+                loading={p.allBillingLoading}
+                revokingId={p.revokingId}
+                deletingId={p.deletingId}
+                setRevokingId={p.setRevokingId}
+                setDeletingId={p.setDeletingId}
+                refreshBillingFormForAccount={p.refreshBillingFormForAccount}
+                loadAllBillingHistory={p.loadAllBillingHistory}
+                downloadRowPdf={p.downloadRowPdf}
+              />
+            </Card>
 
             <Modal
               title={p.t("admin.payments.saveTemplateModalTitle")}

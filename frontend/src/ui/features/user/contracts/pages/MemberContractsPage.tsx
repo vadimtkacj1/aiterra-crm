@@ -143,29 +143,22 @@ export function MemberContractsPage() {
       ),
     },
     {
-      title: t("memberContracts.colTotal"),
-      key: "total",
-      width: 140,
-      render: (_, r) => fmtMoney(r.totalAmount, r.currency),
-    },
-    {
-      title: t("memberContracts.colStages"),
-      key: "stages",
-      width: 96,
-      render: (_, r) => r.stages?.length ?? 0,
-    },
-    {
       title: t("memberContracts.colPaymentStatus"),
       key: "paymentStatus",
-      width: 130,
+      width: 200,
       render: (_, r) => {
         const [color, key] = paymentMeta(r);
         const { stagesPaid, stagesTotal, paidAmount } = paidCounts(r);
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <Tag color={color} style={{ margin: 0, alignSelf: "flex-start" }}>
-              {t(key)}
-            </Tag>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Tag color={color} style={{ margin: 0 }}>
+                {t(key)}
+              </Tag>
+              <Typography.Text strong style={{ fontSize: 13 }}>
+                {fmtMoney(r.totalAmount, r.currency)}
+              </Typography.Text>
+            </div>
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               {t("memberContracts.paymentProgress", {
                 paid: stagesPaid,
@@ -182,7 +175,7 @@ export function MemberContractsPage() {
       title: t("memberContracts.colStatus"),
       dataIndex: "status",
       key: "status",
-      width: 160,
+      width: 110,
       render: (status: ContractMemberRow["status"]) => {
         const [color, i18nKey] = statusMeta(status);
         return <Tag color={color}>{t(i18nKey)}</Tag>;
@@ -292,11 +285,7 @@ export function MemberContractsPage() {
                     { label: t(statusKey), color: statusColor },
                     { label: t(paymentKey), color: paymentColor },
                   ],
-                  extra: (
-                    <Typography.Text strong style={{ fontSize: 14 }}>
-                      {fmtMoney(r.totalAmount, r.currency)}
-                    </Typography.Text>
-                  ),
+                  extra: null,
                   actions: [
                     {
                       label: r.status === "signed"

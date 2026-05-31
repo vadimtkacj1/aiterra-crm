@@ -6,6 +6,8 @@ import {
   FilePdfOutlined,
   MinusCircleOutlined,
   PlusOutlined,
+  SyncOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
 import {
   App,
@@ -21,9 +23,11 @@ import {
   Row,
   Select,
   Space,
+  Spin,
   Switch,
   Table,
   Tag,
+  Tooltip,
   Typography,
   Upload,
 } from "antd";
@@ -36,9 +40,10 @@ import type { Contract } from "../../../../domain/Contract";
 import { useApp } from "../../../../app/AppProviders";
 import { renderContractBody } from "../../user/contracts/components/contractBodyRenderer";
 import { PageContainer } from "../../../shared/components/PageContainer";
-import { PageHeader } from "../../../shared/components/PageHeader";
 import { SubscriptionStatusModal } from "./SubscriptionStatusModal";
 import { ContractRowActions } from "./ContractRowActions";
+import { SubscriptionPaymentHistory } from "../../user/subscriptions/components/SubscriptionPaymentHistory";
+import type { SubscriptionStatus } from "../../../../services/admin/AdminService";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -121,6 +126,7 @@ interface FormValues {
   isSubscription: boolean;
   monthlyAmount?: number | null;
   subscriptionMonths?: number | null;
+  billingDay?: number | null;
 }
 
 // ─── component ──────────────────────────────────────────────────────────────
@@ -137,6 +143,9 @@ export function AdminContractsPage() {
   const [creating, setCreating] = useState(false);
   const [detailContract, setDetailContract] = useState<Contract | null>(null);
   const [subscriptionContractId, setSubscriptionContractId] = useState<number | null>(null);
+  const [detailSubStatus, setDetailSubStatus] = useState<SubscriptionStatus | null>(null);
+  const [expandedPayments, setExpandedPayments] = useState<Record<number, SubscriptionStatus>>({});
+  const [expandedLoading, setExpandedLoading] = useState<Record<number, boolean>>({});
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
@@ -158,8 +167,31 @@ export function AdminContractsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleRowExpand = (expanded: boolean, contract: Contract) => {
+    if (!expanded || !contract.monthlyAmount || contract.monthlyAmount <= 0) return;
+    if (expandedPayments[contract.id]) return;
+    setExpandedLoading((prev) => ({ ...prev, [contract.id]: true }));
+    services.admin
+      .getContractSubscriptionStatus(contract.id)
+      .then((status) => setExpandedPayments((prev) => ({ ...prev, [contract.id]: status })))
+      .catch(() => {})
+      .finally(() => setExpandedLoading((prev) => ({ ...prev, [contract.id]: false })));
+  };
+
+  useEffect(() => {
+    if (detailContract?.monthlyAmount && detailContract.monthlyAmount > 0) {
+      services.admin
+        .getContractSubscriptionStatus(detailContract.id)
+        .then(setDetailSubStatus)
+        .catch(() => setDetailSubStatus(null));
+    } else {
+      setDetailSubStatus(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailContract?.id]);
+
   const signUrl = (c: Contract) => `${window.location.origin}/contracts/sign/${c.signToken}`;
-  const paymentUrl = (c: Contract) => `${window.location.origin}/contracts/sign/${c.signToken}`;
+  const paymentUrl = signUrl;
 
   const copyLink = async (c: Contract) => {
     await navigator.clipboard.writeText(signUrl(c));
@@ -200,6 +232,24 @@ export function AdminContractsPage() {
     });
   };
 
+  const handleQuickTest = (contractId: number) => {
+    Modal.confirm({
+      title: t("admin.contracts.subscription.quickTestConfirmTitle"),
+      content: t("admin.contracts.subscription.quickTestConfirmContent"),
+      okText: t("admin.contracts.subscription.quickTestConfirmOk"),
+      onOk: async () => {
+        try {
+          await services.admin.setTestInterval(contractId, 10);
+          void message.success(t("admin.contracts.subscription.quickTestStarted"));
+        } catch (e: unknown) {
+          const detail =
+            (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+          void message.error(detail ?? (e instanceof Error ? e.message : t("errors.generic")));
+        }
+      },
+    });
+  };
+
   const handleDelete = (c: Contract) => {
     Modal.confirm({
       title: t("admin.contracts.deleteConfirmTitle"),
@@ -231,14 +281,28 @@ export function AdminContractsPage() {
       void message.warning(t("admin.contracts.form.equalSplitInvalid"));
       return;
     }
-    const amounts = splitEqual(splitTotal, splitParts);
-    form.setFieldsValue({
-      stages: amounts.map((amount, i) => ({
-        description: t("admin.contracts.form.equalStageLabel", { current: i + 1, total: splitParts }),
-        amount,
-      })),
-    });
-    void message.success(t("admin.contracts.form.equalSplitApplied"));
+    const doApply = () => {
+      const amounts = splitEqual(splitTotal!, splitParts);
+      form.setFieldsValue({
+        stages: amounts.map((amount, i) => ({
+          description: t("admin.contracts.form.equalStageLabel", { current: i + 1, total: splitParts }),
+          amount,
+        })),
+      });
+      void message.success(t("admin.contracts.form.equalSplitApplied"));
+    };
+    const currentStages: StageRow[] = form.getFieldValue("stages") ?? [];
+    const hasData = currentStages.some((s) => s.description?.trim() || (s.amount && s.amount > 0));
+    if (hasData) {
+      Modal.confirm({
+        title: t("admin.contracts.form.equalSplitConfirmTitle"),
+        content: t("admin.contracts.form.equalSplitConfirmContent"),
+        okText: t("admin.contracts.form.equalSplitConfirmOk"),
+        onOk: doApply,
+      });
+    } else {
+      doApply();
+    }
   };
 
   const handleCreate = async (values: FormValues) => {
@@ -260,6 +324,7 @@ export function AdminContractsPage() {
           isSubscription: true,
           monthlyAmount: values.monthlyAmount,
           subscriptionMonths: values.subscriptionMonths || null,
+          billingDay: values.billingDay || null,
         });
         setContracts((prev) => [created, ...prev]);
         resetCreateForm();
@@ -399,6 +464,7 @@ export function AdminContractsPage() {
           onCopyLink={(c) => void copyLink(c)}
           onCopyPaymentLink={(c) => void copyPaymentLink(c)}
           onSubscription={setSubscriptionContractId}
+          onQuickTest={handleQuickTest}
           onSend={(c) => void handleSend(c)}
           onVoid={handleVoid}
           onDelete={handleDelete}
@@ -417,7 +483,7 @@ export function AdminContractsPage() {
         loading={creating}
         onClick={() => void form.validateFields().then(handleCreate)}
       >
-        {t("admin.contracts.create")}
+        {t("admin.contracts.form.submit")}
       </Button>
     </Flex>
   );
@@ -426,8 +492,6 @@ export function AdminContractsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("admin.contracts.title")} />
-
       <ListCard
         icon={<ContainerOutlined />}
         title={t("admin.contracts.title")}
@@ -496,6 +560,27 @@ export function AdminContractsPage() {
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => `${n} contracts` }}
+            expandable={{
+              rowExpandable: (c) => !!(c.monthlyAmount && c.monthlyAmount > 0),
+              onExpand: handleRowExpand,
+              expandedRowRender: (c) => {
+                const status = expandedPayments[c.id];
+                const isLoading = expandedLoading[c.id];
+                return (
+                  <div style={{ padding: "8px 16px 16px" }}>
+                    {isLoading ? (
+                      <Spin size="small" />
+                    ) : !status || status.payments.length === 0 ? (
+                      <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                        No payment history yet.
+                      </Typography.Text>
+                    ) : (
+                      <SubscriptionPaymentHistory payments={status.payments} t={t} />
+                    )}
+                  </div>
+                );
+              },
+            }}
           />
         )}
       </ListCard>
@@ -513,11 +598,18 @@ export function AdminContractsPage() {
           layout="vertical"
           initialValues={{ currency: "ILS", stages: [{ description: "", amount: null }], isSubscription: false }}
         >
-          {/* Client Selection */}
-          <div style={{ marginBottom: 24 }}>
-            <Typography.Title level={5} style={{ marginBottom: 12 }}>
-              {t("admin.contracts.form.selectClient")}
-            </Typography.Title>
+          {/* ── Step 1: Client ─────────────────────────────────── */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
+                color: "#fff", fontSize: 11, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>1</div>
+              <Typography.Text strong style={{ fontSize: 13, color: "var(--ds-text-primary)" }}>
+                {t("admin.contracts.form.selectClient")}
+              </Typography.Text>
+            </div>
             <Form.Item
               name="accountId"
               rules={[{ required: true }]}
@@ -536,7 +628,7 @@ export function AdminContractsPage() {
                 optionRender={(opt) => (
                   <div style={{ padding: "2px 0" }}>
                     <div style={{ fontWeight: 500 }}>{opt.data.label}</div>
-                    <div style={{ fontSize: 12, color: "#888" }}>{opt.data.email}</div>
+                    <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{opt.data.email}</div>
                   </div>
                 )}
                 options={users
@@ -550,18 +642,26 @@ export function AdminContractsPage() {
             </Form.Item>
           </div>
 
-          {/* Contract Details */}
+          {/* ── Step 2: Contract Details ────────────────────────── */}
           <div
             style={{
               padding: "16px",
-              background: "#fafafa",
+              background: "var(--ds-surface-1)",
+              border: "1px solid var(--ds-border-subtle)",
               borderRadius: 8,
-              marginBottom: 24,
+              marginBottom: 16,
             }}
           >
-            <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 12 }}>
-              {t("admin.contracts.form.contractDetails")}
-            </Typography.Title>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
+                color: "#fff", fontSize: 11, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>2</div>
+              <Typography.Text strong style={{ fontSize: 13, color: "var(--ds-text-primary)" }}>
+                {t("admin.contracts.form.contractDetails")}
+              </Typography.Text>
+            </div>
 
             <Row gutter={12}>
               <Col flex="auto">
@@ -600,238 +700,420 @@ export function AdminContractsPage() {
 
             {/* PDF upload */}
             <Form.Item label={t("admin.contracts.form.pdf")} style={{ marginBottom: 0 }}>
-              <Upload
-                accept=".pdf"
-                maxCount={1}
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  readFileAsBase64(file)
-                    .then((b64) => {
-                      setPdfBase64(b64);
-                      setPdfFileName(file.name);
-                      form.setFieldsValue({ body: "" }); // Clear body when PDF is uploaded
-                    })
-                    .catch(() => void message.error(t("errors.generic")));
-                  return false;
-                }}
-              >
-                <Button icon={<FilePdfOutlined />}>
-                  {pdfFileName ?? t("admin.contracts.form.pdfUpload")}
-                </Button>
-              </Upload>
-              {pdfFileName && (
-                <>
-                  <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+              {pdfFileName ? (
+                <Flex align="center" gap={8}
+                  style={{
+                    padding: "8px 12px",
+                    background: "var(--ds-color-primary-surface)",
+                    border: "1px solid var(--ds-color-primary-surface-deep)",
+                    borderRadius: 6,
+                  }}
+                >
+                  <FilePdfOutlined style={{ color: "var(--ds-color-primary)", fontSize: 16, flexShrink: 0 }} />
+                  <Typography.Text
+                    ellipsis
+                    style={{ flex: 1, fontSize: 13, color: "var(--ds-text-primary)" }}
+                    title={pdfFileName}
+                  >
                     {pdfFileName}
                   </Typography.Text>
                   <Button
-                    type="link"
+                    type="text"
                     danger
                     size="small"
-                    style={{ paddingInlineStart: 8 }}
-                    onClick={() => {
-                      setPdfBase64(null);
-                      setPdfFileName(null);
-                    }}
-                  >
-                    {t("admin.contracts.form.pdfRemove")}
+                    icon={<MinusCircleOutlined />}
+                    onClick={() => { setPdfBase64(null); setPdfFileName(null); }}
+                    style={{ flexShrink: 0 }}
+                  />
+                </Flex>
+              ) : (
+                <Upload
+                  accept=".pdf"
+                  maxCount={1}
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    if (file.size > 5 * 1024 * 1024) {
+                      void message.error(t("admin.contracts.form.pdfSizeError"));
+                      return false;
+                    }
+                    readFileAsBase64(file)
+                      .then((b64) => {
+                        setPdfBase64(b64);
+                        setPdfFileName(file.name);
+                        form.setFieldsValue({ body: "" });
+                      })
+                      .catch(() => void message.error(t("errors.generic")));
+                    return false;
+                  }}
+                >
+                  <Button icon={<FilePdfOutlined />}>
+                    {t("admin.contracts.form.pdfUpload")}
                   </Button>
-                </>
+                </Upload>
               )}
             </Form.Item>
           </div>
 
-          {/* Payment Type Toggle */}
-          <div
-            style={{
-              padding: "14px 16px",
-              background: "#f0f9ff",
-              borderRadius: 8,
-              border: "1px solid #bae6fd",
-              marginBottom: 16,
-            }}
-          >
-            <Flex gap={12} align="center">
-              <Form.Item name="isSubscription" valuePropName="checked" noStyle>
-                <Switch />
-              </Form.Item>
-              <div style={{ flex: 1 }}>
-                <Typography.Text strong>
-                  {t("admin.contracts.form.subscriptionToggle")}
-                </Typography.Text>
-              </div>
-            </Flex>
-          </div>
+          {/* ── Step 3: Payment Type ─────────────────────────────── */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
+                color: "#fff", fontSize: 11, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>3</div>
+              <Typography.Text strong style={{ fontSize: 13, color: "var(--ds-text-primary)" }}>
+                {t("admin.contracts.form.paymentStages")}
+              </Typography.Text>
+            </div>
 
-          {/* Payment Configuration */}
-          <Form.Item noStyle shouldUpdate={(prev, curr) => prev.isSubscription !== curr.isSubscription}>
-            {({ getFieldValue }) => {
-              const isSubscription = getFieldValue("isSubscription");
+            {/* ── Payment type selector cards ───────────────────── */}
+            <Form.Item noStyle shouldUpdate={(prev, curr) =>
+              prev.isSubscription !== curr.isSubscription ||
+              prev.monthlyAmount !== curr.monthlyAmount ||
+              prev.subscriptionMonths !== curr.subscriptionMonths ||
+              prev.billingDay !== curr.billingDay ||
+              prev.stages !== curr.stages ||
+              prev.currency !== curr.currency
+            }>
+              {({ getFieldValue }) => {
+                const isSubscription = getFieldValue("isSubscription") as boolean;
+                const currency: string = getFieldValue("currency") ?? "ILS";
 
-              if (isSubscription) {
-                // Subscription mode
+                const cardBase: React.CSSProperties = {
+                  position: "relative",
+                  cursor: "pointer",
+                  padding: "14px 16px",
+                  borderRadius: 8,
+                  border: "1px solid var(--ds-border-subtle)",
+                  background: "var(--ds-surface-0)",
+                  transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
+                  userSelect: "none",
+                };
+                const cardActive: React.CSSProperties = {
+                  border: "1px solid var(--ds-color-primary)",
+                  background: "var(--ds-color-primary-surface)",
+                  boxShadow: "var(--ds-shadow-focus)",
+                };
+
                 return (
-                  <div
-                    style={{
-                      padding: "16px",
-                      background: "#fafafa",
-                      borderRadius: 8,
-                    }}
-                  >
-                    <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 12 }}>
-                      {t("admin.contracts.form.subscriptionSettings")}
-                    </Typography.Title>
-                    <Row gutter={12}>
+                  <>
+                    {/* Type cards */}
+                    <Row gutter={10} style={{ marginBottom: 16 }}>
+                      {/* One-time / Installments */}
                       <Col xs={24} sm={12}>
-                        <Form.Item
-                          name="monthlyAmount"
-                          label={t("admin.contracts.form.monthlyAmount")}
-                          rules={[{ required: true, type: "number", min: 0.01 }]}
+                        <div
+                          style={{ ...cardBase, ...(!isSubscription ? cardActive : {}) }}
+                          onClick={() => form.setFieldsValue({ isSubscription: false })}
+                          role="button"
+                          aria-pressed={!isSubscription}
                         >
-                          <InputNumber
-                            size="large"
-                            min={0.01}
-                            style={{ width: "100%" }}
-                            placeholder="0.00"
-                          />
-                        </Form.Item>
+                          {!isSubscription && (
+                            <CheckCircleOutlined style={{
+                              position: "absolute", top: 10, right: 10,
+                              color: "var(--ds-color-primary)", fontSize: 14,
+                            }} />
+                          )}
+                          <WalletOutlined style={{
+                            fontSize: 22,
+                            color: !isSubscription ? "var(--ds-color-primary)" : "var(--ds-text-tertiary)",
+                            display: "block", marginBottom: 8,
+                            transition: "color 0.15s",
+                          }} />
+                          <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 3 }}>
+                            {t("admin.contracts.form.typeOneTime")}
+                          </Typography.Text>
+                          <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4, display: "block" }}>
+                            {t("admin.contracts.form.typeOneTimeDesc")}
+                          </Typography.Text>
+                        </div>
                       </Col>
+
+                      {/* Monthly Subscription */}
                       <Col xs={24} sm={12}>
-                        <Form.Item
-                          name="subscriptionMonths"
-                          label={t("admin.contracts.form.subscriptionMonths")}
-                          extra={
-                            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                              {t("admin.contracts.form.subscriptionMonthsHint")}
-                            </Typography.Text>
-                          }
+                        <div
+                          style={{ ...cardBase, ...(isSubscription ? cardActive : {}) }}
+                          onClick={() => form.setFieldsValue({ isSubscription: true })}
+                          role="button"
+                          aria-pressed={isSubscription}
                         >
-                          <InputNumber
-                            size="large"
-                            min={1}
-                            max={60}
-                            precision={0}
-                            style={{ width: "100%" }}
-                            placeholder="12"
-                          />
-                        </Form.Item>
+                          {isSubscription && (
+                            <CheckCircleOutlined style={{
+                              position: "absolute", top: 10, right: 10,
+                              color: "var(--ds-color-primary)", fontSize: 14,
+                            }} />
+                          )}
+                          <SyncOutlined style={{
+                            fontSize: 22,
+                            color: isSubscription ? "var(--ds-color-primary)" : "var(--ds-text-tertiary)",
+                            display: "block", marginBottom: 8,
+                            transition: "color 0.15s",
+                          }} />
+                          <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 3 }}>
+                            {t("admin.contracts.form.typeSubscription")}
+                          </Typography.Text>
+                          <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4, display: "block" }}>
+                            {t("admin.contracts.form.typeSubscriptionDesc")}
+                          </Typography.Text>
+                        </div>
                       </Col>
                     </Row>
-                  </div>
-                );
-              }
 
-              // One-time payment mode
-              return (
-                <div
-                  style={{
-                    padding: "16px",
-                    background: "#fafafa",
-                    borderRadius: 8,
-                  }}
-                >
-                  <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 12 }}>
-                    {t("admin.contracts.form.paymentStages")}
-                  </Typography.Title>
-
-                  {/* Equal split helper */}
-                  <Flex
-                    gap={8}
-                    align="center"
-                    wrap="wrap"
-                    style={{
-                      padding: "10px 14px",
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 8,
-                      marginBottom: 16,
-                    }}
-                  >
-                    <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                      {t("admin.contracts.form.equalSplitTitle")}:
-                    </Typography.Text>
-                    <InputNumber
-                      size="small"
-                      min={0.01}
-                      value={splitTotal ?? undefined}
-                      onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
-                      placeholder={t("admin.contracts.form.equalSplitTotal")}
-                      style={{ width: 120 }}
-                    />
-                    <Typography.Text type="secondary">÷</Typography.Text>
-                    <InputNumber
-                      size="small"
-                      min={2}
-                      max={60}
-                      precision={0}
-                      value={splitParts}
-                      onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
-                      style={{ width: 64 }}
-                    />
-                    <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
-                      {t("admin.contracts.form.equalSplitApply")}
-                    </Button>
-                  </Flex>
-
-                  {/* Stage list */}
-                  <Form.List name="stages">
-                    {(fields, { add, remove }) => (
-                      <Space direction="vertical" size={0} style={{ width: "100%" }}>
-                        {fields.map(({ key, name, ...rest }, index) => (
-                          <Flex
-                            key={key}
-                            gap={8}
-                            align="center"
-                            style={{ padding: "8px 0", borderBottom: "1px solid #e0e0e0" }}
-                          >
-                            <Typography.Text
-                              type="secondary"
-                              style={{ flex: "0 0 22px", textAlign: "center", fontSize: 13 }}
-                            >
-                              {index + 1}
-                            </Typography.Text>
-                            <Form.Item
-                              {...rest}
-                              name={[name, "description"]}
-                              rules={[{ required: true, message: "" }]}
-                              style={{ flex: 1, marginBottom: 0 }}
-                            >
-                              <Input placeholder={t("admin.contracts.form.stageDescription")} />
-                            </Form.Item>
-                            <Form.Item
-                              {...rest}
-                              name={[name, "amount"]}
-                              rules={[{ required: true, type: "number", min: 0.01, message: "" }]}
-                              style={{ width: 130, marginBottom: 0 }}
-                            >
-                              <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
-                            </Form.Item>
-                            <Button
-                              type="text"
-                              danger
-                              icon={<MinusCircleOutlined />}
-                              onClick={() => remove(name)}
-                              disabled={fields.length === 1}
-                            />
-                          </Flex>
-                        ))}
-
-                        <Button
-                          type="dashed"
-                          icon={<PlusOutlined />}
-                          onClick={() => add({ description: "", amount: null })}
-                          block
-                          style={{ marginTop: 12 }}
+                    {/* ── One-time / Installments ───────────────────── */}
+                    {!isSubscription && (
+                      <div style={{
+                        padding: "16px",
+                        background: "var(--ds-surface-1)",
+                        border: "1px solid var(--ds-border-subtle)",
+                        borderRadius: 8,
+                      }}>
+                        {/* Quick equal-split tool */}
+                        <Flex
+                          align="center"
+                          gap={8}
+                          wrap="wrap"
+                          style={{
+                            padding: "9px 12px",
+                            background: "var(--ds-surface-0)",
+                            border: "1px solid var(--ds-border-subtle)",
+                            borderRadius: 6,
+                            marginBottom: 14,
+                          }}
                         >
-                          {t("admin.contracts.form.addStage")}
-                        </Button>
-                      </Space>
+                          <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                            {t("admin.contracts.form.equalSplitTitle")}
+                          </Typography.Text>
+                          <InputNumber
+                            size="small"
+                            min={0.01}
+                            value={splitTotal ?? undefined}
+                            onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
+                            placeholder={t("admin.contracts.form.equalSplitTotal")}
+                            style={{ width: 120 }}
+                          />
+                          <Typography.Text type="secondary">÷</Typography.Text>
+                          <InputNumber
+                            size="small"
+                            min={2}
+                            max={60}
+                            precision={0}
+                            value={splitParts}
+                            onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
+                            style={{ width: 60 }}
+                          />
+                          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                            {t("admin.contracts.form.equalSplitPartsLabel")}
+                          </Typography.Text>
+                          <Button size="small" type="primary" ghost onClick={applyEqualSplit}>
+                            {t("admin.contracts.form.equalSplitApply")}
+                          </Button>
+                        </Flex>
+
+                        {/* Stage list */}
+                        <Form.List name="stages">
+                          {(fields, { add, remove }) => (
+                            <Space direction="vertical" size={6} style={{ width: "100%" }}>
+                              {fields.map(({ key, name, ...rest }, index) => (
+                                <Flex
+                                  key={key}
+                                  gap={8}
+                                  align="center"
+                                  style={{
+                                    padding: "8px 10px",
+                                    background: "var(--ds-surface-0)",
+                                    border: "1px solid var(--ds-border-subtle)",
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  <div style={{
+                                    width: 20, height: 20, borderRadius: "50%",
+                                    background: "var(--ds-color-primary-surface-deep)",
+                                    color: "var(--ds-color-primary)",
+                                    fontSize: 11, fontWeight: 600,
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    flexShrink: 0,
+                                  }}>
+                                    {index + 1}
+                                  </div>
+                                  <Form.Item
+                                    {...rest}
+                                    name={[name, "description"]}
+                                    rules={[{ required: true, message: t("admin.contracts.form.stageDescriptionRequired") }]}
+                                    style={{ flex: 1, marginBottom: 0 }}
+                                  >
+                                    <Input placeholder={t("admin.contracts.form.stageDescription")} />
+                                  </Form.Item>
+                                  <Form.Item
+                                    {...rest}
+                                    name={[name, "amount"]}
+                                    rules={[{ required: true, type: "number", min: 0.01, message: t("admin.contracts.form.stageAmountRequired") }]}
+                                    style={{ width: 140, marginBottom: 0 }}
+                                  >
+                                    <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
+                                  </Form.Item>
+                                  <Tooltip title={t("common.remove")}>
+                                    <Button
+                                      type="text"
+                                      danger
+                                      icon={<MinusCircleOutlined />}
+                                      onClick={() => remove(name)}
+                                      disabled={fields.length === 1}
+                                      style={{ flexShrink: 0 }}
+                                    />
+                                  </Tooltip>
+                                </Flex>
+                              ))}
+
+                              <Button
+                                type="dashed"
+                                icon={<PlusOutlined />}
+                                onClick={() => add({ description: "", amount: null })}
+                                block
+                                style={{ marginTop: 4 }}
+                              >
+                                {t("admin.contracts.form.addStage")}
+                              </Button>
+                            </Space>
+                          )}
+                        </Form.List>
+
+                        {/* Live total */}
+                        {(() => {
+                          const stages: StageRow[] = getFieldValue("stages") ?? [];
+                          const total = stages.reduce((sum, s) => sum + (s?.amount ?? 0), 0);
+                          if (total <= 0) return null;
+                          return (
+                            <Flex
+                              justify="space-between"
+                              align="center"
+                              style={{
+                                marginTop: 10,
+                                padding: "10px 14px",
+                                background: "var(--ds-color-primary-surface)",
+                                border: "1px solid var(--ds-color-primary-surface-deep)",
+                                borderRadius: 6,
+                              }}
+                            >
+                              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                                {t("admin.contracts.form.stagesTotal")} ({stages.filter(s => (s?.amount ?? 0) > 0).length} {t("admin.contracts.form.stagesCount")})
+                              </Typography.Text>
+                              <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)" }}>
+                                {fmtMoney(total, currency)}
+                              </Typography.Text>
+                            </Flex>
+                          );
+                        })()}
+                      </div>
                     )}
-                  </Form.List>
-                </div>
-              );
-            }}
-          </Form.Item>
+
+                    {/* ── Monthly Subscription ──────────────────────── */}
+                    {isSubscription && (
+                      <div style={{
+                        padding: "16px",
+                        background: "var(--ds-surface-1)",
+                        border: "1px solid var(--ds-border-subtle)",
+                        borderRadius: 8,
+                      }}>
+                        <Row gutter={12}>
+                          <Col xs={24} sm={12}>
+                            <Form.Item
+                              name="monthlyAmount"
+                              label={t("admin.contracts.form.monthlyAmount")}
+                              rules={[{ required: true, type: "number", min: 0.01 }]}
+                            >
+                              <InputNumber
+                                size="large"
+                                min={0.01}
+                                style={{ width: "100%" }}
+                                placeholder="0.00"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} sm={12}>
+                            <Form.Item
+                              name="subscriptionMonths"
+                              label={t("admin.contracts.form.subscriptionMonths")}
+                              extra={
+                                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                                  {t("admin.contracts.form.subscriptionMonthsHint")}
+                                </Typography.Text>
+                              }
+                            >
+                              <InputNumber
+                                size="large"
+                                min={1}
+                                max={60}
+                                precision={0}
+                                style={{ width: "100%" }}
+                                placeholder={t("admin.contracts.form.subscriptionMonthsPlaceholder")}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} sm={12}>
+                            <Form.Item
+                              name="billingDay"
+                              label={t("admin.contracts.form.billingDay")}
+                              tooltip={t("admin.contracts.form.billingDayHint")}
+                            >
+                              <Select
+                                size="large"
+                                allowClear
+                                placeholder={t("admin.contracts.form.billingDayPlaceholder")}
+                                popupMatchSelectWidth={false}
+                                options={Array.from({ length: 28 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        {/* Live subscription preview */}
+                        {(() => {
+                          const monthly = getFieldValue("monthlyAmount") as number | null;
+                          const months = getFieldValue("subscriptionMonths") as number | null;
+                          const day = getFieldValue("billingDay") as number | null;
+                          if (!monthly || monthly <= 0) return null;
+                          const hasMonths = months && months > 0;
+                          const total = hasMonths ? monthly * months : null;
+                          return (
+                            <div style={{
+                              padding: "10px 14px",
+                              background: "var(--ds-color-primary-surface)",
+                              border: "1px solid var(--ds-color-primary-surface-deep)",
+                              borderRadius: 6,
+                              marginTop: 4,
+                            }}>
+                              <Flex justify="space-between" align="center" gap={8} wrap="wrap">
+                                <Flex align="center" gap={6}>
+                                  <SyncOutlined style={{ color: "var(--ds-color-primary)", fontSize: 13 }} />
+                                  <Typography.Text style={{ fontSize: 13, color: "var(--ds-text-secondary)" }}>
+                                    {hasMonths
+                                      ? `${fmtMoney(monthly, currency)} × ${months} ${t("admin.contracts.form.months")}`
+                                      : `${fmtMoney(monthly, currency)} / ${t("admin.contracts.form.month")} · ${t("admin.contracts.form.openEnded")}`
+                                    }
+                                    {day ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}` : ""}
+                                  </Typography.Text>
+                                </Flex>
+                                {total !== null && (
+                                  <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)" }}>
+                                    = {fmtMoney(total, currency)}
+                                  </Typography.Text>
+                                )}
+                              </Flex>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </>
+                );
+              }}
+            </Form.Item>
+
+            {/* Hidden form field — value managed via form.setFieldsValue */}
+            <Form.Item name="isSubscription" valuePropName="checked" noStyle>
+              <Switch style={{ display: "none" }} />
+            </Form.Item>
+          </div>
         </Form>
       </AppModal>
 
@@ -945,12 +1227,21 @@ export function AdminContractsPage() {
                         align="center"
                         style={{ padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}
                       >
-                        <Space size={8}>
-                          <Typography.Text>{s.description}</Typography.Text>
-                          <Tag color={sc} style={{ fontSize: 11 }}>
-                            {t(sk)}
-                          </Tag>
-                        </Space>
+                        <div>
+                          <Space size={8}>
+                            <Typography.Text>{s.description}</Typography.Text>
+                            <Tag color={sc} style={{ fontSize: 11 }}>
+                              {t(sk)}
+                            </Tag>
+                          </Space>
+                          {s.paidAt && (
+                            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                              {t("admin.contracts.stage.paidAt", {
+                                date: new Date(s.paidAt).toLocaleString(),
+                              })}
+                            </div>
+                          )}
+                        </div>
                         <Typography.Text strong>
                           {fmtMoney(s.amount, detailContract.currency)}
                         </Typography.Text>
@@ -959,6 +1250,11 @@ export function AdminContractsPage() {
                   })}
                 </Space>
               </div>
+
+              {/* Subscription payment history */}
+              {detailSubStatus && detailSubStatus.payments.length > 0 && (
+                <SubscriptionPaymentHistory payments={detailSubStatus.payments} t={t} />
+              )}
 
               {/* Signature image */}
               {detailContract.status === "signed" && detailContract.signaturePngBase64 && (

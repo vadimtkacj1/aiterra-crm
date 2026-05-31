@@ -68,6 +68,9 @@ def sync_account_billing_instruction(
         instruction.installment_total_amount = None
     instruction.currency = payload.currency.upper()
     instruction.description = (payload.description or "").strip() or None
+    instruction.billing_day = payload.billingDay if payload.chargeType == "monthly" else None
+    instruction.billing_week_day = payload.billingWeekDay if payload.chargeType == "monthly" else None
+    instruction.test_interval_minutes = payload.testIntervalMinutes if payload.chargeType == "monthly" else None
     instruction.payment_doc_id = None
     instruction.payment_url = None
     instruction.payment_recurring_id = None
@@ -163,6 +166,8 @@ def sync_account_billing_instruction(
                 line_items_json=instruction.line_items_json,
                 installment_months=instruction.installment_months,
                 installment_total_amount=instruction.installment_total_amount,
+                billing_day=instruction.billing_day,
+                billing_week_day=instruction.billing_week_day,
                 payment_doc_id=instruction.payment_doc_id,
                 payment_url=instruction.payment_url,
                 payment_recurring_id=instruction.payment_recurring_id,
@@ -179,6 +184,7 @@ def sync_account_billing_instruction(
         resource_id=str(account_id),
         detail={"chargeType": payload.chargeType, "currency": str(payload.currency)},
     )
+
     db.commit()
     db.refresh(instruction)
     return BillingInstructionOut(
@@ -190,4 +196,7 @@ def sync_account_billing_instruction(
         paymentUrl=instruction.payment_url,
         installmentMonths=instruction.installment_months,
         installmentTotalAmount=instruction.installment_total_amount,
+        billingDay=instruction.billing_day,
+        billingWeekDay=instruction.billing_week_day,
+        testIntervalMinutes=instruction.test_interval_minutes,
     )

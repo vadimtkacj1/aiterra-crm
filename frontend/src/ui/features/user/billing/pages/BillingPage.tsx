@@ -5,11 +5,12 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CheckoutLocationState } from "../checkout/checkoutTypes";
 import type { MetaAccountBilling } from "@/domain/CampaignAnalytics";
-import type { BillingOverview, PendingPaymentAction } from "@/services/billing/IBillingService";
+import type { BillingOverview, PendingPaymentAction, UserBillingHistoryRow } from "@/services/billing/IBillingService";
 import { useApp } from "@/app/AppProviders";
 import { useAccountLayoutOutlet } from "@/ui/layouts/accountLayoutContext";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
+import { BillingHistorySection } from "../components/BillingHistorySection";
 import { MetaBillingCard } from "../components/MetaBillingCard";
 import { PaymentsSection } from "../components/PaymentsSection";
 import { PendingInvoicePanel } from "../components/PendingInvoicePanel";
@@ -28,7 +29,9 @@ export function BillingPage() {
   const { accountId } = useParams<{ accountId: string }>();
   const [loading, setLoading] = useState(true);
   const [metaLoading, setMetaLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [overview, setOverview] = useState<BillingOverview | null>(null);
+  const [billingHistory, setBillingHistory] = useState<UserBillingHistoryRow[]>([]);
   const [metaBilling, setMetaBilling] = useState<MetaAccountBilling | null>(null);
   const appLocale = appLocaleFromLanguage(i18n.language ?? "en");
 
@@ -44,6 +47,23 @@ export function BillingPage() {
     }
   }, [services, accountId]);
 
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      if (isAdmin) {
+        const data = await services.admin.listAccountBillingHistory(parseInt(accountId ?? "0"));
+        setBillingHistory(data);
+      } else {
+        const data = await services.billing.fetchBillingHistory(accountId ?? "0");
+        setBillingHistory(data);
+      }
+    } catch {
+      setBillingHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [services, accountId, isAdmin]);
+
   const loadMetaBilling = useCallback(async () => {
     setMetaLoading(true);
     try {
@@ -58,8 +78,9 @@ export function BillingPage() {
 
   useEffect(() => {
     if (!isAdmin) void load();
+    void loadHistory();
     void loadMetaBilling();
-  }, [load, loadMetaBilling, isAdmin]);
+  }, [load, loadHistory, loadMetaBilling, isAdmin]);
 
   const goToCheckout = (payment: PendingPaymentAction, intent: "savedCard" | "hosted") => {
     const state: CheckoutLocationState = { payment, intent };
@@ -68,6 +89,7 @@ export function BillingPage() {
 
   const reloadAll = () => {
     if (!isAdmin) void load();
+    void loadHistory();
     void loadMetaBilling();
   };
 
@@ -157,6 +179,13 @@ export function BillingPage() {
             accountId={accountId ?? "0"}
           />
         )}
+
+        <BillingHistorySection
+          rows={billingHistory}
+          loading={historyLoading}
+          appLocale={appLocale}
+          accountId={accountId ?? "0"}
+        />
       </Flex>
     </UserContentLayout>
   );

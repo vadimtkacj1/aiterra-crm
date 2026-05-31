@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     meta_analytics_cache_cron_hour_utc: int = 3
     meta_analytics_cache_cron_minute_utc: int = 0
 
+    # Daily subscription billing job (06:00 UTC). Disable in dev/mock environments.
+    subscription_billing_cron_enabled: bool = True
+
+    # Kept for backward compatibility — no longer used (test billing job always runs).
+    subscription_billing_test_enabled: bool = True
+
     # Base URL for this server — used to build mock payment links in dev mode.
     # Override in production: APP_BASE_URL=https://api.yourdomain.com
     app_base_url: str = "http://localhost:8000"

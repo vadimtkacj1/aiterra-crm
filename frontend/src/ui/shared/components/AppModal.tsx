@@ -8,7 +8,7 @@ type AppModalProps = ModalProps & {
 };
 
 export function AppModal({
-  destroyOnClose = true,
+  destroyOnClose: _destroyOnClose,
   width = 600,
   scrollableBody = true,
   ...props
@@ -20,7 +20,7 @@ export function AppModal({
 
   return (
     <Modal
-      destroyOnClose={destroyOnClose}
+      destroyOnHidden
       width={width}
       styles={{ body: bodyStyle }}
       {...props}

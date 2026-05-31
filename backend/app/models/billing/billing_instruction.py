@@ -43,6 +43,17 @@ class AccountBillingInstruction(Base):
     payment_recurring_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     payment_plan_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    # Day of month (1–28) on which the daily billing job charges this subscription.
+    # NULL means the job never matches this row — the account is never auto-charged.
+    billing_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # Day of week (0=Mon … 6=Sun) for weekly billing schedule. When set, billing_day is ignored.
+    billing_week_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # TEST MODE: when set, a separate minute-interval job charges every N minutes instead of monthly.
+    # Only active when SUBSCRIPTION_BILLING_TEST_ENABLED=true in env.
+    test_interval_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     # Synced from Z-Credit webhooks
     subscription_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
 

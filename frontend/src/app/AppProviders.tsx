@@ -59,7 +59,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
     try {
       const rows = await services.auth.listUsers();
       setUsers(rows);
-    } catch {
+    } catch (e) {
+      console.error("[AppProviders] Failed to load users:", e);
     } finally {
       setUsersLoading(false);
       fetchingRef.current = false;

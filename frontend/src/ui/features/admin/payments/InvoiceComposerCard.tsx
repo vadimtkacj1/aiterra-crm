@@ -1,5 +1,6 @@
 import {
   CalendarOutlined,
+  ClockCircleOutlined,
   FileAddOutlined,
   FileTextOutlined,
   MinusCircleOutlined,
@@ -24,7 +25,7 @@ import type { FormInstance } from "antd/es/form";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
 import { SectionStep, formatMoney } from "./billingUi";
-import type { AdminPaymentsFormValues } from "./types";
+import type { AdminPaymentsFormValues, BillingSchedule } from "./types";
 import { BILLING_CURRENCIES } from "./types";
 
 type Props = {
@@ -127,6 +128,8 @@ function ChargeTypePicker({ value, onChange, token, t }: ChargeTypePickerProps) 
   );
 }
 
+const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
 export function InvoiceComposerCard({
   t,
   token,
@@ -143,6 +146,7 @@ export function InvoiceComposerCard({
   presetServerOnly,
 }: Props) {
   const splitM = Form.useWatch("splitAcrossMonths", form);
+  const scheduleW = Form.useWatch("billingSchedule", form) as BillingSchedule | undefined;
   const amtW = Form.useWatch("amount", form);
   const splitN = typeof splitM === "number" && splitM >= 2 ? Math.min(60, Math.floor(splitM)) : 0;
   const perPreview =
@@ -267,6 +271,96 @@ export function InvoiceComposerCard({
                 </Col>
               ) : null}
             </Row>
+          ) : null}
+
+          {/* Billing schedule — monthly only, shown regardless of itemized/single-total */}
+          {chargeTypeW === "monthly" ? (
+            <div
+              style={{
+                marginTop: 16,
+                padding: "14px 16px",
+                background: token.colorFillAlter,
+                border: `1px solid ${token.colorBorderSecondary}`,
+                borderRadius: 10,
+              }}
+            >
+              <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 10 }}>
+                {t("admin.payments.billingScheduleLabel")}
+              </Typography.Text>
+              <Form.Item name="billingSchedule" style={{ marginBottom: 10 }}>
+                <Radio.Group>
+                  <Radio value="monthly">
+                    <Flex align="center" gap={4}>
+                      <CalendarOutlined />
+                      {t("admin.payments.billingScheduleMonthly")}
+                    </Flex>
+                  </Radio>
+                  <Radio value="weekly">
+                    <Flex align="center" gap={4}>
+                      <CalendarOutlined />
+                      {t("admin.payments.billingScheduleWeekly")}
+                    </Flex>
+                  </Radio>
+                  <Radio value="minutely">
+                    <Flex align="center" gap={4}>
+                      <ClockCircleOutlined />
+                      {t("admin.payments.billingScheduleMinutely")}
+                    </Flex>
+                  </Radio>
+                </Radio.Group>
+              </Form.Item>
+
+              {/* Monthly → day of month */}
+              {(!scheduleW || scheduleW === "monthly") ? (
+                <Form.Item
+                  name="billingDay"
+                  label={t("admin.payments.billingDayLabel")}
+                  tooltip={t("admin.payments.billingDayHint")}
+                  style={{ marginBottom: 0, maxWidth: 220 }}
+                >
+                  <Select
+                    allowClear
+                    placeholder={t("admin.payments.billingDayPlaceholder")}
+                    popupMatchSelectWidth={false}
+                    options={Array.from({ length: 28 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                  />
+                </Form.Item>
+              ) : null}
+
+              {/* Weekly → day of week */}
+              {scheduleW === "weekly" ? (
+                <Form.Item
+                  name="billingWeekDay"
+                  label={t("admin.payments.billingWeekDayLabel")}
+                  style={{ marginBottom: 0, maxWidth: 220 }}
+                >
+                  <Select
+                    allowClear
+                    placeholder={t("admin.payments.billingWeekDayPlaceholder")}
+                    popupMatchSelectWidth={false}
+                    options={WEEK_DAYS.map((d, i) => ({ value: i, label: t(`admin.payments.weekDay.${d}`) }))}
+                  />
+                </Form.Item>
+              ) : null}
+
+              {/* Minutely → interval */}
+              {scheduleW === "minutely" ? (
+                <Form.Item
+                  name="testIntervalMinutes"
+                  label={t("admin.payments.testIntervalLabel")}
+                  style={{ marginBottom: 0, maxWidth: 220 }}
+                >
+                  <InputNumber
+                    min={1}
+                    max={1440}
+                    precision={0}
+                    addonAfter={t("admin.payments.testIntervalUnit")}
+                    placeholder={t("admin.payments.testIntervalPlaceholder")}
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              ) : null}
+            </div>
           ) : null}
 
           {/* Itemized line items */}

@@ -10,6 +10,7 @@
  */
 
 import type { ReactNode } from "react";
+import { tokens } from "@/styles/designSystem";
 
 const VAR_RE = /(\{\{signerName\}\}|\{\{signerSignature\}\}|\{\{signedDate\}\})/g;
 
@@ -18,7 +19,7 @@ const blank = (width: number) => (
     style={{
       display: "inline-block",
       minWidth: width,
-      borderBottom: "1.5px solid #94a3b8",
+      borderBottom: `1.5px solid ${tokens.colors.border}`,
       verticalAlign: "bottom",
       margin: "0 2px",
     }}
@@ -43,7 +44,7 @@ export function renderContractBody(
     switch (part) {
       case "{{signerName}}":
         return vars.signerName ? (
-          <strong key={i} style={{ color: "#1e3a8a" }}>
+          <strong key={i} style={{ color: tokens.colors.primary }}>
             {vars.signerName}
           </strong>
         ) : (
@@ -61,9 +62,9 @@ export function renderContractBody(
               maxWidth: 200,
               verticalAlign: "middle",
               margin: "0 4px",
-              border: "1px solid #e2e8f0",
-              borderRadius: 4,
-              background: "#fff",
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: tokens.radius.sm,
+              background: tokens.colors.bg,
             }}
           />
         ) : (
@@ -72,7 +73,7 @@ export function renderContractBody(
 
       case "{{signedDate}}":
         return vars.signedAt ? (
-          <strong key={i} style={{ color: "#1e3a8a" }}>
+          <strong key={i} style={{ color: tokens.colors.primary }}>
             {new Date(vars.signedAt).toLocaleDateString()}
           </strong>
         ) : (
@@ -80,7 +81,6 @@ export function renderContractBody(
         );
 
       default:
-        // Preserve newlines as <br>
         return part.split("\n").flatMap((line, j, arr) =>
           j < arr.length - 1
             ? [line, <br key={`${i}-${j}`} />]

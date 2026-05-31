@@ -116,6 +116,11 @@ def _callback_url() -> str:
 
 def _success_cancel_urls(account: Account) -> tuple[str, str, str]:
     base = _customer_app_base()
+
+    # Ensure base URL has protocol
+    if base and not base.startswith(("http://", "https://")):
+        base = f"https://{base}"
+
     path = f"/a/{account.id}/billing"
     success = f"{base}{path}/success"
     cancel = f"{base}{path}"
@@ -205,11 +210,13 @@ def _create_session_body(
 ) -> dict[str, Any]:
     key = (settings.zcredit_api_key or "").strip()
     def_success, def_cancel, def_fail = _success_cancel_urls(account)
-    
+
     s_url = success_url if success_url else def_success
     c_url = cancel_url if cancel_url else def_cancel
     f_url = failure_url if failure_url else def_fail
     cb_url = callback_url if callback_url else _callback_url()
+
+    logger.info("_create_session_body: SuccessUrl=%s CancelUrl=%s CallbackUrl=%s", s_url, c_url, cb_url)
 
     local = (settings.zcredit_checkout_local or "En").strip() or "En"
     return {

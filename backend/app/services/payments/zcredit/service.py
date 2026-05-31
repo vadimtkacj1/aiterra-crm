@@ -488,9 +488,9 @@ def pay_open_invoice(
     body: dict[str, Any] = {
         "TerminalNumber": (settings.zcredit_terminal_number or "").strip(),
         "Password": _gateway_password(),
-        "Token": zcredit_token.strip(),
+        "Token": "",
         "Track2": "",
-        "CardNumber": "",
+        "CardNumber": zcredit_token.strip(),
         "CVV": "",
         "ExpDate_MMYY": "",
         "TransactionSum": f"{amount_major:.2f}",

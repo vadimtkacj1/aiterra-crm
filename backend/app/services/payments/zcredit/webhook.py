@@ -180,6 +180,7 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                     if account_id:
                         try:
                             _save_card_from_webhook(db, account_id, data)
+                            db.commit()
                         except Exception:
                             logger.warning(
                                 "zcredit_webhook: card save failed for contract stage account_id=%s",

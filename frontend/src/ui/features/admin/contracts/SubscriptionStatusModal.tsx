@@ -6,7 +6,7 @@ import {
   StopOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons";
-import { Button, Col, InputNumber, Modal, Row, Space, Spin, Tag, Typography } from "antd";
+import { Button, Col, Grid, InputNumber, Modal, Row, Space, Spin, Tag, Typography } from "antd";
 import { useState } from "react";
 import { AppModal } from "@/ui/shared/components/AppModal";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,8 @@ interface Props {
 
 export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   const { t } = useTranslation();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const {
     status,
     loading,
@@ -72,7 +74,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   };
 
   const sectionStyle = {
-    padding: "14px 16px",
+    padding: isMobile ? "12px" : "14px 16px",
     background: "var(--ds-surface-1, #f8fafc)",
     border: "1px solid var(--ds-border-subtle, #e2e8f0)",
     borderRadius: 8,
@@ -82,7 +84,8 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
     <AppModal
       open={contractId !== null}
       onCancel={onClose}
-      width={800}
+      width={isMobile ? "100%" : 800}
+      styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       title={
         <Space>
           <CalendarOutlined />
@@ -105,7 +108,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
               <Typography.Text strong style={{ display: "block", marginBottom: 10, fontSize: 13 }}>
                 {t("admin.contracts.form.billingDay")}
               </Typography.Text>
-              <Space align="center">
+              <Space align="center" wrap style={{ width: isMobile ? "100%" : "auto" }}>
                 <InputNumber
                   min={1}
                   max={28}
@@ -125,6 +128,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                   disabled={!dayChanged}
                   onClick={handleSaveBillingDay}
                   size="small"
+                  block={isMobile}
                 >
                   {t("common.save")}
                 </Button>

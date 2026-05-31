@@ -1,5 +1,6 @@
 import type { HttpClient } from "@/infrastructure/HttpClient";
 import type { Contract, ContractCreateInput } from "@/domain/Contract";
+import type { SiteLeadAdmin } from "@/domain/Site";
 
 export interface AdminAccountRow {
   id: number;
@@ -401,5 +402,10 @@ export class AdminService {
 
   async setTestInterval(contractId: number, minutes: number | null): Promise<SubscriptionStatus> {
     return this.http.patch<SubscriptionStatus>(`/subscriptions/contracts/${contractId}/subscription/test-interval`, { minutes });
+  }
+
+  async listAllLeads(accountId?: number): Promise<SiteLeadAdmin[]> {
+    const qs = accountId != null ? `?account_id=${accountId}` : "";
+    return this.http.get<SiteLeadAdmin[]>(`/admin/leads${qs}`);
   }
 }

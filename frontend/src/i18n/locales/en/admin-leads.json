@@ -1,0 +1,19 @@
+{
+  "admin": {
+    "leads": {
+      "menuTitle": "Landing page leads",
+      "title": "All leads",
+      "subtitle": "Contact form submissions from all landing pages, newest first.",
+      "loadError": "Could not load leads.",
+      "empty": "No leads yet.",
+      "filterAccount": "Filter by account",
+      "colAccount": "Account",
+      "colName": "Name",
+      "colPhone": "Phone",
+      "colEmail": "Email",
+      "colMessage": "Message",
+      "colSource": "Source page",
+      "colDate": "Date"
+    }
+  }
+}

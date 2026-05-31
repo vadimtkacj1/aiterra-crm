@@ -6,6 +6,7 @@ import {
   FileTextOutlined,
   SafetyCertificateOutlined,
   TeamOutlined,
+  FormOutlined,
 } from '@ant-design/icons';
 import { AdminStatisticsPage } from '@/ui/features/admin/stats/AdminStatisticsPage';
 import { AdminAuditPage } from '@/ui/features/admin/audit/AdminAuditPage';
@@ -14,6 +15,7 @@ import { AdminPaymentsPage } from '@/ui/features/admin/payments/AdminPaymentsVie
 import { AdminContractsPage } from '@/ui/features/admin/contracts/AdminContractsPage';
 import { AdminInvoicesPage } from '@/ui/features/admin/invoices/AdminInvoicesPage';
 import { AdminMetaBudgetPage } from '@/ui/features/admin/meta-budget/AdminMetaBudgetPage';
+import { AdminLeadsPage } from '@/ui/features/admin/leads/AdminLeadsPage';
 import { Paths } from '@/ui/navigation/paths';
 import type { AdminModule } from './types';
 
@@ -64,4 +66,11 @@ export const adminMetaBudgetModule: AdminModule = {
   path: 'meta-budget',
   element: <AdminMetaBudgetPage />,
   navItem: (t) => ({ key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t('admin.topup.title') }),
+};
+
+export const adminLeadsModule: AdminModule = {
+  id: 'admin-leads',
+  path: 'leads',
+  element: <AdminLeadsPage />,
+  navItem: (t) => ({ key: Paths.adminLeads, icon: <FormOutlined />, label: t('admin.leads.menuTitle') }),
 };

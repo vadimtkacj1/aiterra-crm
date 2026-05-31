@@ -40,6 +40,7 @@ import {
   adminContractsModule,
   adminInvoicesModule,
   adminMetaBudgetModule,
+  adminLeadsModule,
 } from './admin';
 
 export const adminModules: AdminModule[] = [
@@ -50,5 +51,6 @@ export const adminModules: AdminModule[] = [
   adminContractsModule,
   adminInvoicesModule,
   adminMetaBudgetModule,
+  adminLeadsModule,
   // ← ADD NEW ADMIN MODULE HERE
 ];

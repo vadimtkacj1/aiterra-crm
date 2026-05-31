@@ -9,7 +9,7 @@ from app.api.deps import get_current_user, require_account_member
 from app.db.session import get_db
 from app.models.core import User
 from app.models.site import AccountSiteConfig, SiteLead
-from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut
+from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut
 
 router = APIRouter()
 
@@ -91,6 +91,7 @@ def list_leads(
             phone=l.phone,
             email=l.email,
             message=l.message,
+            source=l.source,
             createdAt=l.created_at,
         )
         for l in leads
@@ -111,6 +112,7 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
         phone=body.phone,
         email=body.email,
         message=body.message,
+        source=body.source,
     )
     db.add(lead)
     db.commit()
@@ -121,5 +123,6 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
         phone=lead.phone,
         email=lead.email,
         message=lead.message,
+        source=lead.source,
         createdAt=lead.created_at,
     )

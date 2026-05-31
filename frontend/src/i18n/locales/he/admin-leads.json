@@ -1,0 +1,19 @@
+{
+  "admin": {
+    "leads": {
+      "menuTitle": "לידים מדפי נחיתה",
+      "title": "כל הלידים",
+      "subtitle": "פניות מטפסי יצירת קשר מכל דפי הנחיתה, מהחדש לישן.",
+      "loadError": "לא ניתן לטעון לידים.",
+      "empty": "אין לידים עדיין.",
+      "filterAccount": "סנן לפי חשבון",
+      "colAccount": "חשבון",
+      "colName": "שם",
+      "colPhone": "טלפון",
+      "colEmail": "אימייל",
+      "colMessage": "הודעה",
+      "colSource": "עמוד מקור",
+      "colDate": "תאריך"
+    }
+  }
+}

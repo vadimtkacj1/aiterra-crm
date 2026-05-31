@@ -1,4 +1,4 @@
-import { Drawer, Typography } from "antd";
+import { Drawer, Grid, Typography } from "antd";
 import type { AdminPaymentsLibraryDrawerModel } from "./adminPaymentsLibraryTypes";
 import { AdminPaymentsTemplatesPanel } from "./AdminPaymentsTemplatesPanel";
 
@@ -7,11 +7,14 @@ type Props = {
 };
 
 export function AdminPaymentsLibraryDrawer({ model }: Props) {
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+
   return (
     <Drawer
       title={model.t("admin.payments.libraryDrawerTitle")}
       placement="right"
-      width={720}
+      width={isMobile ? "100%" : 720}
       open={model.open}
       onClose={model.onClose}
       afterOpenChange={model.afterOpenChange}

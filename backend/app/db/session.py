@@ -153,6 +153,7 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("account_site_configs", "gmb_url", "VARCHAR(2048)")
         _ensure_column("account_site_configs", "popup_text", "TEXT")
         _ensure_column("account_site_configs", "popup_image_base64", "TEXT")
+        _ensure_column("site_leads", "source", "VARCHAR(2048)")
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

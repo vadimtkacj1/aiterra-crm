@@ -1,0 +1,20 @@
+{
+  "i18n": {
+    "type": "domain",
+    "enforcement": "suggest",
+    "priority": "high",
+    "promptTriggers": {
+      "keywords": [
+        "i18n", "localization", "localisation", "translation", "translate",
+        "locale", "add key", "add translation", "missing translation",
+        "локализация", "перевод", "добавь ключ", "добавить ключ"
+      ],
+      "intentPatterns": [
+        "(add|create|insert).*?(key|translation|locale)",
+        "(rename|remove|delete).*?(key|translation)",
+        "list.*?keys",
+        "i18n.*?(add|list|rename|remove|sync)"
+      ]
+    }
+  }
+}

@@ -27,6 +27,7 @@ class SiteLeadCreate(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     message: Optional[str] = None
+    source: Optional[str] = None
 
 
 class SiteLeadOut(BaseModel):
@@ -35,7 +36,13 @@ class SiteLeadOut(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     message: Optional[str] = None
+    source: Optional[str] = None
     createdAt: datetime
 
     class Config:
         from_attributes = True
+
+
+class SiteLeadAdminOut(SiteLeadOut):
+    accountId: int
+    accountName: str

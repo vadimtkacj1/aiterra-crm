@@ -31,6 +31,7 @@ export const Paths = {
   adminInvoices: "/admin/invoices",
   adminMetaBudget: "/admin/meta-budget",
   adminAudit: "/admin/audit",
+  adminLeads: "/admin/leads",
   login: "/login",
   pricing: "/pricing",
   terms: "/terms",

@@ -561,16 +561,18 @@ def create_subscription(
         }
     ]
     body = _create_session_body(
-        account, 
-        unique_id=unique_id, 
-        cart_items=cart, 
-        description=description, 
+        account,
+        unique_id=unique_id,
+        cart_items=cart,
+        description=description,
         amount_minor=amount_minor,
         success_url=success_url,
         cancel_url=cancel_url,
         failure_url=failure_url,
         callback_url=callback_url,
     )
+    logger.info("create_subscription: sending to zCredit SuccessUrl=%s CancelUrl=%s CallbackUrl=%s",
+                body.get("SuccessUrl"), body.get("CancelUrl"), body.get("CallbackUrl"))
     url = f"{_webcheckout_base()}/CreateSession"
     data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
     session_id, session_url = _parse_create_session(data)

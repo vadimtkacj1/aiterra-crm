@@ -14,5 +14,6 @@ class SiteLead(Base):
     phone = Column(String(50), nullable=True)
     email = Column(String(255), nullable=True)
     message = Column(Text, nullable=True)
+    treatment = Column(String(255), nullable=True)
     source = Column(String(2048), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

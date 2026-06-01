@@ -85,6 +85,13 @@ export function SitePage() {
       ellipsis: true,
     },
     {
+      title: t("site.leads.colTreatment"),
+      dataIndex: "treatment",
+      key: "treatment",
+      width: 160,
+      render: (v: string | null) => v ?? "—",
+    },
+    {
       title: t("site.leads.colSource"),
       dataIndex: "source",
       key: "source",

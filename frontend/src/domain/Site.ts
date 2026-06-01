@@ -19,6 +19,7 @@ export interface SiteLead {
   phone: string | null;
   email: string | null;
   message: string | null;
+  treatment: string | null;
   source: string | null;
   createdAt: string;
 }

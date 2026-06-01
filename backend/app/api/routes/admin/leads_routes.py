@@ -31,6 +31,7 @@ def list_all_leads(
             phone=lead.phone,
             email=lead.email,
             message=lead.message,
+            treatment=lead.treatment,
             source=lead.source,
             createdAt=lead.created_at,
             accountId=lead.account_id,

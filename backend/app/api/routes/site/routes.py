@@ -110,6 +110,7 @@ def list_leads(
             phone=l.phone,
             email=l.email,
             message=l.message,
+            treatment=l.treatment,
             source=l.source,
             createdAt=l.created_at,
         )
@@ -133,6 +134,7 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
         phone=body.phone,
         email=body.email,
         message=body.message,
+        treatment=body.treatment,
         source=body.source,
     )
     db.add(lead)
@@ -144,6 +146,7 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
         phone=lead.phone,
         email=lead.email,
         message=lead.message,
+        treatment=lead.treatment,
         source=lead.source,
         createdAt=lead.created_at,
     )

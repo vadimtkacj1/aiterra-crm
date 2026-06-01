@@ -30,6 +30,7 @@
       "colPhone": "Phone",
       "colEmail": "Email",
       "colMessage": "Message",
+      "colTreatment": "Treatment",
       "colSource": "Source page",
       "colDate": "Date"
     },

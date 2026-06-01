@@ -93,8 +93,22 @@ export function AdminLeadsPage() {
       title: t("admin.leads.colMessage"),
       dataIndex: "message",
       key: "message",
-      render: (v: string | null) => v ?? "—",
       ellipsis: true,
+      render: (v: string | null) =>
+        v ? (
+          <Tooltip title={<span style={{ whiteSpace: "pre-wrap" }}>{v}</span>} overlayStyle={{ maxWidth: 400 }}>
+            <Text ellipsis style={{ maxWidth: "100%", display: "block", cursor: "default" }}>{v}</Text>
+          </Tooltip>
+        ) : (
+          "—"
+        ),
+    },
+    {
+      title: t("admin.leads.colTreatment"),
+      dataIndex: "treatment",
+      key: "treatment",
+      width: 160,
+      render: (v: string | null) => v ?? "—",
     },
     {
       title: t("admin.leads.colSource"),
@@ -102,16 +116,27 @@ export function AdminLeadsPage() {
       key: "source",
       ellipsis: true,
       width: 200,
-      render: (v: string | null) =>
-        v ? (
+      render: (v: string | null) => {
+        if (!v) return "—";
+        let label = v;
+        try {
+          const url = new URL(v);
+          if (url.protocol === "file:") {
+            label = url.pathname.split("/").filter(Boolean).pop() ?? v;
+          } else {
+            label = url.hostname + (url.pathname !== "/" ? url.pathname : "");
+          }
+        } catch {
+          label = v;
+        }
+        return (
           <Tooltip title={v}>
             <Link href={v} target="_blank" ellipsis style={{ maxWidth: 190 }}>
-              {v}
+              {label}
             </Link>
           </Tooltip>
-        ) : (
-          "—"
-        ),
+        );
+      },
     },
     {
       title: t("admin.leads.colDate"),

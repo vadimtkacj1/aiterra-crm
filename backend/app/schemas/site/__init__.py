@@ -28,6 +28,7 @@ class SiteLeadCreate(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     message: Optional[str] = None
+    treatment: Optional[str] = None
     source: Optional[str] = None
 
 
@@ -37,6 +38,7 @@ class SiteLeadOut(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     message: Optional[str] = None
+    treatment: Optional[str] = None
     source: Optional[str] = None
     createdAt: datetime
 

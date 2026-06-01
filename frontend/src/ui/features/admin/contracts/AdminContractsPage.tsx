@@ -192,7 +192,7 @@ export function AdminContractsPage() {
   }, [detailContract?.id]);
 
   const signUrl = (c: Contract) => `${window.location.origin}/contracts/sign/${c.signToken}`;
-  const paymentUrl = signUrl;
+  const paymentUrl = (c: Contract) => `${window.location.origin}/contracts/sign/${c.signToken}/pay`;
 
   const copyLink = async (c: Contract) => {
     await navigator.clipboard.writeText(signUrl(c));

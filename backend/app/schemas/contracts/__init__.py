@@ -109,6 +109,7 @@ class ContractPublicOut(BaseModel):
     pdfBase64: str | None
     stages: list[ContractStageOut]
     monthlyAmount: float | None = None
+    subscriptionStatus: str | None = None
 
 
 class ContractMemberOut(BaseModel):

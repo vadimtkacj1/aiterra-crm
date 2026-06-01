@@ -42,6 +42,7 @@ export interface ContractPublic {
   pdfBase64: string | null;
   stages: ContractStage[];
   monthlyAmount?: number | null;
+  subscriptionStatus?: string | null;
 }
 
 export interface ContractStageInput {

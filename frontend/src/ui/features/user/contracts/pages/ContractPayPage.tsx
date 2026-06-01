@@ -157,8 +157,9 @@ export function ContractPayPage() {
   }
 
   const isSubscription = !!(contract.monthlyAmount && contract.monthlyAmount > 0);
+  const subscriptionActive = contract.subscriptionStatus === "active";
 
-  if (isSubscription) {
+  if (isSubscription && subscriptionActive) {
     return (
       <div
         style={{

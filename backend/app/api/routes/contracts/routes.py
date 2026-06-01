@@ -13,6 +13,7 @@ from app.api.deps import get_current_user, require_account_member, require_admin
 from app.api.routes.admin import common
 from app.core.settings import settings
 from app.db.session import get_db
+from app.models.billing import AccountBillingInstruction
 from app.models.contracts import Contract, ContractPaymentStage
 from app.models.core import Account
 from app.models.core import User
@@ -85,7 +86,7 @@ def _contract_out(c: Contract) -> ContractOut:
     )
 
 
-def _contract_public_out(c: Contract) -> ContractPublicOut:
+def _contract_public_out(c: Contract, subscription_status: str | None = None) -> ContractPublicOut:
     return ContractPublicOut(
         id=c.id,
         title=c.title,
@@ -98,6 +99,7 @@ def _contract_public_out(c: Contract) -> ContractPublicOut:
         pdfBase64=c.pdf_base64,
         stages=[_stage_out(s) for s in c.stages],
         monthlyAmount=c.monthly_amount,
+        subscriptionStatus=subscription_status,
     )
 
 
@@ -279,7 +281,12 @@ def get_contract_public(
     c = _get_by_token_or_404(db, token)
     if c.status == "voided":
         raise HTTPException(status_code=410, detail="contract_voided")
-    return _contract_public_out(c)
+    subscription_status: str | None = None
+    if c.billing_instruction_id:
+        instr = db.query(AccountBillingInstruction).filter_by(id=c.billing_instruction_id).first()
+        if instr:
+            subscription_status = instr.subscription_status
+    return _contract_public_out(c, subscription_status=subscription_status)
 
 
 def _queue_signed_contract_email(

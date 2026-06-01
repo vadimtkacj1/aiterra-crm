@@ -4,6 +4,7 @@ import { AccountSelectPage } from "@/ui/features/shared/accounts/pages/AccountSe
 import { AdminLayout } from "@/ui/features/admin/layout/AdminLayout";
 import { LoginPage } from "@/ui/features/shared/auth/pages/LoginPage";
 import { ContractSignPage } from "@/ui/features/user/contracts/pages/ContractSignPage";
+import { ContractPayPage } from "@/ui/features/user/contracts/pages/ContractPayPage";
 import { HelpPage } from "@/ui/features/shared/help/pages/HelpPage";
 import { CancellationPolicyPage } from "@/ui/features/shared/legal/pages/CancellationPolicyPage";
 import { PrivacyPolicyPage } from "@/ui/features/shared/legal/pages/PrivacyPolicyPage";
@@ -33,6 +34,7 @@ export function AppRoutes() {
       <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />
       <Route path={Paths.privacyPolicy} element={<PrivacyPolicyPage />} />
       <Route path="/contracts/sign/:token" element={<ContractSignPage />} />
+      <Route path="/contracts/sign/:token/pay" element={<ContractPayPage />} />
       <Route path={Paths.takanon} element={<Navigate to={Paths.terms} replace />} />
 
       {/* Standalone module routes — outside main layout (e.g. post-payment pages) */}

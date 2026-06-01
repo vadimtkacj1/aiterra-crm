@@ -1,5 +1,10 @@
 {
   "contracts": {
+    "pay": {
+      "amountDue": "Amount due",
+      "redirectNote": "You'll be redirected to our secure payment portal",
+      "contractNotSigned": "The contract must be signed before payment can proceed"
+    },
     "pdf": {
       "loadError": "Failed to load document",
       "loading": "Loading document…",

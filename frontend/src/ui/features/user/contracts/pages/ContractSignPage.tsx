@@ -2,7 +2,7 @@
 import { App, Button, Checkbox, Input, Spin, Typography } from "antd";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SignaturePad from "signature_pad";
 import type { ContractPublic } from "../../../../../domain/Contract";
 import { PdfViewer } from "../components/PdfViewer";
@@ -61,27 +61,6 @@ async function submitSignature(
   return res.json() as Promise<ContractPublic>;
 }
 
-interface ContractCheckoutResponse {
-  paymentUrl?: string | null;
-  stage: {
-    id: number;
-    sortOrder: number;
-    description: string;
-    amount: number;
-    status: string;
-  };
-}
-
-async function createContractCheckout(token: string): Promise<ContractCheckoutResponse> {
-  const res = await fetch(`/api/contracts/${token}/checkout`, {
-    method: "POST",
-  });
-  if (!res.ok) {
-    const data = (await res.json()) as { detail?: string };
-    throw new Error(data.detail ?? "error");
-  }
-  return res.json() as Promise<ContractCheckoutResponse>;
-}
 
 const pageBg =
   "linear-gradient(165deg, #eef2f7 0%, #e2e8f0 38%, #f1f5f9 70%, #f8fafc 100%)";
@@ -92,6 +71,7 @@ export function ContractSignPage() {
   const { token } = useParams<{ token: string }>();
   const { t, i18n } = useTranslation();
   const { message } = App.useApp();
+  const navigate = useNavigate();
 
   const [contract, setContract] = useState<ContractPublic | null>(null);
   const nextStage = contract?.stages.find((stage) => stage.status !== "paid") ?? null;
@@ -110,7 +90,6 @@ export function ContractSignPage() {
   const [hasSignature, setHasSignature] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const [creatingCheckout, setCreatingCheckout] = useState(false);
   /** Raw base64 PNG of the last submitted signature (public API does not return it). */
   const [submittedSignaturePng, setSubmittedSignaturePng] = useState<string | null>(null);
 
@@ -258,22 +237,8 @@ export function ContractSignPage() {
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     };
-    const handlePayNow = async () => {
-      if (!token) return;
-      setCreatingCheckout(true);
-      try {
-        const data = await createContractCheckout(token);
-        const url = (data.paymentUrl || "").trim();
-        if (!url) {
-          void message.warning(t("contracts.sign.paymentLinkPending"));
-          return;
-        }
-        window.location.assign(url);
-      } catch (e) {
-        void message.error(e instanceof Error ? e.message : t("errors.generic"));
-      } finally {
-        setCreatingCheckout(false);
-      }
+    const handlePayNow = () => {
+      navigate(`/contracts/sign/${token}/pay`);
     };
     return (
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -296,8 +261,7 @@ export function ContractSignPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <Button
               type="primary"
-              loading={creatingCheckout}
-              onClick={() => void handlePayNow()}
+              onClick={handlePayNow}
               style={{ borderRadius: 10, height: 44 }}
             >
               {payButtonLabel}

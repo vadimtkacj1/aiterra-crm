@@ -1,5 +1,10 @@
 {
   "contracts": {
+    "pay": {
+      "amountDue": "סכום לתשלום",
+      "redirectNote": "תועברו לעמוד התשלום המאובטח שלנו",
+      "contractNotSigned": "יש לחתום על החוזה לפני ביצוע התשלום"
+    },
     "pdf": {
       "loadError": "שגיאה בטעינת המסמך",
       "loading": "טוען מסמך…",

@@ -185,12 +185,15 @@ def _sanitize_additional_text(text: str | None) -> str:
 def _installments_for_amount_minor(amount_minor: int) -> dict[str, str]:
     """
     Business rule:
-      - Up to 1,000 (major) → no installments (1)
-      - More than 1,000     → up to 6 installments (allow 1–6)
+      - 0–1,000 (major)       → 1 payment only
+      - 1,000–3,000 (major)   → up to 3 payments
+      - 3,000+ (major)        → up to 6 payments
     """
     try:
-        if amount_minor > 100_000:  # 1,000 major units * 100
+        if amount_minor > 300_000:  # 3,000 major units * 100
             return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "6"}
+        if amount_minor > 100_000:  # 1,000 major units * 100
+            return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "3"}
         return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "1"}
     except Exception:
         return {"Type": "regular", "MinQuantity": "1", "MaxQuantity": "1"}

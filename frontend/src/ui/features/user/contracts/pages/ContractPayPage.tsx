@@ -159,7 +159,7 @@ export function ContractPayPage() {
   const isSubscription = !!(contract.monthlyAmount && contract.monthlyAmount > 0);
   const subscriptionActive = contract.subscriptionStatus === "active";
 
-  if (isSubscription && subscriptionActive) {
+  if (!nextStage) {
     return (
       <div
         style={{
@@ -186,38 +186,9 @@ export function ContractPayPage() {
             {contract.title}
           </Typography.Title>
           <Typography.Text type="secondary">
-            {t("contracts.sign.subscriptionActiveNote")}
-          </Typography.Text>
-        </div>
-      </div>
-    );
-  }
-
-  if (!nextStage) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-          background: pageBg,
-        }}
-      >
-        <div
-          style={{
-            textAlign: "center",
-            maxWidth: 400,
-            padding: "40px 32px",
-            background: "#fff",
-            borderRadius: 16,
-            boxShadow: cardShadow,
-          }}
-        >
-          <CheckCircleOutlined style={{ fontSize: 48, color: "#16a34a", marginBottom: 16 }} />
-          <Typography.Text type="secondary">
-            {t("contracts.sign.paymentStatusPaid")}
+            {isSubscription && subscriptionActive
+              ? t("contracts.sign.subscriptionActiveNote")
+              : t("contracts.sign.paymentStatusPaid")}
           </Typography.Text>
         </div>
       </div>

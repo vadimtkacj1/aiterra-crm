@@ -186,6 +186,10 @@ export function ContractSignPage() {
       setSubmittedSignaturePng(base64!);
       const updated = await submitSignature(token, signerName, recipientEmail, base64!, i18n.language);
       setContract(updated);
+      if (updated.monthlyAmount && updated.monthlyAmount > 0) {
+        navigate(`/contracts/sign/${token}/pay`);
+        return;
+      }
       setDone(true);
     } catch (e) {
       void message.error(e instanceof Error ? e.message : t("errors.generic"));
@@ -241,8 +245,9 @@ export function ContractSignPage() {
       navigate(`/contracts/sign/${token}/pay`);
     };
     const isSubscription = !!(contract.monthlyAmount && contract.monthlyAmount > 0);
+    const subscriptionActive = contract.subscriptionStatus === "active";
     const allPaid = !nextStage;
-    const showPayButton = !isSubscription && !allPaid;
+    const showPayButton = !allPaid && (!isSubscription || !subscriptionActive);
     return (
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div
@@ -261,9 +266,14 @@ export function ContractSignPage() {
           <Typography.Title level={3} style={{ margin: "0 0 12px" }}>
             {t("contracts.sign.successTitle")}
           </Typography.Title>
-          {isSubscription && (
+          {isSubscription && subscriptionActive && (
             <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
               {t("contracts.sign.subscriptionActiveNote")}
+            </Typography.Text>
+          )}
+          {isSubscription && !subscriptionActive && (
+            <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
+              {t("contracts.sign.subscriptionPayFirst")}
             </Typography.Text>
           )}
           {!isSubscription && allPaid && (

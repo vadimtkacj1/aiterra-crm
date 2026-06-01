@@ -2,7 +2,7 @@ import { Alert, Form, Input, Select, Spin } from "antd";
 import { AppModal } from "@/ui/shared/components/AppModal";
 import type { FormInstance } from "antd/es/form";
 import type { TFunction } from "i18next";
-import type { UserBusinessMeta } from "@/services/admin/AdminService";
+import type { UserBusinessMeta, UserBusinessSite } from "@/services/admin/AdminService";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
 import type { AdminEditUserFormValues } from "./adminUsersTypes";
 import { AdminUsersGoogleLinkFields } from "./AdminUsersGoogleLinkFields";
@@ -15,11 +15,14 @@ type Props = {
   editMetaLoading: boolean;
   editMetaInfo: UserBusinessMeta | null;
   editGoogleHasCredentials: boolean;
+  editSiteInfo: UserBusinessSite | null;
   editForm: FormInstance<AdminEditUserFormValues>;
   metaCampaigns: MetaCampaignOption[];
   metaCampaignsLoading: boolean;
   onCancel: () => void;
   onSave: () => Promise<void>;
+  onSiteTokenRegenerated: (newToken: string) => void;
+  regenerateSiteToken: (accountId: string) => Promise<{ publicToken: string | null }>;
 };
 
 export function AdminUserEditModal({
@@ -28,11 +31,14 @@ export function AdminUserEditModal({
   editMetaLoading,
   editMetaInfo,
   editGoogleHasCredentials,
+  editSiteInfo,
   editForm,
   metaCampaigns,
   metaCampaignsLoading,
   onCancel,
   onSave,
+  onSiteTokenRegenerated,
+  regenerateSiteToken,
 }: Props) {
   return (
     <AppModal
@@ -67,7 +73,12 @@ export function AdminUserEditModal({
                 mode="edit"
                 editGoogleHasCredentials={editGoogleHasCredentials}
               />
-              <AdminUsersSiteLinkFields t={t} />
+              <AdminUsersSiteLinkFields
+                t={t}
+                siteInfo={editSiteInfo}
+                onTokenRegenerated={onSiteTokenRegenerated}
+                regenerateToken={regenerateSiteToken}
+              />
             </>
           ) : null}
         </Form>

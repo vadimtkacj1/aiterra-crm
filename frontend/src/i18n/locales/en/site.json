@@ -35,13 +35,19 @@
     },
     "integration": {
       "title": "Landing Page Integration",
-      "accountIdLabel": "Your Account ID",
-      "accountIdHint": "Use this ID in your landing page form so leads are sent to this account.",
+      "tokenLabel": "Form Public Token",
+      "tokenHint": "Paste this token in your website form. It identifies your account without exposing internal IDs.",
       "endpointLabel": "Submit endpoint (public, no auth required)",
       "snippetLabel": "Copy this snippet into your landing page",
       "copy": "Copy",
+      "regenerateBtn": "Regenerate",
+      "regenerateConfirm": "Generating a new token will break any forms using the old token. Continue?",
+      "regenerateOk": "Yes, regenerate",
+      "regenerateCancel": "Cancel",
+      "regenerated": "Token regenerated. Update your forms with the new token.",
+      "regenerateError": "Could not regenerate token. Try again.",
       "copied": {
-        "id": "Account ID copied",
+        "token": "Token copied",
         "endpoint": "Endpoint copied",
         "snippet": "Snippet copied"
       }

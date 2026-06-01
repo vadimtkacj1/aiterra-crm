@@ -6,8 +6,10 @@ def test_checkout_requires_auth(client):
     assert r.status_code == 401
 
 
-def test_checkout_zcredit_not_configured(client, h_member, test_ids):
+def test_checkout_zcredit_not_configured(client, h_member, test_ids, monkeypatch):
     """Without Z-Credit env vars the stub returns 503 after membership check."""
+    from app.core.settings import settings
+    monkeypatch.setattr(settings, "zcredit_api_key", None)
     r = client.post(
         "/api/checkout",
         headers=h_member,

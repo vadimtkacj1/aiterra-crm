@@ -28,7 +28,7 @@ def _seed_open_one_time_invoice(engine, account_id: int, *, amount: float = 199.
             description="Contract — first installment",
             line_items_json='[{"code":"srv","label":"Server (1)","amount":100.0}]',
             payment_doc_id=f"doc_contract_{account_id}_test",
-            payment_url="http://localhost:8000/api/mock-payment/doc_contract_%s_test" % account_id,
+            payment_url="https://pci.zcredit.co.il/pay/doc_contract_%s_test" % account_id,
         )
         s.add(ins)
         s.commit()

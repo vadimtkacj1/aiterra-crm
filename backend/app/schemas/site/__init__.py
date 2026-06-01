@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 
 class SiteConfigOut(BaseModel):
+    publicToken: Optional[str] = None
     siteUrl: Optional[str] = None
     gmbUrl: Optional[str] = None
     popupText: Optional[str] = None
@@ -22,7 +23,7 @@ class SiteConfigUpdate(BaseModel):
 
 
 class SiteLeadCreate(BaseModel):
-    accountId: int
+    publicToken: str
     name: str
     phone: Optional[str] = None
     email: Optional[str] = None

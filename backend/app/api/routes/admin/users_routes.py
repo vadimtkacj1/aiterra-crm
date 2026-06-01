@@ -381,7 +381,7 @@ def get_user_business_site(
     if not m:
         return UserBusinessSiteOut()
     config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
-    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None)
+    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None, publicToken=config.public_token if config else None)
 
 
 @router.put("/users/{user_id}/business-site", response_model=UserBusinessSiteOut)
@@ -399,7 +399,8 @@ def set_user_business_site(
         raise HTTPException(status_code=400, detail="no_owner_business")
     existing = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
     if payload.hasSite and not existing:
-        existing = AccountSiteConfig(account_id=m.account_id, site_url=payload.siteUrl)
+        import uuid as _uuid
+        existing = AccountSiteConfig(account_id=m.account_id, site_url=payload.siteUrl, public_token=str(_uuid.uuid4()))
         db.add(existing)
     elif payload.hasSite and existing:
         existing.site_url = payload.siteUrl
@@ -416,7 +417,7 @@ def set_user_business_site(
     )
     db.commit()
     config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
-    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None)
+    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None, publicToken=config.public_token if config else None)
 
 
 @router.put("/users/{user_id}/password")

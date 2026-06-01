@@ -1,16 +1,14 @@
 import { GlobalOutlined, ReloadOutlined, TeamOutlined } from "@ant-design/icons";
 import { App, Button, Card, Col, Row, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useApp } from "../../../../../app/AppProviders";
-import { Env } from "../../../../../config/Env";
 import type { SiteConfig, SiteLead } from "../../../../../domain/Site";
 import { AppTable } from "../../../../shared/components/AppTable";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
-import { SiteIntegrationCard } from "../components/SiteIntegrationCard";
 
 const { Text, Link } = Typography;
 
@@ -21,8 +19,6 @@ export function SitePage() {
   const { accountId } = useParams<{ accountId: string }>();
   const messageRef = useRef(message);
   messageRef.current = message;
-
-  const apiBaseUrl = useMemo(() => new Env().apiBaseUrl, []);
 
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
@@ -152,10 +148,6 @@ export function SitePage() {
               </div>
             </div>
           </Card>
-        </Col>
-
-        <Col span={24}>
-          <SiteIntegrationCard accountId={accountId ?? "0"} apiBaseUrl={apiBaseUrl} />
         </Col>
 
         <Col span={24}>

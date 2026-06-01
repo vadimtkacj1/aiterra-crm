@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
@@ -11,6 +12,7 @@ class AccountSiteConfig(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     account_id = Column(Integer, ForeignKey("accounts.id"), unique=True, nullable=False, index=True)
+    public_token = Column(String(36), unique=True, nullable=True, index=True, default=lambda: str(uuid.uuid4()))
     site_url = Column(String(2048), nullable=True)
     gmb_url = Column(String(2048), nullable=True)
     popup_text = Column(Text, nullable=True)

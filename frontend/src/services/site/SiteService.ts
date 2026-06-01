@@ -13,6 +13,10 @@ export class SiteService implements ISiteService {
     return this.http.put<SiteConfig>(`/accounts/${accountId}/site-config`, input);
   }
 
+  regenerateToken(accountId: string): Promise<SiteConfig> {
+    return this.http.post<SiteConfig>(`/accounts/${accountId}/site-config/regenerate-token`, {});
+  }
+
   listLeads(accountId: string): Promise<SiteLead[]> {
     return this.http.get<SiteLead[]>(`/accounts/${accountId}/site-leads`);
   }

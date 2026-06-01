@@ -105,8 +105,10 @@ app = FastAPI(title="CRM API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
+    # "*" lets any website submit the public lead-capture form.
+    # JWT auth uses Authorization: Bearer header (not cookies) so credentials=False is correct.
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

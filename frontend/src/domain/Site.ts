@@ -1,4 +1,5 @@
 export interface SiteConfig {
+  publicToken: string | null;
   siteUrl: string | null;
   gmbUrl: string | null;
   popupText: string | null;

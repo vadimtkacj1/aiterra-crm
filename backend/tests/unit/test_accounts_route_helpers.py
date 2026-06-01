@@ -1,6 +1,6 @@
 """Unit tests: small helpers on accounts routes module."""
 
-from app.api.routes.core.accounts import _strip_data_url_base64
+from app.api.routes.accounts.routes import _strip_data_url_base64
 
 
 def test_strip_data_url_base64_raw():

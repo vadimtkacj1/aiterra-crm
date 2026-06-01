@@ -31,6 +31,7 @@ export interface UserBusinessSite {
   accountId: number | null;
   hasSite: boolean;
   siteUrl?: string | null;
+  publicToken?: string | null;
 }
 
 export interface AdminStats {

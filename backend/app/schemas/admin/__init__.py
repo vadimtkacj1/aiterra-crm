@@ -39,6 +39,7 @@ class UserBusinessSiteOut(BaseModel):
     accountId: int | None = None
     hasSite: bool = False
     siteUrl: str | None = None
+    publicToken: str | None = None
 
 
 class UserBusinessSiteUpdateRequest(BaseModel):

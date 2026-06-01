@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,7 +22,22 @@ def _get_or_create_config(db: Session, account_id: int) -> AccountSiteConfig:
         db.add(config)
         db.commit()
         db.refresh(config)
+    # Ensure existing configs always have a public_token
+    if not config.public_token:
+        config.public_token = str(uuid.uuid4())
+        db.commit()
+        db.refresh(config)
     return config
+
+
+def _config_to_out(config: AccountSiteConfig) -> SiteConfigOut:
+    return SiteConfigOut(
+        publicToken=config.public_token,
+        siteUrl=config.site_url,
+        gmbUrl=config.gmb_url,
+        popupText=config.popup_text,
+        popupImageBase64=config.popup_image_base64,
+    )
 
 
 @router.get("/accounts/{account_id}/site-config", response_model=SiteConfigOut)
@@ -31,15 +47,8 @@ def get_site_config(
     current_user: User = Depends(get_current_user),
 ):
     require_account_member(account_id, db, current_user)
-    config = db.query(AccountSiteConfig).filter_by(account_id=account_id).first()
-    if not config:
-        return SiteConfigOut()
-    return SiteConfigOut(
-        siteUrl=config.site_url,
-        gmbUrl=config.gmb_url,
-        popupText=config.popup_text,
-        popupImageBase64=config.popup_image_base64,
-    )
+    config = _get_or_create_config(db, account_id)
+    return _config_to_out(config)
 
 
 @router.put("/accounts/{account_id}/site-config", response_model=SiteConfigOut)
@@ -63,12 +72,22 @@ def update_site_config(
 
     db.commit()
     db.refresh(config)
-    return SiteConfigOut(
-        siteUrl=config.site_url,
-        gmbUrl=config.gmb_url,
-        popupText=config.popup_text,
-        popupImageBase64=config.popup_image_base64,
-    )
+    return _config_to_out(config)
+
+
+@router.post("/accounts/{account_id}/site-config/regenerate-token", response_model=SiteConfigOut)
+def regenerate_public_token(
+    account_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate a new public_token — invalidates the old embed form immediately."""
+    require_account_member(account_id, db, current_user)
+    config = _get_or_create_config(db, account_id)
+    config.public_token = str(uuid.uuid4())
+    db.commit()
+    db.refresh(config)
+    return _config_to_out(config)
 
 
 @router.get("/accounts/{account_id}/site-leads", response_model=List[SiteLeadOut])
@@ -100,14 +119,16 @@ def list_leads(
 
 @router.post("/site-leads/submit", response_model=SiteLeadOut, status_code=201)
 def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
-    """Public endpoint — landing pages use this to submit contact forms."""
-    from app.models.core import Account
-    account = db.query(Account).filter_by(id=body.accountId).first()
-    if not account:
-        raise HTTPException(status_code=404, detail="account_not_found")
+    """Public endpoint — landing pages embed this to submit contact forms.
+
+    Identifies the account via publicToken (UUID), never exposes internal account IDs.
+    """
+    config = db.query(AccountSiteConfig).filter_by(public_token=body.publicToken).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="invalid_token")
 
     lead = SiteLead(
-        account_id=body.accountId,
+        account_id=config.account_id,
         name=body.name,
         phone=body.phone,
         email=body.email,

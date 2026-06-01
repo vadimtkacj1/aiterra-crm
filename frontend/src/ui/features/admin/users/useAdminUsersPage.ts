@@ -7,7 +7,7 @@ import type { BillingLineItem } from "@/services/admin/AdminService";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
 import type { CreateUserInput } from "@/services/auth/IAuthService";
 import type { User } from "@/domain/User";
-import type { UserBusinessMeta } from "@/services/admin/AdminService";
+import type { UserBusinessMeta, UserBusinessSite } from "@/services/admin/AdminService";
 import type { AdminCreateUserFormValues, AdminEditUserFormValues } from "./adminUsersTypes";
 import { submitAdminUserEdit } from "./adminUsersEditSave";
 
@@ -28,6 +28,7 @@ export function useAdminUsersPage() {
   const [editMetaLoading, setEditMetaLoading] = useState(false);
   const [editMetaInfo, setEditMetaInfo] = useState<UserBusinessMeta | null>(null);
   const [editGoogleHasCredentials, setEditGoogleHasCredentials] = useState(false);
+  const [editSiteInfo, setEditSiteInfo] = useState<UserBusinessSite | null>(null);
   const [editForm] = Form.useForm<AdminEditUserFormValues>();
   const [pwdForm] = Form.useForm<{ password: string }>();
   const [resetUser, setResetUser] = useState<User | null>(null);
@@ -78,6 +79,7 @@ export function useAdminUsersPage() {
       ]);
       setEditMetaInfo(info);
       setEditGoogleHasCredentials(Boolean(gInfo.hasCredentials));
+      setEditSiteInfo(sInfo);
       editForm.setFieldsValue({
         linkMeta: info.metaCampaignId ? "with" : "without",
         metaCampaignId: info.metaCampaignId ?? undefined,
@@ -232,6 +234,7 @@ export function useAdminUsersPage() {
 
   return {
     t,
+    services,
     form,
     metaCampaigns,
     metaCampaignsLoading,
@@ -247,6 +250,8 @@ export function useAdminUsersPage() {
     editMetaLoading,
     editMetaInfo,
     editGoogleHasCredentials,
+    editSiteInfo,
+    setEditSiteInfo,
     editForm,
     handleEditSave,
     pwdForm,

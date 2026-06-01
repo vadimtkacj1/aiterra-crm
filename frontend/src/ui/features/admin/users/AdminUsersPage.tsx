@@ -41,11 +41,16 @@ export function AdminUsersPage() {
         editMetaLoading={p.editMetaLoading}
         editMetaInfo={p.editMetaInfo}
         editGoogleHasCredentials={p.editGoogleHasCredentials}
+        editSiteInfo={p.editSiteInfo}
         editForm={p.editForm}
         metaCampaigns={p.metaCampaigns}
         metaCampaignsLoading={p.metaCampaignsLoading}
         onCancel={p.closeEditUser}
         onSave={p.handleEditSave}
+        onSiteTokenRegenerated={(newToken) =>
+          p.setEditSiteInfo((prev) => prev ? { ...prev, publicToken: newToken } : prev)
+        }
+        regenerateSiteToken={(accountId) => p.services.site.regenerateToken(accountId)}
       />
 
       <AdminUserResetPasswordModal

@@ -91,6 +91,26 @@ def get_db():
         db.close()
 
 
+def _backfill_public_tokens() -> None:
+    """Assign a UUID public_token to any account_site_configs row that has none."""
+    import uuid as _uuid
+    inspector = inspect(engine)
+    if not inspector.has_table("account_site_configs"):
+        return
+    cols = {c["name"] for c in inspector.get_columns("account_site_configs")}
+    if "public_token" not in cols:
+        return
+    with engine.begin() as conn:
+        rows = conn.execute(
+            text("SELECT id FROM account_site_configs WHERE public_token IS NULL")
+        ).fetchall()
+        for row in rows:
+            conn.execute(
+                text("UPDATE account_site_configs SET public_token = :tok WHERE id = :id"),
+                {"tok": str(_uuid.uuid4()), "id": row[0]},
+            )
+
+
 def _ensure_column(table: str, column: str, type_sql: str) -> None:
     """Append a column if missing. type_sql e.g. TEXT, VARCHAR(255)."""
     inspector = inspect(engine)
@@ -154,6 +174,9 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("account_site_configs", "popup_text", "TEXT")
         _ensure_column("account_site_configs", "popup_image_base64", "TEXT")
         _ensure_column("site_leads", "source", "VARCHAR(2048)")
+        # Public token for website form embed (UUID, replaces exposing internal account IDs)
+        _ensure_column("account_site_configs", "public_token", "VARCHAR(36)")
+        _backfill_public_tokens()
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

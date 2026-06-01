@@ -1,29 +1,35 @@
-import { CodeOutlined, CopyOutlined, LinkOutlined } from "@ant-design/icons";
-import { App, Button, Card, Space, Tag, Typography } from "antd";
+import { CodeOutlined, CopyOutlined, LinkOutlined, ReloadOutlined } from "@ant-design/icons";
+import { App, Button, Card, Popconfirm, Space, Tag, Typography } from "antd";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const { Text, Paragraph } = Typography;
 
 interface Props {
   accountId: string;
+  publicToken: string | null;
   apiBaseUrl: string;
+  onTokenRegenerated: (newToken: string) => void;
+  regenerateToken: (accountId: string) => Promise<{ publicToken: string | null }>;
 }
 
-export function SiteIntegrationCard({ accountId, apiBaseUrl }: Props) {
+export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onTokenRegenerated, regenerateToken }: Props) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const [regenerating, setRegenerating] = useState(false);
 
-  const endpoint = `${apiBaseUrl}/api/site-leads/submit`;
+  const endpoint = `${apiBaseUrl}/site-leads/submit`;
+  const token = publicToken ?? "…";
 
   const snippet = `fetch("${endpoint}", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    accountId: ${accountId},
-    name: "John Doe",          // required
-    phone: "+972501234567",    // optional
-    email: "john@example.com", // optional
-    message: "Hello!",         // optional
+    publicToken: "${token}",
+    name: "John Doe",           // required
+    phone: "+972501234567",     // optional
+    email: "john@example.com",  // optional
+    message: "Hello!",          // optional
     source: window.location.href, // tracks which page sent the lead
   }),
 });`;
@@ -32,6 +38,21 @@ export function SiteIntegrationCard({ accountId, apiBaseUrl }: Props) {
     void navigator.clipboard.writeText(text).then(() => {
       void message.success(t(`site.integration.copied.${key}`));
     });
+  }
+
+  async function handleRegenerate() {
+    setRegenerating(true);
+    try {
+      const config = await regenerateToken(accountId);
+      if (config.publicToken) {
+        onTokenRegenerated(config.publicToken);
+        void message.success(t("site.integration.regenerated"));
+      }
+    } catch {
+      void message.error(t("site.integration.regenerateError"));
+    } finally {
+      setRegenerating(false);
+    }
   }
 
   return (
@@ -46,22 +67,32 @@ export function SiteIntegrationCard({ accountId, apiBaseUrl }: Props) {
       <Space direction="vertical" size={20} style={{ width: "100%" }}>
         <div>
           <Text type="secondary" style={{ display: "block", marginBottom: 6 }}>
-            {t("site.integration.accountIdLabel")}
+            {t("site.integration.tokenLabel")}
           </Text>
-          <Space>
-            <Tag color="blue" style={{ fontSize: 14, padding: "2px 10px" }}>
-              {accountId}
+          <Space wrap>
+            <Tag color="blue" style={{ fontSize: 13, padding: "2px 10px", fontFamily: "monospace" }}>
+              {token}
             </Tag>
             <Button
               size="small"
               icon={<CopyOutlined />}
-              onClick={() => copyToClipboard(accountId, "id")}
+              onClick={() => copyToClipboard(token, "token")}
             >
               {t("site.integration.copy")}
             </Button>
+            <Popconfirm
+              title={t("site.integration.regenerateConfirm")}
+              onConfirm={() => void handleRegenerate()}
+              okText={t("site.integration.regenerateOk")}
+              cancelText={t("site.integration.regenerateCancel")}
+            >
+              <Button size="small" icon={<ReloadOutlined />} loading={regenerating} danger>
+                {t("site.integration.regenerateBtn")}
+              </Button>
+            </Popconfirm>
           </Space>
           <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: 12 }}>
-            {t("site.integration.accountIdHint")}
+            {t("site.integration.tokenHint")}
           </Text>
         </div>
 

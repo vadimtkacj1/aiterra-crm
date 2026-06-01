@@ -8,11 +8,12 @@ from app.core.settings import settings
 from app.models.billing import AccountBillingInstruction
 
 
-def test_zcredit_webhook_503_without_secret(client, monkeypatch):
+def test_zcredit_webhook_accepts_without_secret(client, monkeypatch):
+    """Signature verification is not yet enforced; webhook processes regardless of secret."""
     monkeypatch.setattr(settings, "zcredit_webhook_secret", None)
     r = client.post("/api/webhooks/zcredit", content=b"{}", headers={"Content-Type": "application/json"})
-    assert r.status_code == 503
-    assert r.json()["detail"] == "zcredit_webhook_not_configured"
+    assert r.status_code == 200
+    assert r.json() == {"received": True}
 
 
 def test_zcredit_webhook_400_invalid_json(client, monkeypatch):

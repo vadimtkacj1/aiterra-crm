@@ -136,25 +136,9 @@ def sync_account_billing_instruction(
             instruction.payment_url = payment_url or None
 
         elif payload.chargeType == "monthly":
-            try:
-                recurring_id, plan_id, payment_url, first_doc_id = zcredit_service.create_subscription(
-                    account,
-                    None,
-                    amount_minor,
-                    payload.currency,
-                    description,
-                )
-            except Exception as e:
-                error_msg = str(e)
-                print(f"ERROR: Z-Credit subscription creation failed: {error_msg}")
-                raise HTTPException(
-                    status_code=502,
-                    detail=f"Z-Credit API error: {error_msg[:200]}"
-                )
-            instruction.payment_recurring_id = recurring_id
-            instruction.payment_plan_id = plan_id
-            instruction.payment_url = payment_url or None
-            instruction.payment_doc_id = first_doc_id
+            # Monthly subscriptions are charged by the scheduler via saved card token.
+            # No zCredit session is created here — invoices are generated per-charge cycle.
+            instruction.subscription_status = "active"
 
         db.add(
             BillingInstructionHistory(

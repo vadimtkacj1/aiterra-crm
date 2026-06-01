@@ -240,6 +240,9 @@ export function ContractSignPage() {
     const handlePayNow = () => {
       navigate(`/contracts/sign/${token}/pay`);
     };
+    const isSubscription = !!(contract.monthlyAmount && contract.monthlyAmount > 0);
+    const allPaid = !nextStage;
+    const showPayButton = !isSubscription && !allPaid;
     return (
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div
@@ -255,17 +258,32 @@ export function ContractSignPage() {
           }}
         >
           <CheckCircleOutlined style={{ fontSize: 56, color: "#16a34a", marginBottom: 20 }} />
-          <Typography.Title level={3} style={{ margin: "0 0 24px" }}>
+          <Typography.Title level={3} style={{ margin: "0 0 12px" }}>
             {t("contracts.sign.successTitle")}
           </Typography.Title>
+          {isSubscription && (
+            <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
+              {t("contracts.sign.subscriptionActiveNote")}
+            </Typography.Text>
+          )}
+          {!isSubscription && allPaid && (
+            <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
+              {t("contracts.sign.paymentStatusPaid")}
+            </Typography.Text>
+          )}
+          {!isSubscription && !allPaid && (
+            <div style={{ marginBottom: 24 }} />
+          )}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <Button
-              type="primary"
-              onClick={handlePayNow}
-              style={{ borderRadius: 10, height: 44 }}
-            >
-              {payButtonLabel}
-            </Button>
+            {showPayButton && (
+              <Button
+                type="primary"
+                onClick={handlePayNow}
+                style={{ borderRadius: 10, height: 44 }}
+              >
+                {payButtonLabel}
+              </Button>
+            )}
             {contract.pdfBase64 ? (
               <Button onClick={downloadPdf} style={{ borderRadius: 10, height: 44 }}>
                 {t("contracts.sign.downloadSignedPdf")}

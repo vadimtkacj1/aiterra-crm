@@ -39,6 +39,7 @@ import { useTranslation } from "react-i18next";
 import type { Contract } from "../../../../domain/Contract";
 import { useApp } from "../../../../app/AppProviders";
 import { renderContractBody } from "../../user/contracts/components/contractBodyRenderer";
+import { PdfViewer } from "../../user/contracts/components/PdfViewer";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { SubscriptionStatusModal } from "./SubscriptionStatusModal";
 import { ContractRowActions } from "./ContractRowActions";
@@ -1204,15 +1205,9 @@ export function AdminContractsPage() {
                   >
                     {t("admin.contracts.form.pdf")}
                   </Typography.Text>
-                  <iframe
-                    src={`data:application/pdf;base64,${detailContract.pdfBase64}`}
-                    style={{
-                      width: "100%",
-                      height: 400,
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 8,
-                    }}
-                    title="contract-pdf"
+                  <PdfViewer
+                    base64={detailContract.pdfBase64}
+                    style={{ border: "1px solid #e2e8f0", borderRadius: 8, height: 400 }}
                   />
                 </div>
               )}

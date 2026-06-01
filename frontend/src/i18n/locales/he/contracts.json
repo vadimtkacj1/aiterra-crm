@@ -57,6 +57,7 @@
       "payStageNow": "לתשלום {{amount}}",
       "paymentLinkPending": "קישור התשלום בהכנה",
       "paymentStatusPaid": "התשלום כבר סומן כהושלם.",
+      "subscriptionActiveNote": "המנוי החודשי שלך פעיל. תשלומים נגבים אוטומטית בכל מחזור חיוב.",
       "paymentStatusPending": "התשלום ממתין",
       "paymentStatusPendingDetail": "לחצו על 'לתשלום' כדי לעבור לעמוד התשלום המאובטח.",
       "downloadSignedPdf": "הורדת PDF",

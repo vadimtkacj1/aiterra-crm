@@ -41,6 +41,7 @@ export interface ContractPublic {
   signerName: string | null;
   pdfBase64: string | null;
   stages: ContractStage[];
+  monthlyAmount?: number | null;
 }
 
 export interface ContractStageInput {

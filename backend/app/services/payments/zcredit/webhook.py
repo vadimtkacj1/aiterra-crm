@@ -145,8 +145,8 @@ def _save_card_from_webhook(db: Session, account_id: int, data: dict[str, Any]) 
     logger.info("zcredit_webhook: saved card token for account_id=%s", account_id)
 
 
-def _mark_contract_stage_paid(db: Session, session_id: str) -> tuple[bool, int | None]:
-    """Mark the contract payment stage with the given session ID as paid. Returns (found, account_id)."""
+def _mark_contract_stage_paid(db: Session, session_id: str) -> tuple[bool, int | None, "Contract | None"]:
+    """Mark the contract payment stage with the given session ID as paid. Returns (found, account_id, contract)."""
     from app.models.contracts import Contract
     stage = (
         db.query(ContractPaymentStage)
@@ -160,8 +160,8 @@ def _mark_contract_stage_paid(db: Session, session_id: str) -> tuple[bool, int |
         db.commit()
         logger.info("zcredit_webhook: marked contract stage paid stage_id=%s session=%s", stage.id, session_id)
         contract = db.query(Contract).filter(Contract.id == stage.contract_id).first()
-        return True, (contract.account_id if contract else None)
-    return False, None
+        return True, (contract.account_id if contract else None), contract
+    return False, None, None
 
 
 def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, Any]) -> None:
@@ -175,7 +175,7 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
         if event_type in ("payment.success", "J4"):
             sid = _get_field(data, "SessionId")
             if sid:
-                found, account_id = _mark_contract_stage_paid(db, sid)
+                found, account_id, contract = _mark_contract_stage_paid(db, sid)
                 if found:
                     if account_id:
                         try:
@@ -187,6 +187,39 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                                 account_id,
                                 exc_info=True,
                             )
+                    # For monthly subscription contracts, record a SubscriptionPayment entry
+                    if contract and contract.monthly_amount and contract.monthly_amount > 0 and contract.billing_instruction_id:
+                        ins = db.query(AccountBillingInstruction).filter(
+                            AccountBillingInstruction.id == contract.billing_instruction_id
+                        ).first()
+                        if ins:
+                            existing = db.query(SubscriptionPayment).filter(
+                                SubscriptionPayment.billing_instruction_id == ins.id,
+                                SubscriptionPayment.zcredit_transaction_id == sid,
+                            ).first()
+                            if not existing:
+                                payment_count = db.query(SubscriptionPayment).filter(
+                                    SubscriptionPayment.billing_instruction_id == ins.id
+                                ).count()
+                                payment = SubscriptionPayment(
+                                    billing_instruction_id=ins.id,
+                                    contract_id=contract.id,
+                                    amount=contract.monthly_amount,
+                                    currency=contract.currency,
+                                    payment_number=payment_count + 1,
+                                    status="success",
+                                    zcredit_transaction_id=sid,
+                                    zcredit_approval_number=_get_field(data, "ApprovalNumber"),
+                                )
+                                db.add(payment)
+                                ins.subscription_status = "active"
+                                db.add(ins)
+                                db.commit()
+                                logger.info(
+                                    "zcredit_webhook: recorded subscription payment #%d for contract_id=%s",
+                                    payment.payment_number,
+                                    contract.id,
+                                )
                     return
 
             ins = _find_instruction_for_callback(db, data)

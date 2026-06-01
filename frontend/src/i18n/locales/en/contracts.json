@@ -55,6 +55,7 @@
       "payStageNow": "Pay now {{amount}}",
       "paymentLinkPending": "Payment link is being prepared",
       "paymentStatusPaid": "Payment already marked as complete.",
+      "subscriptionActiveNote": "Your monthly subscription is active. Payments are charged automatically each billing cycle.",
       "paymentStatusPending": "Payment pending",
       "paymentStatusPendingDetail": "Click Pay now to continue to the secure payment portal.",
       "downloadSignedPdf": "Download PDF",

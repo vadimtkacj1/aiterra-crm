@@ -1,4 +1,4 @@
-import { CreditCardOutlined, LockOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CreditCardOutlined, LockOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import { App, Button, Spin, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -156,6 +156,42 @@ export function ContractPayPage() {
     );
   }
 
+  const isSubscription = !!(contract.monthlyAmount && contract.monthlyAmount > 0);
+
+  if (isSubscription) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+          background: pageBg,
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            maxWidth: 400,
+            padding: "40px 32px",
+            background: "#fff",
+            borderRadius: 16,
+            boxShadow: cardShadow,
+          }}
+        >
+          <CheckCircleOutlined style={{ fontSize: 48, color: "#16a34a", marginBottom: 16 }} />
+          <Typography.Title level={4} style={{ marginBottom: 8 }}>
+            {contract.title}
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            {t("contracts.sign.subscriptionActiveNote")}
+          </Typography.Text>
+        </div>
+      </div>
+    );
+  }
+
   if (!nextStage) {
     return (
       <div
@@ -178,6 +214,7 @@ export function ContractPayPage() {
             boxShadow: cardShadow,
           }}
         >
+          <CheckCircleOutlined style={{ fontSize: 48, color: "#16a34a", marginBottom: 16 }} />
           <Typography.Text type="secondary">
             {t("contracts.sign.paymentStatusPaid")}
           </Typography.Text>

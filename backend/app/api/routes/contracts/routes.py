@@ -97,6 +97,7 @@ def _contract_public_out(c: Contract) -> ContractPublicOut:
         signerName=c.signer_name,
         pdfBase64=c.pdf_base64,
         stages=[_stage_out(s) for s in c.stages],
+        monthlyAmount=c.monthly_amount,
     )
 
 

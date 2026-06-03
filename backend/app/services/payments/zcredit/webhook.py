@@ -158,9 +158,28 @@ def _mark_contract_stage_paid(
         .first()
     )
     if stage:
+        now = datetime.now(timezone.utc)
         stage.status = "paid"
-        stage.paid_at = datetime.now(timezone.utc)
+        stage.paid_at = now
         db.add(stage)
+        # For combined payments all sibling stages share the same payment_doc_id — mark them paid too
+        siblings = (
+            db.query(ContractPaymentStage)
+            .filter(
+                ContractPaymentStage.payment_doc_id == session_id,
+                ContractPaymentStage.id != stage.id,
+            )
+            .all()
+        )
+        for s in siblings:
+            s.status = "paid"
+            s.paid_at = now
+            db.add(s)
+        if siblings:
+            logger.info(
+                "zcredit_webhook: marked %d sibling stage(s) paid for combined session=%s",
+                len(siblings), session_id,
+            )
         db.commit()
         logger.info("zcredit_webhook: marked contract stage paid stage_id=%s session=%s", stage.id, session_id)
         contract = db.query(Contract).filter(Contract.id == stage.contract_id).first()

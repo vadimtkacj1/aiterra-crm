@@ -3,7 +3,10 @@
     "pay": {
       "amountDue": "Amount due",
       "redirectNote": "You'll be redirected to our secure payment portal",
-      "contractNotSigned": "The contract must be signed before payment can proceed"
+      "contractNotSigned": "The contract must be signed before payment can proceed",
+      "breakdown": "Due now",
+      "total": "Total",
+      "combinedHint": "All items processed in one secure transaction"
     },
     "pdf": {
       "loadError": "Failed to load document",

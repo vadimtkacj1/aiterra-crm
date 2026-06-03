@@ -5,7 +5,7 @@ import logging
 import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
@@ -438,6 +438,7 @@ def create_contract_checkout(
     token: str,
     request: Request,
     db: Session = Depends(get_db),
+    combined: bool = Query(default=False),
 ) -> ContractCheckoutOut:
     c = _get_by_token_or_404(db, token)
     if c.status == "voided":
@@ -448,20 +449,17 @@ def create_contract_checkout(
     if not pending:
         raise HTTPException(status_code=409, detail="contract_already_paid")
     pending.sort(key=lambda stage: stage.sort_order)
-    stage = pending[0]
-    if stage.amount <= 0:
-        raise HTTPException(status_code=400, detail="invalid_stage_amount")
 
     account = db.query(Account).filter(Account.id == c.account_id).first()
     if not account:
         raise HTTPException(status_code=404, detail="account_not_found")
 
-    # Determine dynamic base_url based on the incoming request to avoid localhost issues
+    # Resolve URLs
     origin = request.headers.get("origin")
     referer = request.headers.get("referer")
     host = request.headers.get("x-forwarded-host") or request.url.netloc
     scheme = request.headers.get("x-forwarded-proto") or request.url.scheme
-    
+
     if origin:
         base_url = origin.rstrip("/")
     elif referer:
@@ -471,21 +469,46 @@ def create_contract_checkout(
     else:
         base_url = f"{scheme}://{host}"
 
-    callback_base = f"{scheme}://{host}"
-    callback_url = f"{callback_base}/api/webhooks/zcredit"
-    amount_minor = int(round(float(stage.amount) * 100))
-    
+    callback_url = f"{scheme}://{host}/api/webhooks/zcredit"
     cancel_url = f"{base_url}/contracts/sign/{token}"
     success_url = f"{base_url}/a/{account.id}/billing/success"
 
+    # ── Combined payment: one invoice covers all pending stages ──────────────
+    if combined and len(pending) > 1:
+        total_amount = sum(s.amount for s in pending)
+        if total_amount <= 0:
+            raise HTTPException(status_code=400, detail="invalid_stage_amount")
+        descriptions = [s.description or f"Stage {s.sort_order + 1}" for s in pending]
+        combined_desc = f"Contract #{c.id} · " + " + ".join(descriptions)
+        amount_minor = int(round(total_amount * 100))
+        session_id, pay_url = zcredit_service.create_invoice(
+            account, amount_minor, c.currency, combined_desc,
+            success_url=success_url, cancel_url=cancel_url, callback_url=callback_url,
+        )
+        # Store the same session_id on ALL pending stages so the webhook marks all paid
+        for s in pending:
+            s.payment_doc_id = session_id
+            s.status = "invoiced"
+        db.commit()
+        return ContractCheckoutOut(
+            status="ok",
+            message="Open paymentUrl in the browser to complete payment.",
+            gateway="zcredit",
+            callbackUrl=callback_url,
+            sessionId=session_id,
+            paymentUrl=pay_url,
+            stage=_stage_out(pending[0]),
+        )
+
+    # ── Single-stage payment (default) ────────────────────────────────────────
+    stage = pending[0]
+    if stage.amount <= 0:
+        raise HTTPException(status_code=400, detail="invalid_stage_amount")
+    amount_minor = int(round(float(stage.amount) * 100))
     session_id, pay_url = zcredit_service.create_invoice(
-        account,
-        amount_minor,
-        c.currency,
+        account, amount_minor, c.currency,
         f"Contract #{c.id} · {stage.description or 'Payment'}",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        callback_url=callback_url,
+        success_url=success_url, cancel_url=cancel_url, callback_url=callback_url,
     )
     stage.payment_doc_id = session_id
     stage.status = "invoiced"

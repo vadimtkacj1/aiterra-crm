@@ -137,8 +137,10 @@ def sync_account_billing_instruction(
 
         elif payload.chargeType == "monthly":
             # Monthly subscriptions are charged by the scheduler via saved card token.
-            # No zCredit session is created here — invoices are generated per-charge cycle.
-            instruction.subscription_status = "active"
+            # Status starts as "pending" — activated only after the client pays the first
+            # subscription stage (see webhook.py). This prevents the scheduler from
+            # double-charging when the client also pays manually via the contract payment link.
+            instruction.subscription_status = "pending"
 
         db.add(
             BillingInstructionHistory(

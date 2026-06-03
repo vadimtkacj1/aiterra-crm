@@ -128,6 +128,9 @@ interface FormValues {
   monthlyAmount?: number | null;
   subscriptionMonths?: number | null;
   billingDay?: number | null;
+  hasOneTime?: boolean;
+  oneTimeAmount?: number | null;
+  oneTimeDescription?: string;
 }
 
 // ─── component ──────────────────────────────────────────────────────────────
@@ -307,11 +310,18 @@ export function AdminContractsPage() {
   };
 
   const handleCreate = async (values: FormValues) => {
-    // For subscriptions, stages are auto-generated on backend
+    // For subscriptions, the subscription stage is auto-generated; optional one-time stages are passed separately
     if (values.isSubscription) {
       if (!values.monthlyAmount || values.monthlyAmount <= 0) {
         void message.error(t("admin.contracts.form.monthlyAmountRequired"));
         return;
+      }
+      const oneTimeStages: { description: string; amount: number }[] = [];
+      if (values.hasOneTime && values.oneTimeAmount && values.oneTimeAmount > 0) {
+        oneTimeStages.push({
+          description: (values.oneTimeDescription?.trim() || t("admin.contracts.form.oneTimeDefaultDescription")),
+          amount: values.oneTimeAmount,
+        });
       }
       setCreating(true);
       try {
@@ -321,7 +331,7 @@ export function AdminContractsPage() {
           body: values.body ?? "",
           currency: values.currency ?? "ILS",
           pdfBase64: pdfBase64 ?? null,
-          stages: [], // Backend will generate stages
+          stages: oneTimeStages,
           isSubscription: true,
           monthlyAmount: values.monthlyAmount,
           subscriptionMonths: values.subscriptionMonths || null,
@@ -598,7 +608,7 @@ export function AdminContractsPage() {
         <Form
           form={form}
           layout="vertical"
-          initialValues={{ currency: "ILS", stages: [{ description: "", amount: null }], isSubscription: false }}
+          initialValues={{ currency: "ILS", stages: [{ description: "", amount: null }], isSubscription: false, hasOneTime: false, oneTimeDescription: "", oneTimeAmount: null }}
         >
           {/* ── Step 1: Client ─────────────────────────────────── */}
           <div style={{ marginBottom: 20 }}>
@@ -776,7 +786,10 @@ export function AdminContractsPage() {
               prev.subscriptionMonths !== curr.subscriptionMonths ||
               prev.billingDay !== curr.billingDay ||
               prev.stages !== curr.stages ||
-              prev.currency !== curr.currency
+              prev.currency !== curr.currency ||
+              prev.hasOneTime !== curr.hasOneTime ||
+              prev.oneTimeAmount !== curr.oneTimeAmount ||
+              prev.oneTimeDescription !== curr.oneTimeDescription
             }>
               {({ getFieldValue }) => {
                 const isSubscription = getFieldValue("isSubscription") as boolean;
@@ -1019,6 +1032,7 @@ export function AdminContractsPage() {
                         border: "1px solid var(--ds-border-subtle)",
                         borderRadius: 8,
                       }}>
+                        {/* Monthly billing fields */}
                         <Row gutter={12}>
                           <Col xs={24} sm={12}>
                             <Form.Item
@@ -1071,36 +1085,116 @@ export function AdminContractsPage() {
                           </Col>
                         </Row>
 
+                        {/* ── One-time payment toggle ─────────────────── */}
+                        <div style={{
+                          borderTop: "1px solid var(--ds-border-subtle)",
+                          paddingTop: 14,
+                          marginTop: 4,
+                        }}>
+                          <Form.Item name="hasOneTime" valuePropName="checked" noStyle>
+                            <Switch
+                              size="small"
+                              onChange={(checked) => {
+                                if (!checked) {
+                                  form.setFieldsValue({ oneTimeAmount: null, oneTimeDescription: "" });
+                                }
+                              }}
+                            />
+                          </Form.Item>
+                          <Typography.Text
+                            style={{ marginInlineStart: 8, fontSize: 13, cursor: "pointer", userSelect: "none" }}
+                            onClick={() => {
+                              const cur = form.getFieldValue("hasOneTime") as boolean;
+                              form.setFieldsValue({ hasOneTime: !cur });
+                              if (cur) form.setFieldsValue({ oneTimeAmount: null, oneTimeDescription: "" });
+                            }}
+                          >
+                            {t("admin.contracts.form.oneTimeToggle")}
+                          </Typography.Text>
+                        </div>
+
+                        {/* One-time payment fields */}
+                        {(getFieldValue("hasOneTime") as boolean) && (
+                          <div style={{
+                            marginTop: 12,
+                            padding: "12px 14px",
+                            background: "var(--ds-surface-0)",
+                            border: "1px solid var(--ds-border-subtle)",
+                            borderRadius: 6,
+                          }}>
+                            <Row gutter={12}>
+                              <Col xs={24} sm={14}>
+                                <Form.Item
+                                  name="oneTimeDescription"
+                                  label={t("admin.contracts.form.oneTimeDescription")}
+                                  style={{ marginBottom: 0 }}
+                                >
+                                  <Input
+                                    placeholder={t("admin.contracts.form.oneTimeDescriptionPlaceholder")}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={24} sm={10}>
+                                <Form.Item
+                                  name="oneTimeAmount"
+                                  label={t("admin.contracts.form.oneTimeAmount")}
+                                  rules={[{ type: "number", min: 0.01, message: t("admin.contracts.form.stageAmountRequired") }]}
+                                  style={{ marginBottom: 0 }}
+                                >
+                                  <InputNumber
+                                    min={0.01}
+                                    style={{ width: "100%" }}
+                                    placeholder="0.00"
+                                  />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          </div>
+                        )}
+
                         {/* Live subscription preview */}
                         {(() => {
                           const monthly = getFieldValue("monthlyAmount") as number | null;
                           const months = getFieldValue("subscriptionMonths") as number | null;
                           const day = getFieldValue("billingDay") as number | null;
+                          const hasOneTime = getFieldValue("hasOneTime") as boolean;
+                          const oneTimeAmt = getFieldValue("oneTimeAmount") as number | null;
                           if (!monthly || monthly <= 0) return null;
                           const hasMonths = months && months > 0;
-                          const total = hasMonths ? monthly * months : null;
+                          const recurringTotal = hasMonths ? monthly * months : null;
+                          const showOneTime = hasOneTime && oneTimeAmt && oneTimeAmt > 0;
                           return (
                             <div style={{
                               padding: "10px 14px",
                               background: "var(--ds-color-primary-surface)",
                               border: "1px solid var(--ds-color-primary-surface-deep)",
                               borderRadius: 6,
-                              marginTop: 4,
+                              marginTop: 12,
                             }}>
                               <Flex justify="space-between" align="center" gap={8} wrap="wrap">
-                                <Flex align="center" gap={6}>
-                                  <SyncOutlined style={{ color: "var(--ds-color-primary)", fontSize: 13 }} />
-                                  <Typography.Text style={{ fontSize: 13, color: "var(--ds-text-secondary)" }}>
-                                    {hasMonths
-                                      ? `${fmtMoney(monthly, currency)} × ${months} ${t("admin.contracts.form.months")}`
-                                      : `${fmtMoney(monthly, currency)} / ${t("admin.contracts.form.month")} · ${t("admin.contracts.form.openEnded")}`
-                                    }
-                                    {day ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}` : ""}
-                                  </Typography.Text>
+                                <Flex vertical gap={4} style={{ flex: 1 }}>
+                                  <Flex align="center" gap={6}>
+                                    <SyncOutlined style={{ color: "var(--ds-color-primary)", fontSize: 13 }} />
+                                    <Typography.Text style={{ fontSize: 13, color: "var(--ds-text-secondary)" }}>
+                                      {hasMonths
+                                        ? `${fmtMoney(monthly, currency)} × ${months} ${t("admin.contracts.form.months")}`
+                                        : `${fmtMoney(monthly, currency)} / ${t("admin.contracts.form.month")} · ${t("admin.contracts.form.openEnded")}`
+                                      }
+                                      {day ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}` : ""}
+                                    </Typography.Text>
+                                  </Flex>
+                                  {showOneTime && (
+                                    <Flex align="center" gap={6}>
+                                      <WalletOutlined style={{ color: "var(--ds-color-primary)", fontSize: 13 }} />
+                                      <Typography.Text style={{ fontSize: 13, color: "var(--ds-text-secondary)" }}>
+                                        {t("admin.contracts.form.oneTimePreview", { amount: fmtMoney(oneTimeAmt!, currency) })}
+                                      </Typography.Text>
+                                    </Flex>
+                                  )}
                                 </Flex>
-                                {total !== null && (
+                                {recurringTotal !== null && (
                                   <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)" }}>
-                                    = {fmtMoney(total, currency)}
+                                    = {fmtMoney(recurringTotal + (showOneTime ? (oneTimeAmt ?? 0) : 0), currency)}
                                   </Typography.Text>
                                 )}
                               </Flex>

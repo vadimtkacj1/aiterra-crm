@@ -34,11 +34,11 @@ class ContractCreate(BaseModel):
 
     @model_validator(mode='after')
     def validate_stages_or_subscription(self):
-        # For subscriptions, stages can be empty (backend will generate them)
         if not self.isSubscription and not self.stages:
             raise ValueError("at least one stage required for non-subscription contracts")
         if self.isSubscription and not self.monthlyAmount:
             raise ValueError("monthlyAmount required for subscription contracts")
+        # For subscriptions, extra stages (one-time fees) are allowed alongside monthly billing
         return self
 
     @field_validator("title")

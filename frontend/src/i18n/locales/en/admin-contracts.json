@@ -112,7 +112,13 @@
         "pdfSizeError": "PDF must be under 5 MB",
         "equalSplitConfirmTitle": "Replace existing stages?",
         "equalSplitConfirmContent": "This will overwrite your current payment stages.",
-        "equalSplitConfirmOk": "Replace"
+        "equalSplitConfirmOk": "Replace",
+        "oneTimeToggle": "Add one-time payment (setup fee)",
+        "oneTimeDescription": "Description",
+        "oneTimeDescriptionPlaceholder": "e.g. Setup fee",
+        "oneTimeAmount": "One-time amount",
+        "oneTimeDefaultDescription": "Setup fee",
+        "oneTimePreview": "+ {{amount}} one-time"
       },
       "stage": {
         "paidAt": "Paid: {{date}}"

@@ -112,7 +112,13 @@
         "pdfSizeError": "גודל ה-PDF חייב להיות פחות מ-5 מגה-בייט",
         "equalSplitConfirmTitle": "להחליף שלבים קיימים?",
         "equalSplitConfirmContent": "פעולה זו תחליף את שלבי התשלום הנוכחיים.",
-        "equalSplitConfirmOk": "החלף"
+        "equalSplitConfirmOk": "החלף",
+        "oneTimeToggle": "הוסף תשלום חד-פעמי (דמי פתיחה)",
+        "oneTimeDescription": "תיאור",
+        "oneTimeDescriptionPlaceholder": "לדוגמה: דמי פתיחה",
+        "oneTimeAmount": "סכום חד-פעמי",
+        "oneTimeDefaultDescription": "דמי פתיחה",
+        "oneTimePreview": "+ {{amount}} חד-פעמי"
       },
       "stage": {
         "paidAt": "שולם: {{date}}"

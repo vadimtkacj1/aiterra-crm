@@ -145,8 +145,12 @@ def _save_card_from_webhook(db: Session, account_id: int, data: dict[str, Any]) 
     logger.info("zcredit_webhook: saved card token for account_id=%s", account_id)
 
 
-def _mark_contract_stage_paid(db: Session, session_id: str) -> tuple[bool, int | None, "Contract | None"]:
-    """Mark the contract payment stage with the given session ID as paid. Returns (found, account_id, contract)."""
+def _mark_contract_stage_paid(
+    db: Session, session_id: str
+) -> tuple[bool, int | None, "Contract | None", "ContractPaymentStage | None"]:
+    """Mark the contract payment stage with the given session ID as paid.
+    Returns (found, account_id, contract, stage).
+    """
     from app.models.contracts import Contract
     stage = (
         db.query(ContractPaymentStage)
@@ -160,8 +164,8 @@ def _mark_contract_stage_paid(db: Session, session_id: str) -> tuple[bool, int |
         db.commit()
         logger.info("zcredit_webhook: marked contract stage paid stage_id=%s session=%s", stage.id, session_id)
         contract = db.query(Contract).filter(Contract.id == stage.contract_id).first()
-        return True, (contract.account_id if contract else None), contract
-    return False, None, None
+        return True, (contract.account_id if contract else None), contract, stage
+    return False, None, None, None
 
 
 def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, Any]) -> None:
@@ -175,7 +179,7 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
         if event_type in ("payment.success", "J4"):
             sid = _get_field(data, "SessionId")
             if sid:
-                found, account_id, contract = _mark_contract_stage_paid(db, sid)
+                found, account_id, contract, stage = _mark_contract_stage_paid(db, sid)
                 if found:
                     if account_id:
                         try:
@@ -187,8 +191,17 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                                 account_id,
                                 exc_info=True,
                             )
-                    # For monthly subscription contracts, record a SubscriptionPayment entry
-                    if contract and contract.monthly_amount and contract.monthly_amount > 0 and contract.billing_instruction_id:
+                    # Activate billing and record SubscriptionPayment ONLY for the subscription
+                    # stage (sort_order == 0). One-time fee stages (sort_order > 0) must not
+                    # trigger billing activation or create false SubscriptionPayment records.
+                    is_subscription_stage = stage is not None and stage.sort_order == 0
+                    if (
+                        is_subscription_stage
+                        and contract
+                        and contract.monthly_amount
+                        and contract.monthly_amount > 0
+                        and contract.billing_instruction_id
+                    ):
                         ins = db.query(AccountBillingInstruction).filter(
                             AccountBillingInstruction.id == contract.billing_instruction_id
                         ).first()
@@ -216,7 +229,7 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                                 db.add(ins)
                                 db.commit()
                                 logger.info(
-                                    "zcredit_webhook: recorded subscription payment #%d for contract_id=%s",
+                                    "zcredit_webhook: subscription activated, payment #%d for contract_id=%s",
                                     payment.payment_number,
                                     contract.id,
                                 )

@@ -165,13 +165,13 @@ def create_contract(
     admin: User = Depends(require_admin),
 ) -> ContractOut:
     if body.isSubscription:
-        stages_to_create = [
-            ContractStageIn(
-                description=f"Monthly subscription ({body.subscriptionMonths or '∞'} months)",
-                amount=body.monthlyAmount,  # type: ignore[arg-type]  # validated by schema
-            )
-        ]
-        total = body.monthlyAmount  # type: ignore[assignment]
+        subscription_stage = ContractStageIn(
+            description=f"Monthly subscription ({body.subscriptionMonths or '∞'} months)",
+            amount=body.monthlyAmount,  # type: ignore[arg-type]  # validated by schema
+        )
+        # body.stages may contain optional one-time fees (setup fee, etc.)
+        stages_to_create = [subscription_stage] + list(body.stages)
+        total = body.monthlyAmount + sum(s.amount for s in body.stages)  # type: ignore[operator]
     else:
         stages_to_create = body.stages
         total = sum(s.amount for s in body.stages)

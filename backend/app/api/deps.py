@@ -35,7 +35,9 @@ def forbid_admin_client_card_write(user: User) -> None:
         raise HTTPException(status_code=403, detail="admin_readonly_billing_card")
 
 
-def require_account_member(account_id: int, db: Session, user: User) -> AccountMembership:
+def require_account_member(account_id: int, db: Session, user: User) -> AccountMembership | None:
+    if user.role == "admin":
+        return None
     membership = (
         db.query(AccountMembership)
         .filter(AccountMembership.account_id == account_id, AccountMembership.user_id == user.id)

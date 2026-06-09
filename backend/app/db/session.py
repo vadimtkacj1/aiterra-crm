@@ -174,6 +174,7 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("account_site_configs", "popup_text", "TEXT")
         _ensure_column("account_site_configs", "popup_image_base64", "TEXT")
         _ensure_column("site_leads", "source", "VARCHAR(2048)")
+        _ensure_column("site_leads", "treatment", "VARCHAR(255)")
         # Public token for website form embed (UUID, replaces exposing internal account IDs)
         _ensure_column("account_site_configs", "public_token", "VARCHAR(36)")
         _backfill_public_tokens()

@@ -88,7 +88,11 @@
         "token": "Token copied",
         "endpoint": "Endpoint copied",
         "snippet": "Snippet copied"
-      }
+      },
+      "testLabel": "Send test email",
+      "testBtn": "Send Test",
+      "testSent": "Test email sent! Check your inbox.",
+      "testError": "Failed to send test email. Check SMTP settings."
     }
   },
   "layout": {

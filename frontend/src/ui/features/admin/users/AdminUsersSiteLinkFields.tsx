@@ -11,9 +11,10 @@ type Props = {
   siteInfo?: UserBusinessSite | null;
   onTokenRegenerated?: (newToken: string) => void;
   regenerateToken?: (accountId: string) => Promise<{ publicToken: string | null }>;
+  sendTestNotification?: (accountId: string, email: string) => Promise<void>;
 };
 
-export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, regenerateToken }: Props) {
+export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, regenerateToken, sendTestNotification }: Props) {
   const apiBaseUrl = useMemo(() => new Env().apiBaseUrl, []);
 
   return (
@@ -117,6 +118,7 @@ export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, rege
                     apiBaseUrl={apiBaseUrl}
                     onTokenRegenerated={onTokenRegenerated}
                     regenerateToken={regenerateToken}
+                    sendTestNotification={sendTestNotification}
                   />
                 </Form.Item>
               )}

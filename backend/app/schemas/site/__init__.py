@@ -57,3 +57,7 @@ class SiteLeadOut(BaseModel):
 class SiteLeadAdminOut(SiteLeadOut):
     accountId: int
     accountName: str
+
+
+class TestNotificationIn(BaseModel):
+    email: str

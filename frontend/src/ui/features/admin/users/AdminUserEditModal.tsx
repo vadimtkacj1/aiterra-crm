@@ -23,6 +23,7 @@ type Props = {
   onSave: () => Promise<void>;
   onSiteTokenRegenerated: (newToken: string) => void;
   regenerateSiteToken: (accountId: string) => Promise<{ publicToken: string | null }>;
+  sendTestNotification: (accountId: string, email: string) => Promise<void>;
 };
 
 export function AdminUserEditModal({
@@ -39,6 +40,7 @@ export function AdminUserEditModal({
   onSave,
   onSiteTokenRegenerated,
   regenerateSiteToken,
+  sendTestNotification,
 }: Props) {
   return (
     <AppModal
@@ -78,6 +80,7 @@ export function AdminUserEditModal({
                 siteInfo={editSiteInfo}
                 onTokenRegenerated={onSiteTokenRegenerated}
                 regenerateToken={regenerateSiteToken}
+                sendTestNotification={sendTestNotification}
               />
             </>
           ) : null}

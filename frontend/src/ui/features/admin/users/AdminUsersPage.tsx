@@ -51,6 +51,7 @@ export function AdminUsersPage() {
           p.setEditSiteInfo((prev) => prev ? { ...prev, publicToken: newToken } : prev)
         }
         regenerateSiteToken={(accountId) => p.services.site.regenerateToken(accountId)}
+        sendTestNotification={(accountId, email) => p.services.site.sendTestNotification(accountId, email)}
       />
 
       <AdminUserResetPasswordModal

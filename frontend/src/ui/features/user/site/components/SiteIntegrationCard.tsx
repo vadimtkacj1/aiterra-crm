@@ -1,5 +1,5 @@
-import { CodeOutlined, CopyOutlined, LinkOutlined, ReloadOutlined } from "@ant-design/icons";
-import { App, Button, Card, Popconfirm, Space, Tag, Typography } from "antd";
+import { CodeOutlined, CopyOutlined, LinkOutlined, ReloadOutlined, SendOutlined } from "@ant-design/icons";
+import { App, Button, Card, Input, Popconfirm, Space, Tag, Typography } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,12 +11,15 @@ interface Props {
   apiBaseUrl: string;
   onTokenRegenerated: (newToken: string) => void;
   regenerateToken: (accountId: string) => Promise<{ publicToken: string | null }>;
+  sendTestNotification?: (accountId: string, email: string) => Promise<void>;
 }
 
-export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onTokenRegenerated, regenerateToken }: Props) {
+export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onTokenRegenerated, regenerateToken, sendTestNotification }: Props) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const [regenerating, setRegenerating] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [testSending, setTestSending] = useState(false);
 
   const endpoint = `${apiBaseUrl}/site-leads/submit`;
   const token = publicToken ?? "…";
@@ -52,6 +55,19 @@ export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onToke
       void message.error(t("site.integration.regenerateError"));
     } finally {
       setRegenerating(false);
+    }
+  }
+
+  async function handleSendTest() {
+    if (!sendTestNotification || !testEmail) return;
+    setTestSending(true);
+    try {
+      await sendTestNotification(accountId, testEmail);
+      void message.success(t("site.integration.testSent"));
+    } catch {
+      void message.error(t("site.integration.testError"));
+    } finally {
+      setTestSending(false);
     }
   }
 
@@ -141,6 +157,32 @@ export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onToke
             {snippet}
           </Paragraph>
         </div>
+
+        {sendTestNotification && (
+          <div>
+            <Text type="secondary" style={{ display: "block", marginBottom: 6 }}>
+              {t("site.integration.testLabel")}
+            </Text>
+            <Space>
+              <Input
+                size="small"
+                placeholder="email@example.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                style={{ width: 220 }}
+              />
+              <Button
+                size="small"
+                icon={<SendOutlined />}
+                loading={testSending}
+                disabled={!testEmail}
+                onClick={() => void handleSendTest()}
+              >
+                {t("site.integration.testBtn")}
+              </Button>
+            </Space>
+          </div>
+        )}
       </Space>
     </Card>
   );

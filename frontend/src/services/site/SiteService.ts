@@ -20,4 +20,8 @@ export class SiteService implements ISiteService {
   listLeads(accountId: string): Promise<SiteLead[]> {
     return this.http.get<SiteLead[]>(`/accounts/${accountId}/site-leads`);
   }
+
+  sendTestNotification(accountId: string, email: string): Promise<void> {
+    return this.http.post(`/accounts/${accountId}/site-config/test-notification`, { email });
+  }
 }

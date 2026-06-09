@@ -13,12 +13,15 @@ from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User
 from app.models.site import AccountSiteConfig, SiteLead
-from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut
+from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn
 from app.services.whatsapp.sender import send_whatsapp_message
 from app.services.email.smtp_mail import send_simple_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+DEFAULT_EMAIL_SUBJECT = "Thank you for your message!"
+DEFAULT_EMAIL_BODY = "Hello {name}, thank you for your message! We will get back to you shortly."
 
 
 def _render(template: str, name: str) -> str:
@@ -189,13 +192,9 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
             daemon=True,
         ).start()
 
-    if (
-        send_email
-        and body.email
-        and config.email_notify_message
-    ):
-        subject = _render(config.email_notify_subject or "New message", body.name or "")
-        email_body = _render(config.email_notify_message, body.name or "")
+    if send_email and body.email:
+        subject = _render(config.email_notify_subject or DEFAULT_EMAIL_SUBJECT, body.name or "")
+        email_body = _render(config.email_notify_message or DEFAULT_EMAIL_BODY, body.name or "")
         threading.Thread(
             target=send_simple_email,
             args=(body.email, subject, email_body),
@@ -212,3 +211,23 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
         source=lead.source,
         createdAt=lead.created_at,
     )
+
+
+@router.post("/accounts/{account_id}/site-config/test-notification")
+def test_notification(
+    account_id: int,
+    body: TestNotificationIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    require_account_member(account_id, db, current_user)
+    config = _get_or_create_config(db, account_id)
+
+    subject = config.email_notify_subject or DEFAULT_EMAIL_SUBJECT
+    email_body = config.email_notify_message or DEFAULT_EMAIL_BODY
+    email_body = email_body.replace("{name}", "Test User")
+    subject = subject.replace("{name}", "Test User")
+
+    sent = send_simple_email(body.email, f"[TEST] {subject}", email_body)
+    if not sent:
+        raise HTTPException(status_code=503, detail="smtp_not_configured")

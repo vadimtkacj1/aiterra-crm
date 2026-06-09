@@ -1,5 +1,15 @@
-import { GlobalOutlined, ReloadOutlined, TeamOutlined } from "@ant-design/icons";
-import { App, Button, Card, Col, Row, Tooltip, Typography } from "antd";
+import {
+  CopyOutlined,
+  GlobalOutlined,
+  LinkOutlined,
+  MailOutlined,
+  NotificationOutlined,
+  ReloadOutlined,
+  SaveOutlined,
+  TeamOutlined,
+  WhatsAppOutlined,
+} from "@ant-design/icons";
+import { App, Button, Card, Col, Input, Radio, Row, Space, Tag, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +19,7 @@ import type { SiteConfig, SiteLead } from "../../../../../domain/Site";
 import { AppTable } from "../../../../shared/components/AppTable";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
+import { SiteIntegrationCard } from "../components/SiteIntegrationCard";
 
 const { Text, Link } = Typography;
 
@@ -16,6 +27,7 @@ export function SitePage() {
   const { t } = useTranslation();
   const { services } = useApp();
   const { message } = App.useApp();
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined ?? "").replace(/\/$/, "");
   const { accountId } = useParams<{ accountId: string }>();
   const messageRef = useRef(message);
   messageRef.current = message;
@@ -25,11 +37,22 @@ export function SitePage() {
   const [leads, setLeads] = useState<SiteLead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(true);
 
+  // Notification config form state
+  const [notifyChannel, setNotifyChannel] = useState("whatsapp");
+  const [waNotifyMessage, setWaNotifyMessage] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [waSaving, setWaSaving] = useState(false);
+
   const loadConfig = useCallback(async () => {
     setConfigLoading(true);
     try {
       const data = await services.site.getConfig(accountId ?? "0");
       setConfig(data);
+      setNotifyChannel(data.notifyChannel ?? "whatsapp");
+      setWaNotifyMessage(data.waNotifyMessage ?? "");
+      setEmailSubject(data.emailNotifySubject ?? "");
+      setEmailMessage(data.emailNotifyMessage ?? "");
     } catch {
       messageRef.current.error(t("site.loadError"));
     } finally {
@@ -53,6 +76,34 @@ export function SitePage() {
     void loadConfig();
     void loadLeads();
   }, [loadConfig, loadLeads]);
+
+  async function saveNotifyConfig() {
+    setWaSaving(true);
+    try {
+      const updated = await services.site.updateConfig(accountId ?? "0", {
+        notifyChannel: notifyChannel || "whatsapp",
+        waNotifyMessage: waNotifyMessage || null,
+        emailNotifySubject: emailSubject || null,
+        emailNotifyMessage: emailMessage || null,
+      });
+      setConfig(updated);
+      void messageRef.current.success(t("site.notify.saved"));
+    } catch {
+      void messageRef.current.error(t("site.saveError"));
+    } finally {
+      setWaSaving(false);
+    }
+  }
+
+  const subscribeUrl = config?.publicToken
+    ? `${window.location.origin}/s/${config.publicToken}`
+    : null;
+
+  function copyToClipboard(text: string) {
+    void navigator.clipboard.writeText(text).then(() => {
+      void messageRef.current.success(t("site.subscribe.copied"));
+    });
+  }
 
   const leadsColumns: ColumnsType<SiteLead> = [
     {
@@ -122,6 +173,51 @@ export function SitePage() {
       <PageHeader title={t("site.title")} subtitle={t("site.subtitle")} />
 
       <Row gutter={[0, 24]} style={{ width: "100%" }}>
+        {/* Subscription link */}
+        <Col span={24}>
+          <Card
+            title={
+              <>
+                <LinkOutlined style={{ marginRight: 8 }} />
+                {t("site.subscribe.title")}
+              </>
+            }
+            loading={configLoading}
+          >
+            <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+              {t("site.subscribe.hint")}
+            </Text>
+            {subscribeUrl ? (
+              <Space wrap>
+                <Tag
+                  color="green"
+                  style={{ fontSize: 13, padding: "4px 12px", fontFamily: "monospace", maxWidth: 500, overflow: "hidden", textOverflow: "ellipsis" }}
+                >
+                  {subscribeUrl}
+                </Tag>
+                <Button
+                  size="small"
+                  icon={<CopyOutlined />}
+                  onClick={() => copyToClipboard(subscribeUrl)}
+                >
+                  {t("site.subscribe.copy")}
+                </Button>
+                <Button
+                  size="small"
+                  icon={<GlobalOutlined />}
+                  href={subscribeUrl}
+                  target="_blank"
+                >
+                  {t("site.subscribe.open")}
+                </Button>
+              </Space>
+            ) : (
+              <Text type="secondary">—</Text>
+            )}
+          </Card>
+        </Col>
+
+        {/* Site links */}
         <Col span={24}>
           <Card
             title={
@@ -157,6 +253,127 @@ export function SitePage() {
           </Card>
         </Col>
 
+        {/* Notification config */}
+        <Col span={24}>
+          <Card
+            title={
+              <>
+                <NotificationOutlined style={{ marginRight: 8 }} />
+                {t("site.notify.title")}
+              </>
+            }
+            loading={configLoading}
+          >
+            <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
+              {t("site.notify.hint")}
+            </Text>
+
+            {/* Channel selector */}
+            <div style={{ marginBottom: 20 }}>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>
+                {t("site.notify.channelLabel")}
+              </Text>
+              <Radio.Group value={notifyChannel} onChange={(e) => setNotifyChannel(e.target.value as string)}>
+                <Radio value="whatsapp">
+                  <WhatsAppOutlined style={{ color: "#25d366", marginRight: 4 }} />
+                  WhatsApp
+                </Radio>
+                <Radio value="email">
+                  <MailOutlined style={{ marginRight: 4 }} />
+                  {t("site.notify.channelEmail")}
+                </Radio>
+                <Radio value="both">{t("site.notify.channelBoth")}</Radio>
+                <Radio value="none">{t("site.notify.channelNone")}</Radio>
+              </Radio.Group>
+            </div>
+
+            {/* WhatsApp message template */}
+            {(notifyChannel === "whatsapp" || notifyChannel === "both") && (
+              <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                <Col xs={24}>
+                  <Text strong style={{ display: "block", marginBottom: 8, color: "#25d366" }}>
+                    <WhatsAppOutlined style={{ marginRight: 6 }} />
+                    {t("site.whatsapp.title")}
+                  </Text>
+                </Col>
+                <Col xs={24}>
+                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
+                    {t("site.whatsapp.message")}
+                  </Text>
+                  <Input.TextArea
+                    value={waNotifyMessage}
+                    onChange={(e) => setWaNotifyMessage(e.target.value)}
+                    placeholder={t("site.whatsapp.messagePlaceholder")}
+                    rows={2}
+                  />
+                  <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: "block" }}>
+                    {t("site.whatsapp.messageHint")}
+                  </Text>
+                </Col>
+              </Row>
+            )}
+
+            {/* Email fields */}
+            {(notifyChannel === "email" || notifyChannel === "both") && (
+              <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                <Col xs={24}>
+                  <Text strong style={{ display: "block", marginBottom: 8 }}>
+                    <MailOutlined style={{ marginRight: 6 }} />
+                    {t("site.email.title")}
+                  </Text>
+                </Col>
+                <Col xs={24}>
+                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
+                    {t("site.email.subject")}
+                  </Text>
+                  <Input
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder={t("site.email.subjectPlaceholder")}
+                  />
+                </Col>
+                <Col xs={24}>
+                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
+                    {t("site.email.message")}
+                  </Text>
+                  <Input.TextArea
+                    value={emailMessage}
+                    onChange={(e) => setEmailMessage(e.target.value)}
+                    placeholder={t("site.email.messagePlaceholder")}
+                    rows={2}
+                  />
+                  <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: "block" }}>
+                    {t("site.email.messageHint")}
+                  </Text>
+                </Col>
+              </Row>
+            )}
+
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={waSaving}
+              onClick={() => void saveNotifyConfig()}
+            >
+              {t("site.notify.save")}
+            </Button>
+          </Card>
+        </Col>
+
+        {/* Integration card */}
+        {config?.publicToken && (
+          <Col span={24}>
+            <SiteIntegrationCard
+              accountId={accountId ?? "0"}
+              publicToken={config.publicToken}
+              apiBaseUrl={apiBaseUrl}
+              onTokenRegenerated={(newToken) => setConfig((c) => c ? { ...c, publicToken: newToken } : c)}
+              regenerateToken={(id) => services.site.regenerateToken(id)}
+            />
+          </Col>
+        )}
+
+        {/* Leads table */}
         <Col span={24}>
           <Card
             title={

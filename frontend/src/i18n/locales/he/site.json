@@ -34,6 +34,43 @@
       "colSource": "עמוד מקור",
       "colDate": "תאריך"
     },
+    "subscribe": {
+      "title": "קישור הרשמה",
+      "hint": "שתפו קישור זה כדי שמבקרים יוכלו להירשם ולהשאיר פרטים. בעת שליחה, תישלח אליהם הודעת WhatsApp אוטומטית.",
+      "copy": "העתק",
+      "open": "פתח",
+      "copied": "הקישור הועתק"
+    },
+    "notify": {
+      "title": "הגדרות התראות",
+      "hint": "בחרו כיצד להודיע לנרשמים כאשר הם ממלאים את הטופס. ההתראות נשלחות לפרטי הקשר של הנרשם.",
+      "channelLabel": "ערוץ התראה",
+      "channelEmail": "אימייל",
+      "channelBoth": "WhatsApp + אימייל",
+      "channelNone": "ללא",
+      "save": "שמור הגדרות התראות",
+      "saved": "הגדרות התראות נשמרו."
+    },
+    "whatsapp": {
+      "title": "WhatsApp",
+      "hint": "הגדרו פרטי Green API. כאשר מבקר ישלח טופס הרשמה, תישלח אליו הודעת WhatsApp אוטומטית.",
+      "apiUrl": "כתובת Green API",
+      "idInstance": "מזהה אינסטנס",
+      "apiToken": "טוקן API",
+      "message": "הודעת התראה",
+      "messagePlaceholder": "שלום {name}, תודה שנרשמת! ניצור קשר בקרוב.",
+      "messageHint": "השתמשו ב-{name} לשם הנרשם.",
+      "save": "שמור הגדרות WhatsApp",
+      "saved": "הגדרות WhatsApp נשמרו."
+    },
+    "email": {
+      "title": "אימייל",
+      "subject": "נושא המייל",
+      "subjectPlaceholder": "תודה על הרשמתך!",
+      "message": "גוף המייל",
+      "messagePlaceholder": "שלום {name}, תודה על פנייתך! ניצור קשר בקרוב.",
+      "messageHint": "השתמשו ב-{name} לשם הנרשם."
+    },
     "integration": {
       "title": "אינטגרציה עם דף הנחיתה",
       "tokenLabel": "טוקן ציבורי לטופס",
@@ -56,5 +93,24 @@
   },
   "layout": {
     "menuSite": "האתר שלי"
+  },
+  "subscribe": {
+    "title": "הרשמה",
+    "subtitle": "השאירו פרטים ונחזור אליכם בוואטסאפ.",
+    "fieldName": "שם",
+    "fieldNamePlaceholder": "השם שלך",
+    "fieldNameRequired": "נא להזין שם",
+    "fieldPhone": "טלפון (WhatsApp)",
+    "fieldPhoneRequired": "נא להזין מספר טלפון",
+    "fieldEmail": "אימייל (אופציונלי)",
+    "fieldEmailPlaceholder": "your@email.com",
+    "fieldEmailInvalid": "נא להזין כתובת אימייל תקינה",
+    "fieldMessage": "הודעה (אופציונלי)",
+    "fieldMessagePlaceholder": "במה נוכל לעזור לך?",
+    "submitBtn": "הרשמה",
+    "successTitle": "תודה רבה!",
+    "successSubtitle": "הפרטים שלך התקבלו. ניצור קשר בקרוב.",
+    "errorInvalidToken": "קישור ההרשמה אינו תקין או פג תוקפו.",
+    "errorGeneric": "אירעה שגיאה. נסו שוב."
   }
 }

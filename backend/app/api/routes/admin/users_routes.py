@@ -381,7 +381,22 @@ def get_user_business_site(
     if not m:
         return UserBusinessSiteOut()
     config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
-    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None, publicToken=config.public_token if config else None)
+    return _site_config_to_admin_out(m.account_id, config)
+
+
+def _site_config_to_admin_out(account_id: int, config: AccountSiteConfig | None) -> UserBusinessSiteOut:
+    if not config:
+        return UserBusinessSiteOut(accountId=account_id)
+    return UserBusinessSiteOut(
+        accountId=account_id,
+        hasSite=True,
+        siteUrl=config.site_url,
+        publicToken=config.public_token,
+        notifyChannel=config.notify_channel or "whatsapp",
+        waNotifyMessage=config.wa_notify_message,
+        emailNotifySubject=config.email_notify_subject,
+        emailNotifyMessage=config.email_notify_message,
+    )
 
 
 @router.put("/users/{user_id}/business-site", response_model=UserBusinessSiteOut)
@@ -402,22 +417,32 @@ def set_user_business_site(
         import uuid as _uuid
         existing = AccountSiteConfig(account_id=m.account_id, site_url=payload.siteUrl, public_token=str(_uuid.uuid4()))
         db.add(existing)
-    elif payload.hasSite and existing:
-        existing.site_url = payload.siteUrl
     elif not payload.hasSite and existing:
         db.delete(existing)
         existing = None
+
+    if payload.hasSite and existing:
+        existing.site_url = payload.siteUrl
+        if payload.notifyChannel is not None:
+            existing.notify_channel = payload.notifyChannel or "whatsapp"
+        if payload.waNotifyMessage is not None:
+            existing.wa_notify_message = payload.waNotifyMessage or None
+        if payload.emailNotifySubject is not None:
+            existing.email_notify_subject = payload.emailNotifySubject or None
+        if payload.emailNotifyMessage is not None:
+            existing.email_notify_message = payload.emailNotifyMessage or None
+
     log_admin_action(
         db,
         admin,
         "user_business_site_updated",
         resource_type="user",
         resource_id=str(user_id),
-        detail={"hasSite": payload.hasSite},
+        detail={"hasSite": payload.hasSite, "notifyChannel": payload.notifyChannel},
     )
     db.commit()
     config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
-    return UserBusinessSiteOut(accountId=m.account_id, hasSite=config is not None, siteUrl=config.site_url if config else None, publicToken=config.public_token if config else None)
+    return _site_config_to_admin_out(m.account_id, config)
 
 
 @router.put("/users/{user_id}/password")

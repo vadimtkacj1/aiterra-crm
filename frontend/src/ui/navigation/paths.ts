@@ -42,6 +42,7 @@ export const Paths = {
   /** CRM guide (authenticated). */
   help: "/help",
   site: "/a/:accountId/site",
+  subscribe: "/s/:token",
 } as const;
 
 export type AppPath = (typeof Paths)[keyof typeof Paths];

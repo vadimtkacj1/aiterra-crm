@@ -16,6 +16,7 @@ import { Paths } from "@/ui/navigation/paths";
 import { LegacySettingsRedirect } from "@/ui/routes/LegacySettingsRedirect";
 import { ProtectedAdminRoute } from "@/ui/shared/components/ProtectedAdminRoute";
 import { ProtectedRoute } from "@/ui/shared/components/ProtectedRoute";
+import { SubscribePage } from "@/ui/features/user/site/pages/SubscribePage";
 
 export function AppRoutes() {
   const { session, isAdmin } = useApp();
@@ -29,6 +30,7 @@ export function AppRoutes() {
         path={Paths.login}
         element={session ? <Navigate to={homeRedirect} replace /> : <LoginPage />}
       />
+      <Route path={Paths.subscribe} element={<SubscribePage />} />
       <Route path={Paths.pricing} element={<PricingPage />} />
       <Route path={Paths.terms} element={<TermsPage />} />
       <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />

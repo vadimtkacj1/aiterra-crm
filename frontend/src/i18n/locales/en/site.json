@@ -34,6 +34,43 @@
       "colSource": "Source page",
       "colDate": "Date"
     },
+    "subscribe": {
+      "title": "Subscription Link",
+      "hint": "Share this link so visitors can subscribe and leave their contact info. When they submit, a WhatsApp message will be sent to them automatically.",
+      "copy": "Copy",
+      "open": "Open",
+      "copied": "Link copied"
+    },
+    "notify": {
+      "title": "Notification Settings",
+      "hint": "Choose how to notify subscribers when they fill in the form. Notifications are sent to the subscriber's contact details.",
+      "channelLabel": "Notification Channel",
+      "channelEmail": "Email",
+      "channelBoth": "WhatsApp + Email",
+      "channelNone": "None",
+      "save": "Save Notification Settings",
+      "saved": "Notification settings saved."
+    },
+    "whatsapp": {
+      "title": "WhatsApp",
+      "hint": "Configure Green API credentials. When a visitor submits the subscription form, a WhatsApp message will be sent automatically to their phone number.",
+      "apiUrl": "Green API URL",
+      "idInstance": "Instance ID",
+      "apiToken": "API Token",
+      "message": "Notification Message",
+      "messagePlaceholder": "Hello {name}, thank you for subscribing! We will contact you shortly.",
+      "messageHint": "Use {name} to include the subscriber's name.",
+      "save": "Save WhatsApp Config",
+      "saved": "WhatsApp settings saved."
+    },
+    "email": {
+      "title": "Email",
+      "subject": "Email Subject",
+      "subjectPlaceholder": "Thank you for subscribing!",
+      "message": "Email Body",
+      "messagePlaceholder": "Hello {name}, thank you for your message! We will get back to you shortly.",
+      "messageHint": "Use {name} to include the subscriber's name."
+    },
     "integration": {
       "title": "Landing Page Integration",
       "tokenLabel": "Form Public Token",
@@ -56,5 +93,24 @@
   },
   "layout": {
     "menuSite": "My Site"
+  },
+  "subscribe": {
+    "title": "Subscribe",
+    "subtitle": "Leave your contact details and we'll get back to you via WhatsApp.",
+    "fieldName": "Name",
+    "fieldNamePlaceholder": "Your name",
+    "fieldNameRequired": "Please enter your name",
+    "fieldPhone": "Phone (WhatsApp)",
+    "fieldPhoneRequired": "Please enter your phone number",
+    "fieldEmail": "Email (optional)",
+    "fieldEmailPlaceholder": "your@email.com",
+    "fieldEmailInvalid": "Please enter a valid email",
+    "fieldMessage": "Message (optional)",
+    "fieldMessagePlaceholder": "What can we help you with?",
+    "submitBtn": "Subscribe",
+    "successTitle": "Thank you!",
+    "successSubtitle": "Your details have been received. We'll be in touch shortly.",
+    "errorInvalidToken": "This subscription link is invalid or expired.",
+    "errorGeneric": "Something went wrong. Please try again."
   }
 }

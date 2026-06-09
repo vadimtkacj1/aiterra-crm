@@ -90,6 +90,10 @@ export function useAdminUsersPage() {
         googleRefreshToken: undefined,
         linkSite: sInfo.hasSite,
         siteUrl: sInfo.siteUrl ?? undefined,
+        notifyChannel: sInfo.notifyChannel ?? "whatsapp",
+        waNotifyMessage: sInfo.waNotifyMessage ?? undefined,
+        emailNotifySubject: sInfo.emailNotifySubject ?? undefined,
+        emailNotifyMessage: sInfo.emailNotifyMessage ?? undefined,
       });
       if (info.accountId != null) {
         try {

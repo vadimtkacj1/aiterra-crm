@@ -40,11 +40,19 @@ class UserBusinessSiteOut(BaseModel):
     hasSite: bool = False
     siteUrl: str | None = None
     publicToken: str | None = None
+    notifyChannel: str | None = "whatsapp"
+    waNotifyMessage: str | None = None
+    emailNotifySubject: str | None = None
+    emailNotifyMessage: str | None = None
 
 
 class UserBusinessSiteUpdateRequest(BaseModel):
     hasSite: bool
     siteUrl: str | None = None
+    notifyChannel: str | None = None
+    waNotifyMessage: str | None = None
+    emailNotifySubject: str | None = None
+    emailNotifyMessage: str | None = None
 
 
 class ResetPasswordRequest(BaseModel):

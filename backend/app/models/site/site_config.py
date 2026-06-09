@@ -19,4 +19,14 @@ class AccountSiteConfig(Base):
     popup_image_base64 = Column(Text, nullable=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
+    # Notification channel: "whatsapp" | "email" | "both" | "none"
+    notify_channel = Column(String(20), nullable=True, default="whatsapp")
+
+    # Per-account WhatsApp message template (credentials are global in settings)
+    wa_notify_message = Column(Text, nullable=True)
+
+    # Email notification config
+    email_notify_subject = Column(Text, nullable=True)
+    email_notify_message = Column(Text, nullable=True)
+
     account = relationship("Account", backref="site_config")

@@ -47,7 +47,14 @@ export async function submitAdminUserEdit(params: {
       : {}),
   });
 
-  await services.admin.setUserBusinessSite(String(editUser.id), values.linkSite, values.siteUrl?.trim());
+  await services.admin.setUserBusinessSite(String(editUser.id), {
+    hasSite: values.linkSite,
+    siteUrl: values.siteUrl?.trim() || null,
+    notifyChannel: values.notifyChannel || null,
+    waNotifyMessage: values.waNotifyMessage?.trim() || null,
+    emailNotifySubject: values.emailNotifySubject?.trim() || null,
+    emailNotifyMessage: values.emailNotifyMessage?.trim() || null,
+  });
 
   if (values.billingChargeType !== undefined) {
     const chargeType = values.billingChargeType ?? "none";

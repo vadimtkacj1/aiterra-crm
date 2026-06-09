@@ -178,6 +178,11 @@ def _apply_lightweight_migrations() -> None:
         # Public token for website form embed (UUID, replaces exposing internal account IDs)
         _ensure_column("account_site_configs", "public_token", "VARCHAR(36)")
         _backfill_public_tokens()
+        # Notification channel + per-account message templates
+        _ensure_column("account_site_configs", "notify_channel", "VARCHAR(20)")
+        _ensure_column("account_site_configs", "wa_notify_message", "TEXT")
+        _ensure_column("account_site_configs", "email_notify_subject", "TEXT")
+        _ensure_column("account_site_configs", "email_notify_message", "TEXT")
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

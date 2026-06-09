@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import threading
 import uuid
 from typing import List
 
@@ -7,12 +9,25 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_account_member
+from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User
 from app.models.site import AccountSiteConfig, SiteLead
 from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut
+from app.services.whatsapp.sender import send_whatsapp_message
+from app.services.email.smtp_mail import send_simple_email
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _render(template: str, name: str) -> str:
+    """Replace {name} in a notification template. Falls back to simple replace so
+    templates with other {vars} or malformed braces never raise KeyError/ValueError."""
+    try:
+        return template.format(name=name)
+    except (KeyError, ValueError, IndexError):
+        return template.replace("{name}", name)
 
 
 def _get_or_create_config(db: Session, account_id: int) -> AccountSiteConfig:
@@ -37,6 +52,10 @@ def _config_to_out(config: AccountSiteConfig) -> SiteConfigOut:
         gmbUrl=config.gmb_url,
         popupText=config.popup_text,
         popupImageBase64=config.popup_image_base64,
+        notifyChannel=config.notify_channel or "whatsapp",
+        waNotifyMessage=config.wa_notify_message,
+        emailNotifySubject=config.email_notify_subject,
+        emailNotifyMessage=config.email_notify_message,
     )
 
 
@@ -69,6 +88,14 @@ def update_site_config(
         config.popup_text = body.popupText or None
     if body.popupImageBase64 is not None:
         config.popup_image_base64 = body.popupImageBase64 or None
+    if body.notifyChannel is not None:
+        config.notify_channel = body.notifyChannel or "whatsapp"
+    if body.waNotifyMessage is not None:
+        config.wa_notify_message = body.waNotifyMessage or None
+    if body.emailNotifySubject is not None:
+        config.email_notify_subject = body.emailNotifySubject or None
+    if body.emailNotifyMessage is not None:
+        config.email_notify_message = body.emailNotifyMessage or None
 
     db.commit()
     db.refresh(config)
@@ -140,6 +167,41 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
     db.add(lead)
     db.commit()
     db.refresh(lead)
+
+    # Fire notifications based on configured channel
+    channel = (config.notify_channel or "whatsapp").lower()
+
+    send_wa = channel in ("whatsapp", "both")
+    send_email = channel in ("email", "both")
+
+    if (
+        send_wa
+        and body.phone
+        and settings.greenapi_url
+        and settings.greenapi_id_instance
+        and settings.greenapi_token
+        and config.wa_notify_message
+    ):
+        wa_message = _render(config.wa_notify_message, body.name or "")
+        threading.Thread(
+            target=send_whatsapp_message,
+            args=(settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token, body.phone, wa_message),
+            daemon=True,
+        ).start()
+
+    if (
+        send_email
+        and body.email
+        and config.email_notify_message
+    ):
+        subject = _render(config.email_notify_subject or "New message", body.name or "")
+        email_body = _render(config.email_notify_message, body.name or "")
+        threading.Thread(
+            target=send_simple_email,
+            args=(body.email, subject, email_body),
+            daemon=True,
+        ).start()
+
     return SiteLeadOut(
         id=lead.id,
         name=lead.name,

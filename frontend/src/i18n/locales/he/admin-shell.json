@@ -64,6 +64,7 @@
       "linkSiteWith": "פעיל",
       "siteUrl": "כתובת האתר",
       "siteUrlInvalid": "הזן כתובת URL תקינה (לדוגמה https://example.com)",
+      "waTokenHint": "השאר ריק כדי לשמור על הטוקן הקיים.",
       "googleCustomerId": "מזהה לקוח",
       "googleCustomerIdRequired": "הזן את מזהה הלקוח של Google Ads",
       "googleCustomerIdHint": "מזהה חשבון Google Ads בן 10 ספרות (ללא מקפים).",

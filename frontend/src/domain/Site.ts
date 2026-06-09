@@ -4,6 +4,10 @@ export interface SiteConfig {
   gmbUrl: string | null;
   popupText: string | null;
   popupImageBase64: string | null;
+  notifyChannel: string | null;
+  waNotifyMessage: string | null;
+  emailNotifySubject: string | null;
+  emailNotifyMessage: string | null;
 }
 
 export interface SiteConfigUpdateInput {
@@ -11,6 +15,10 @@ export interface SiteConfigUpdateInput {
   gmbUrl?: string | null;
   popupText?: string | null;
   popupImageBase64?: string | null;
+  notifyChannel?: string | null;
+  waNotifyMessage?: string | null;
+  emailNotifySubject?: string | null;
+  emailNotifyMessage?: string | null;
 }
 
 export interface SiteLead {

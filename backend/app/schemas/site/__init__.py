@@ -10,6 +10,10 @@ class SiteConfigOut(BaseModel):
     gmbUrl: Optional[str] = None
     popupText: Optional[str] = None
     popupImageBase64: Optional[str] = None
+    notifyChannel: Optional[str] = "whatsapp"
+    waNotifyMessage: Optional[str] = None
+    emailNotifySubject: Optional[str] = None
+    emailNotifyMessage: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -20,6 +24,10 @@ class SiteConfigUpdate(BaseModel):
     gmbUrl: Optional[str] = None
     popupText: Optional[str] = None
     popupImageBase64: Optional[str] = None
+    notifyChannel: Optional[str] = None
+    waNotifyMessage: Optional[str] = None
+    emailNotifySubject: Optional[str] = None
+    emailNotifyMessage: Optional[str] = None
 
 
 class SiteLeadCreate(BaseModel):

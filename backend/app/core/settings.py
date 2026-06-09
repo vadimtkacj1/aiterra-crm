@@ -59,6 +59,11 @@ class Settings(BaseSettings):
     zcredit_checkout_local: str = "En"  # He | En | Ru
     zcredit_webhook_secret: str | None = None    # optional shared secret (see webhook route)
 
+    # WhatsApp (Green API) — one global instance shared by all accounts
+    greenapi_url: str = ""
+    greenapi_id_instance: str = ""
+    greenapi_token: str = ""
+
     # Optional SMTP — signed contract PDF emailed after /contracts/{token}/sign
     # Private Email (Namecheap): mail.privateemail.com — either port 587 + TLS, or 465 + SSL (not both).
     # Env: SMTP_* or EMAIL_* — username must be the full mailbox email; quote password in .env if needed.

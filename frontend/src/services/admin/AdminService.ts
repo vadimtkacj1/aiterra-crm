@@ -32,6 +32,10 @@ export interface UserBusinessSite {
   hasSite: boolean;
   siteUrl?: string | null;
   publicToken?: string | null;
+  notifyChannel?: string | null;
+  waNotifyMessage?: string | null;
+  emailNotifySubject?: string | null;
+  emailNotifyMessage?: string | null;
 }
 
 export interface AdminStats {
@@ -312,8 +316,18 @@ export class AdminService {
     return this.http.get<UserBusinessSite>(`/admin/users/${userId}/business-site`);
   }
 
-  async setUserBusinessSite(userId: string, hasSite: boolean, siteUrl?: string): Promise<UserBusinessSite> {
-    return this.http.put<UserBusinessSite>(`/admin/users/${userId}/business-site`, { hasSite, siteUrl: siteUrl || null });
+  async setUserBusinessSite(
+    userId: string,
+    payload: {
+      hasSite: boolean;
+      siteUrl?: string | null;
+      notifyChannel?: string | null;
+      waNotifyMessage?: string | null;
+      emailNotifySubject?: string | null;
+      emailNotifyMessage?: string | null;
+    },
+  ): Promise<UserBusinessSite> {
+    return this.http.put<UserBusinessSite>(`/admin/users/${userId}/business-site`, payload);
   }
 
   async deleteUser(userId: number): Promise<void> {

@@ -64,6 +64,7 @@
       "linkSiteWith": "Enabled",
       "siteUrl": "Site URL",
       "siteUrlInvalid": "Enter a valid URL (e.g. https://example.com)",
+      "waTokenHint": "Leave blank to keep the existing token.",
       "googleCustomerId": "Customer ID",
       "googleCustomerIdRequired": "Enter the Google Ads customer ID",
       "googleCustomerIdHint": "10-digit Google Ads account ID (without dashes).",

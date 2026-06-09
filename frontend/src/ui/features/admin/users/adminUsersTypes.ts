@@ -32,6 +32,10 @@ export type AdminEditUserFormValues = {
   googleLoginCustomerId?: string;
   linkSite: boolean;
   siteUrl?: string;
+  notifyChannel?: string;
+  waNotifyMessage?: string;
+  emailNotifySubject?: string;
+  emailNotifyMessage?: string;
   billingChargeType?: "none" | "one_time" | "monthly";
   billingAmount?: number | null;
   billingCurrency?: string;

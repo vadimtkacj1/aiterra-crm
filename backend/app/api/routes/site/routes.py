@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_account_member
 from app.core.settings import settings
 from app.db.session import get_db
-from app.models.core import User
+from app.models.core import User, AccountMembership
 from app.models.site import AccountSiteConfig, SiteLead
 from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn
 from app.services.whatsapp.sender import send_whatsapp_message
@@ -20,8 +20,8 @@ from app.services.email.smtp_mail import send_simple_email
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-DEFAULT_EMAIL_SUBJECT = "Thank you for your message!"
-DEFAULT_EMAIL_BODY = "Hello {name}, thank you for your message! We will get back to you shortly."
+DEFAULT_EMAIL_SUBJECT = "New lead: {name}"
+DEFAULT_EMAIL_BODY = "You have a new lead from your landing page.\n\nName: {name}"
 
 
 def _render(template: str, name: str) -> str:
@@ -192,14 +192,22 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
             daemon=True,
         ).start()
 
-    if send_email and body.email:
+    if send_email:
+        # Notify account owner(s), not the lead
+        owner_emails = (
+            db.query(User.email)
+            .join(AccountMembership, AccountMembership.user_id == User.id)
+            .filter(AccountMembership.account_id == config.account_id)
+            .all()
+        )
         subject = _render(config.email_notify_subject or DEFAULT_EMAIL_SUBJECT, body.name or "")
         email_body = _render(config.email_notify_message or DEFAULT_EMAIL_BODY, body.name or "")
-        threading.Thread(
-            target=send_simple_email,
-            args=(body.email, subject, email_body),
-            daemon=True,
-        ).start()
+        for (owner_email,) in owner_emails:
+            threading.Thread(
+                target=send_simple_email,
+                args=(owner_email, subject, email_body),
+                daemon=True,
+            ).start()
 
     return SiteLeadOut(
         id=lead.id,

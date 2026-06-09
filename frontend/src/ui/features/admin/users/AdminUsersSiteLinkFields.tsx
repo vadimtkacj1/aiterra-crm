@@ -76,12 +76,20 @@ export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, rege
                   const ch = gfv("notifyChannel") as string;
                   if (ch !== "whatsapp" && ch !== "both") return null;
                   return (
-                    <Form.Item name="waNotifyMessage" label={t("site.whatsapp.message")}>
-                      <Input.TextArea
-                        placeholder={t("site.whatsapp.messagePlaceholder")}
-                        rows={2}
-                      />
-                    </Form.Item>
+                    <>
+                      <Form.Item name="waOwnerPhone" label={t("site.whatsapp.ownerPhone")}>
+                        <Input
+                          prefix={<WhatsAppOutlined style={{ color: "#25d366" }} />}
+                          placeholder={t("site.whatsapp.ownerPhonePlaceholder")}
+                        />
+                      </Form.Item>
+                      <Form.Item name="waNotifyMessage" label={t("site.whatsapp.message")}>
+                        <Input.TextArea
+                          placeholder={t("site.whatsapp.messagePlaceholder")}
+                          rows={2}
+                        />
+                      </Form.Item>
+                    </>
                   );
                 }}
               </Form.Item>

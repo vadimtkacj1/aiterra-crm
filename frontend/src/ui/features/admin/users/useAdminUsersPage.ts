@@ -91,6 +91,7 @@ export function useAdminUsersPage() {
         linkSite: sInfo.hasSite,
         siteUrl: sInfo.siteUrl ?? undefined,
         notifyChannel: sInfo.notifyChannel ?? "whatsapp",
+        waOwnerPhone: sInfo.waOwnerPhone ?? undefined,
         waNotifyMessage: sInfo.waNotifyMessage ?? undefined,
         emailNotifySubject: sInfo.emailNotifySubject ?? undefined,
         emailNotifyMessage: sInfo.emailNotifyMessage ?? undefined,

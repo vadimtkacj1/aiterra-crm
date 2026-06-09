@@ -7,6 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
 COPY dev_mock/ ./dev_mock/
+COPY alembic/ ./alembic/
+COPY alembic.ini .
 
 EXPOSE 8000
 

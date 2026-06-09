@@ -33,6 +33,7 @@ export interface UserBusinessSite {
   siteUrl?: string | null;
   publicToken?: string | null;
   notifyChannel?: string | null;
+  waOwnerPhone?: string | null;
   waNotifyMessage?: string | null;
   emailNotifySubject?: string | null;
   emailNotifyMessage?: string | null;

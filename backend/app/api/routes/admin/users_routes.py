@@ -393,6 +393,7 @@ def _site_config_to_admin_out(account_id: int, config: AccountSiteConfig | None)
         siteUrl=config.site_url,
         publicToken=config.public_token,
         notifyChannel=config.notify_channel or "whatsapp",
+        waOwnerPhone=config.wa_owner_phone,
         waNotifyMessage=config.wa_notify_message,
         emailNotifySubject=config.email_notify_subject,
         emailNotifyMessage=config.email_notify_message,
@@ -425,6 +426,8 @@ def set_user_business_site(
         existing.site_url = payload.siteUrl
         if payload.notifyChannel is not None:
             existing.notify_channel = payload.notifyChannel or "whatsapp"
+        if payload.waOwnerPhone is not None:
+            existing.wa_owner_phone = payload.waOwnerPhone or None
         if payload.waNotifyMessage is not None:
             existing.wa_notify_message = payload.waNotifyMessage or None
         if payload.emailNotifySubject is not None:

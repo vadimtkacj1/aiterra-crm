@@ -33,6 +33,7 @@ export type AdminEditUserFormValues = {
   linkSite: boolean;
   siteUrl?: string;
   notifyChannel?: string;
+  waOwnerPhone?: string;
   waNotifyMessage?: string;
   emailNotifySubject?: string;
   emailNotifyMessage?: string;

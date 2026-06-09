@@ -6,4 +6,5 @@ export interface ISiteService {
   regenerateToken(accountId: string): Promise<SiteConfig>;
   listLeads(accountId: string): Promise<SiteLead[]>;
   sendTestNotification(accountId: string, email: string): Promise<void>;
+  sendTestWhatsApp(accountId: string, phone: string): Promise<void>;
 }

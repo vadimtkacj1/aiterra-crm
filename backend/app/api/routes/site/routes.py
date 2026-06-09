@@ -13,7 +13,7 @@ from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User, AccountMembership
 from app.models.site import AccountSiteConfig, SiteLead
-from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn
+from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, TestWhatsAppIn
 from app.services.whatsapp.sender import send_whatsapp_message
 from app.services.email.smtp_mail import send_simple_email
 
@@ -24,13 +24,16 @@ DEFAULT_EMAIL_SUBJECT = "New lead: {name}"
 DEFAULT_EMAIL_BODY = "You have a new lead from your landing page.\n\nName: {name}"
 
 
-def _render(template: str, name: str) -> str:
-    """Replace {name} in a notification template. Falls back to simple replace so
-    templates with other {vars} or malformed braces never raise KeyError/ValueError."""
+def _render(template: str, **fields: str) -> str:
+    """Replace {name}, {phone}, {email}, {message}, {treatment} in a notification template.
+    Falls back to plain string replace so malformed braces never raise."""
     try:
-        return template.format(name=name)
+        return template.format(**fields)
     except (KeyError, ValueError, IndexError):
-        return template.replace("{name}", name)
+        result = template
+        for k, v in fields.items():
+            result = result.replace(f"{{{k}}}", v)
+        return result
 
 
 def _get_or_create_config(db: Session, account_id: int) -> AccountSiteConfig:
@@ -56,6 +59,7 @@ def _config_to_out(config: AccountSiteConfig) -> SiteConfigOut:
         popupText=config.popup_text,
         popupImageBase64=config.popup_image_base64,
         notifyChannel=config.notify_channel or "whatsapp",
+        waOwnerPhone=config.wa_owner_phone,
         waNotifyMessage=config.wa_notify_message,
         emailNotifySubject=config.email_notify_subject,
         emailNotifyMessage=config.email_notify_message,
@@ -93,6 +97,8 @@ def update_site_config(
         config.popup_image_base64 = body.popupImageBase64 or None
     if body.notifyChannel is not None:
         config.notify_channel = body.notifyChannel or "whatsapp"
+    if body.waOwnerPhone is not None:
+        config.wa_owner_phone = body.waOwnerPhone or None
     if body.waNotifyMessage is not None:
         config.wa_notify_message = body.waNotifyMessage or None
     if body.emailNotifySubject is not None:
@@ -179,16 +185,23 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
 
     if (
         send_wa
-        and body.phone
+        and config.wa_owner_phone
         and settings.greenapi_url
         and settings.greenapi_id_instance
         and settings.greenapi_token
         and config.wa_notify_message
     ):
-        wa_message = _render(config.wa_notify_message, body.name or "")
+        wa_message = _render(
+            config.wa_notify_message,
+            name=body.name or "",
+            phone=body.phone or "—",
+            email=body.email or "—",
+            message=body.message or "—",
+            treatment=body.treatment or "—",
+        )
         threading.Thread(
             target=send_whatsapp_message,
-            args=(settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token, body.phone, wa_message),
+            args=(settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token, config.wa_owner_phone, wa_message),
             daemon=True,
         ).start()
 
@@ -200,8 +213,15 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
             .filter(AccountMembership.account_id == config.account_id)
             .all()
         )
-        subject = _render(config.email_notify_subject or DEFAULT_EMAIL_SUBJECT, body.name or "")
-        email_body = _render(config.email_notify_message or DEFAULT_EMAIL_BODY, body.name or "")
+        lead_fields = dict(
+            name=body.name or "",
+            phone=body.phone or "—",
+            email=body.email or "—",
+            message=body.message or "—",
+            treatment=body.treatment or "—",
+        )
+        subject = _render(config.email_notify_subject or DEFAULT_EMAIL_SUBJECT, **lead_fields)
+        email_body = _render(config.email_notify_message or DEFAULT_EMAIL_BODY, **lead_fields)
         for (owner_email,) in owner_emails:
             threading.Thread(
                 target=send_simple_email,
@@ -239,3 +259,37 @@ def test_notification(
     sent = send_simple_email(body.email, f"[TEST] {subject}", email_body)
     if not sent:
         raise HTTPException(status_code=503, detail="smtp_not_configured")
+
+
+@router.post("/accounts/{account_id}/site-config/test-whatsapp")
+def test_whatsapp(
+    account_id: int,
+    body: TestWhatsAppIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Send a test WhatsApp message using the account's configured template."""
+    require_account_member(account_id, db, current_user)
+    config = _get_or_create_config(db, account_id)
+
+    if not (settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token):
+        raise HTTPException(status_code=503, detail="whatsapp_not_configured")
+
+    template = config.wa_notify_message or "ליד חדש: {name} השאיר פרטים באתר.\nטלפון: {phone}"
+    message = _render(
+        template,
+        name="ישראל ישראלי",
+        phone="+972501234567",
+        email="test@example.com",
+        message="בדיקת הודעה",
+        treatment="—",
+    )
+    sent = send_whatsapp_message(
+        settings.greenapi_url,
+        settings.greenapi_id_instance,
+        settings.greenapi_token,
+        body.phone,
+        f"[TEST]\n{message}",
+    )
+    if not sent:
+        raise HTTPException(status_code=503, detail="whatsapp_send_failed")

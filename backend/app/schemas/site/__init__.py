@@ -11,6 +11,7 @@ class SiteConfigOut(BaseModel):
     popupText: Optional[str] = None
     popupImageBase64: Optional[str] = None
     notifyChannel: Optional[str] = "whatsapp"
+    waOwnerPhone: Optional[str] = None
     waNotifyMessage: Optional[str] = None
     emailNotifySubject: Optional[str] = None
     emailNotifyMessage: Optional[str] = None
@@ -25,6 +26,7 @@ class SiteConfigUpdate(BaseModel):
     popupText: Optional[str] = None
     popupImageBase64: Optional[str] = None
     notifyChannel: Optional[str] = None
+    waOwnerPhone: Optional[str] = None
     waNotifyMessage: Optional[str] = None
     emailNotifySubject: Optional[str] = None
     emailNotifyMessage: Optional[str] = None
@@ -61,3 +63,7 @@ class SiteLeadAdminOut(SiteLeadOut):
 
 class TestNotificationIn(BaseModel):
     email: str
+
+
+class TestWhatsAppIn(BaseModel):
+    phone: str  # destination phone to send the test message to

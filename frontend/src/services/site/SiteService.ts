@@ -24,4 +24,8 @@ export class SiteService implements ISiteService {
   sendTestNotification(accountId: string, email: string): Promise<void> {
     return this.http.post(`/accounts/${accountId}/site-config/test-notification`, { email });
   }
+
+  sendTestWhatsApp(accountId: string, phone: string): Promise<void> {
+    return this.http.post(`/accounts/${accountId}/site-config/test-whatsapp`, { phone });
+  }
 }

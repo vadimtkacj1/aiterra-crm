@@ -39,10 +39,12 @@ export function SitePage() {
 
   // Notification config form state
   const [notifyChannel, setNotifyChannel] = useState("whatsapp");
+  const [waOwnerPhone, setWaOwnerPhone] = useState("");
   const [waNotifyMessage, setWaNotifyMessage] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [waSaving, setWaSaving] = useState(false);
+  const [waTesting, setWaTesting] = useState(false);
 
   const loadConfig = useCallback(async () => {
     setConfigLoading(true);
@@ -50,6 +52,7 @@ export function SitePage() {
       const data = await services.site.getConfig(accountId ?? "0");
       setConfig(data);
       setNotifyChannel(data.notifyChannel ?? "whatsapp");
+      setWaOwnerPhone(data.waOwnerPhone ?? "");
       setWaNotifyMessage(data.waNotifyMessage ?? "");
       setEmailSubject(data.emailNotifySubject ?? "");
       setEmailMessage(data.emailNotifyMessage ?? "");
@@ -82,6 +85,7 @@ export function SitePage() {
     try {
       const updated = await services.site.updateConfig(accountId ?? "0", {
         notifyChannel: notifyChannel || "whatsapp",
+        waOwnerPhone: waOwnerPhone || null,
         waNotifyMessage: waNotifyMessage || null,
         emailNotifySubject: emailSubject || null,
         emailNotifyMessage: emailMessage || null,
@@ -294,6 +298,39 @@ export function SitePage() {
                   <Text strong style={{ display: "block", marginBottom: 8, color: "#25d366" }}>
                     <WhatsAppOutlined style={{ marginRight: 6 }} />
                     {t("site.whatsapp.title")}
+                  </Text>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
+                    {t("site.whatsapp.ownerPhone")}
+                  </Text>
+                  <Space.Compact style={{ width: "100%" }}>
+                    <Input
+                      value={waOwnerPhone}
+                      onChange={(e) => setWaOwnerPhone(e.target.value)}
+                      placeholder={t("site.whatsapp.ownerPhonePlaceholder")}
+                      prefix={<WhatsAppOutlined style={{ color: "#25d366" }} />}
+                    />
+                    <Button
+                      loading={waTesting}
+                      disabled={!waOwnerPhone}
+                      onClick={async () => {
+                        setWaTesting(true);
+                        try {
+                          await services.site.sendTestWhatsApp(accountId ?? "0", waOwnerPhone);
+                          void messageRef.current.success(t("site.whatsapp.testSent"));
+                        } catch {
+                          void messageRef.current.error(t("site.whatsapp.testError"));
+                        } finally {
+                          setWaTesting(false);
+                        }
+                      }}
+                    >
+                      {t("site.whatsapp.testBtn")}
+                    </Button>
+                  </Space.Compact>
+                  <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: "block" }}>
+                    {t("site.whatsapp.ownerPhoneHint")}
                   </Text>
                 </Col>
                 <Col xs={24}>

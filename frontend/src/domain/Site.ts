@@ -5,6 +5,7 @@ export interface SiteConfig {
   popupText: string | null;
   popupImageBase64: string | null;
   notifyChannel: string | null;
+  waOwnerPhone: string | null;
   waNotifyMessage: string | null;
   emailNotifySubject: string | null;
   emailNotifyMessage: string | null;
@@ -16,6 +17,7 @@ export interface SiteConfigUpdateInput {
   popupText?: string | null;
   popupImageBase64?: string | null;
   notifyChannel?: string | null;
+  waOwnerPhone?: string | null;
   waNotifyMessage?: string | null;
   emailNotifySubject?: string | null;
   emailNotifyMessage?: string | null;

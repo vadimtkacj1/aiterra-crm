@@ -22,6 +22,9 @@ class AccountSiteConfig(Base):
     # Notification channel: "whatsapp" | "email" | "both" | "none"
     notify_channel = Column(String(20), nullable=True, default="whatsapp")
 
+    # Owner's WhatsApp phone number to receive lead notifications (e.g. +972501234567)
+    wa_owner_phone = Column(String(30), nullable=True)
+
     # Per-account WhatsApp message template (credentials are global in settings)
     wa_notify_message = Column(Text, nullable=True)
 

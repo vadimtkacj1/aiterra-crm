@@ -323,6 +323,7 @@ export class AdminService {
       hasSite: boolean;
       siteUrl?: string | null;
       notifyChannel?: string | null;
+      waOwnerPhone?: string | null;
       waNotifyMessage?: string | null;
       emailNotifySubject?: string | null;
       emailNotifyMessage?: string | null;

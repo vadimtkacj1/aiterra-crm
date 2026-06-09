@@ -12,6 +12,8 @@ class SiteConfigOut(BaseModel):
     popupImageBase64: Optional[str] = None
     notifyChannel: Optional[str] = "whatsapp"
     waOwnerPhone: Optional[str] = None
+    waOwnerPhoneVerified: Optional[str] = None
+    waConnectCode: Optional[str] = None
     waNotifyMessage: Optional[str] = None
     emailNotifySubject: Optional[str] = None
     emailNotifyMessage: Optional[str] = None
@@ -67,3 +69,12 @@ class TestNotificationIn(BaseModel):
 
 class TestWhatsAppIn(BaseModel):
     phone: str  # destination phone to send the test message to
+
+
+class GreenApiWebhookIn(BaseModel):
+    typeWebhook: Optional[str] = None
+    senderData: Optional[dict] = None
+    messageData: Optional[dict] = None
+
+    class Config:
+        extra = "allow"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import random
 import threading
 import uuid
 from typing import List
@@ -13,7 +14,7 @@ from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User, AccountMembership
 from app.models.site import AccountSiteConfig, SiteLead
-from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, TestWhatsAppIn
+from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, TestWhatsAppIn, GreenApiWebhookIn
 from app.services.whatsapp.sender import send_whatsapp_message
 from app.services.email.smtp_mail import send_simple_email
 
@@ -22,6 +23,12 @@ router = APIRouter()
 
 DEFAULT_EMAIL_SUBJECT = "New lead: {name}"
 DEFAULT_EMAIL_BODY = "You have a new lead from your landing page.\n\nName: {name}"
+
+_CONNECT_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def _generate_connect_code() -> str:
+    return "CRM-" + "".join(random.choices(_CONNECT_CODE_CHARS, k=4))
 
 
 def _render(template: str, **fields: str) -> str:
@@ -43,9 +50,14 @@ def _get_or_create_config(db: Session, account_id: int) -> AccountSiteConfig:
         db.add(config)
         db.commit()
         db.refresh(config)
-    # Ensure existing configs always have a public_token
+    dirty = False
     if not config.public_token:
         config.public_token = str(uuid.uuid4())
+        dirty = True
+    if not config.wa_connect_code:
+        config.wa_connect_code = _generate_connect_code()
+        dirty = True
+    if dirty:
         db.commit()
         db.refresh(config)
     return config
@@ -60,6 +72,8 @@ def _config_to_out(config: AccountSiteConfig) -> SiteConfigOut:
         popupImageBase64=config.popup_image_base64,
         notifyChannel=config.notify_channel or "whatsapp",
         waOwnerPhone=config.wa_owner_phone,
+        waOwnerPhoneVerified=config.wa_owner_phone_verified,
+        waConnectCode=config.wa_connect_code,
         waNotifyMessage=config.wa_notify_message,
         emailNotifySubject=config.email_notify_subject,
         emailNotifyMessage=config.email_notify_message,
@@ -293,3 +307,66 @@ def test_whatsapp(
     )
     if not sent:
         raise HTTPException(status_code=503, detail="whatsapp_send_failed")
+
+
+@router.get("/accounts/{account_id}/site-config/wa-connect/code")
+def wa_connect_get_code(
+    account_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the permanent connect code for this account.
+    User sends this code to the bot once — bot saves their phone forever."""
+    require_account_member(account_id, db, current_user)
+    config = _get_or_create_config(db, account_id)
+    return {
+        "code": config.wa_connect_code,
+        "botPhone": settings.greenapi_bot_phone,
+        "connected": bool(config.wa_owner_phone_verified),
+        "phone": config.wa_owner_phone_verified,
+    }
+
+
+@router.get("/accounts/{account_id}/site-config/wa-connect/status")
+def wa_connect_status(
+    account_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Poll to check if WhatsApp is connected."""
+    require_account_member(account_id, db, current_user)
+    config = _get_or_create_config(db, account_id)
+    return {
+        "verified": bool(config.wa_owner_phone_verified),
+        "phone": config.wa_owner_phone_verified,
+    }
+
+
+@router.post("/webhooks/whatsapp-connect")
+def whatsapp_connect_webhook(body: GreenApiWebhookIn, db: Session = Depends(get_db)):
+    """Green API webhook — incoming messages.
+    Matches message text against wa_connect_code in DB — no expiry, permanent."""
+    if body.typeWebhook != "incomingMessageReceived":
+        return {"ok": True}
+
+    text = (body.messageData or {}).get("textMessageData", {}).get("textMessage", "").strip().upper()
+    if not text.startswith("CRM-"):
+        return {"ok": True}
+
+    # Look up account by permanent connect code
+    config = db.query(AccountSiteConfig).filter_by(wa_connect_code=text).first()
+    if not config:
+        return {"ok": True}
+
+    # Extract phone: "972501234567@c.us" → "+972501234567"
+    raw_chat_id = (body.senderData or {}).get("chatId", "")
+    digits = raw_chat_id.split("@")[0]
+    phone = f"+{digits}" if digits else None
+    if not phone:
+        return {"ok": True}
+
+    config.wa_owner_phone = phone
+    config.wa_owner_phone_verified = phone
+    db.commit()
+    logger.info("WhatsApp connected: account=%s phone=%s", config.account_id, phone)
+    return {"ok": True}

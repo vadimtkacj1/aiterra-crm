@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     greenapi_url: str = ""
     greenapi_id_instance: str = ""
     greenapi_token: str = ""
+    # The bot's own WhatsApp number shown to users so they know where to write
+    greenapi_bot_phone: str = ""
 
     # Optional SMTP — signed contract PDF emailed after /contracts/{token}/sign
     # Private Email (Namecheap): mail.privateemail.com — either port 587 + TLS, or 465 + SSL (not both).

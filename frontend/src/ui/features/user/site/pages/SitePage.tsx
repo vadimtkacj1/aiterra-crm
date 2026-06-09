@@ -45,6 +45,10 @@ export function SitePage() {
   const [emailMessage, setEmailMessage] = useState("");
   const [waSaving, setWaSaving] = useState(false);
   const [waTesting, setWaTesting] = useState(false);
+  const [waConnectCode, setWaConnectCode] = useState("");
+  const [waConnectBotPhone, setWaConnectBotPhone] = useState("");
+  const [waConnecting, setWaConnecting] = useState(false);
+  const waConnectPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadConfig = useCallback(async () => {
     setConfigLoading(true);
@@ -53,6 +57,13 @@ export function SitePage() {
       setConfig(data);
       setNotifyChannel(data.notifyChannel ?? "whatsapp");
       setWaOwnerPhone(data.waOwnerPhone ?? "");
+      setWaConnectCode(data.waConnectCode ?? "");
+      // Load bot phone alongside config
+      if (!data.waOwnerPhoneVerified) {
+        services.site.waConnectGetCode(accountId ?? "0")
+          .then((r) => { setWaConnectBotPhone(r.botPhone); setWaConnectCode(r.code); })
+          .catch(() => {});
+      }
       setWaNotifyMessage(data.waNotifyMessage ?? "");
       setEmailSubject(data.emailNotifySubject ?? "");
       setEmailMessage(data.emailNotifyMessage ?? "");
@@ -300,38 +311,80 @@ export function SitePage() {
                     {t("site.whatsapp.title")}
                   </Text>
                 </Col>
-                <Col xs={24} md={12}>
-                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                    {t("site.whatsapp.ownerPhone")}
-                  </Text>
-                  <Space.Compact style={{ width: "100%" }}>
-                    <Input
-                      value={waOwnerPhone}
-                      onChange={(e) => setWaOwnerPhone(e.target.value)}
-                      placeholder={t("site.whatsapp.ownerPhonePlaceholder")}
-                      prefix={<WhatsAppOutlined style={{ color: "#25d366" }} />}
-                    />
-                    <Button
-                      loading={waTesting}
-                      disabled={!waOwnerPhone}
-                      onClick={async () => {
-                        setWaTesting(true);
-                        try {
-                          await services.site.sendTestWhatsApp(accountId ?? "0", waOwnerPhone);
-                          void messageRef.current.success(t("site.whatsapp.testSent"));
-                        } catch {
-                          void messageRef.current.error(t("site.whatsapp.testError"));
-                        } finally {
-                          setWaTesting(false);
-                        }
-                      }}
-                    >
-                      {t("site.whatsapp.testBtn")}
-                    </Button>
-                  </Space.Compact>
-                  <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: "block" }}>
-                    {t("site.whatsapp.ownerPhoneHint")}
-                  </Text>
+                <Col xs={24}>
+                  {config?.waOwnerPhoneVerified ? (
+                    /* ── Connected state ── */
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "#f6ffed", border: "1px solid #b7eb8f", borderRadius: 8 }}>
+                      <WhatsAppOutlined style={{ color: "#52c41a", fontSize: 20 }} />
+                      <div>
+                        <Text strong style={{ color: "#52c41a" }}>✓ {t("site.whatsapp.connected")}</Text>
+                        <Text type="secondary" style={{ display: "block", fontSize: 12 }}>{config.waOwnerPhoneVerified}</Text>
+                      </div>
+                      <Button
+                        size="small"
+                        style={{ marginLeft: "auto" }}
+                        loading={waConnecting}
+                        icon={<ReloadOutlined />}
+                        onClick={async () => {
+                          setWaConnecting(true);
+                          try {
+                            const status = await services.site.waConnectStatus(accountId ?? "0");
+                            if (status.verified) await loadConfig();
+                          } finally {
+                            setWaConnecting(false);
+                          }
+                        }}
+                      >
+                        {t("site.whatsapp.refresh")}
+                      </Button>
+                    </div>
+                  ) : (
+                    /* ── Not connected — show permanent code ── */
+                    <div style={{ padding: "14px 16px", background: "#fffbe6", border: "1px solid #ffe58f", borderRadius: 8 }}>
+                      <Text strong style={{ display: "block", marginBottom: 6 }}>
+                        <WhatsAppOutlined style={{ color: "#25d366", marginRight: 6 }} />
+                        {t("site.whatsapp.connectInstructions")}
+                      </Text>
+                      {waConnectBotPhone && (
+                        <div style={{ marginBottom: 6 }}>
+                          <Text type="secondary">{t("site.whatsapp.connectSendTo")} </Text>
+                          <Text strong copyable>{waConnectBotPhone}</Text>
+                        </div>
+                      )}
+                      <div style={{ marginBottom: 12 }}>
+                        <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>{t("site.whatsapp.connectSendMessage")}</Text>
+                        <Text
+                          strong
+                          copyable
+                          style={{ fontSize: 22, letterSpacing: 3, fontFamily: "monospace", color: "#1677ff" }}
+                        >
+                          {waConnectCode || "…"}
+                        </Text>
+                      </div>
+                      <Button
+                        type="primary"
+                        loading={waConnecting}
+                        icon={<ReloadOutlined />}
+                        onClick={async () => {
+                          setWaConnecting(true);
+                          try {
+                            const status = await services.site.waConnectStatus(accountId ?? "0");
+                            if (status.verified && status.phone) {
+                              if (waConnectPollRef.current) { clearInterval(waConnectPollRef.current); waConnectPollRef.current = null; }
+                              await loadConfig();
+                              void messageRef.current.success(t("site.whatsapp.connectSuccess"));
+                            } else {
+                              void messageRef.current.info(t("site.whatsapp.connectNotYet"));
+                            }
+                          } finally {
+                            setWaConnecting(false);
+                          }
+                        }}
+                      >
+                        {t("site.whatsapp.connectCheck")}
+                      </Button>
+                    </div>
+                  )}
                 </Col>
                 <Col xs={24}>
                   <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>

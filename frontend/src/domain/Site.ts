@@ -6,6 +6,8 @@ export interface SiteConfig {
   popupImageBase64: string | null;
   notifyChannel: string | null;
   waOwnerPhone: string | null;
+  waOwnerPhoneVerified: string | null;
+  waConnectCode: string | null;
   waNotifyMessage: string | null;
   emailNotifySubject: string | null;
   emailNotifyMessage: string | null;

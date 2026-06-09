@@ -24,6 +24,9 @@ class AccountSiteConfig(Base):
 
     # Owner's WhatsApp phone number to receive lead notifications (e.g. +972501234567)
     wa_owner_phone = Column(String(30), nullable=True)
+    wa_owner_phone_verified = Column(String(30), nullable=True)  # stores the verified phone
+    # Permanent connect code — owner sends this to the bot once to link their WhatsApp
+    wa_connect_code = Column(String(20), nullable=True, unique=True, index=True)
 
     # Per-account WhatsApp message template (credentials are global in settings)
     wa_notify_message = Column(Text, nullable=True)

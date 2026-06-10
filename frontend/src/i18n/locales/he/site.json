@@ -63,6 +63,8 @@
       "testBtn": "שלח בדיקה",
       "testSent": "הודעת הבדיקה נשלחה! בדוק את הווטסאפ שלך.",
       "testError": "שליחה נכשלה. בדוק את פרטי Green API ומספר הטלפון.",
+      "connectCode": "קוד חיבור WhatsApp",
+      "notConnected": "טרם חובר",
       "connected": "WhatsApp מחובר",
       "refresh": "רענן",
       "connectInstructions": "שלח את הקוד הבא כהודעת WhatsApp לבוט שלנו. הקוד קבוע — שלח אותו פעם אחת בלבד.",

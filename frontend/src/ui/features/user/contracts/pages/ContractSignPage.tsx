@@ -672,7 +672,7 @@ export function ContractSignPage() {
                 <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: 192, touchAction: "none" }} />
               </div>
               <div style={{ textAlign: "end", marginTop: 6 }}>
-                <Button type="link" size="small" onClick={clearSignature} style={{ paddingRight: 0 }}>
+                <Button type="link" size="small" onClick={clearSignature} style={{ paddingInlineEnd: 0 }}>
                   {t("contracts.sign.clearSignature")}
                 </Button>
               </div>

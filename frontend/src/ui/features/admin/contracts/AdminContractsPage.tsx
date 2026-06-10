@@ -433,7 +433,7 @@ export function AdminContractsPage() {
         const total = r.stages.length;
         const paidAmt = getPaidAmount(r);
         return (
-          <div style={{ textAlign: "right" }}>
+          <div style={{ textAlign: "end" }}>
             <div style={{ fontWeight: 600 }}>{fmtMoney(r.totalAmount, r.currency)}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
               {paidCount === total && total > 0
@@ -540,7 +540,7 @@ export function AdminContractsPage() {
                     : []),
                 ],
                 extra: (
-                  <div style={{ textAlign: "right" }}>
+                  <div style={{ textAlign: "end" }}>
                     <Typography.Text strong style={{ fontSize: 14 }}>
                       {fmtMoney(c.totalAmount, c.currency)}
                     </Typography.Text>

@@ -19,7 +19,6 @@ import type { SiteConfig, SiteLead } from "../../../../../domain/Site";
 import { AppTable } from "../../../../shared/components/AppTable";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
-import { SiteIntegrationCard } from "../components/SiteIntegrationCard";
 
 const { Text, Link } = Typography;
 
@@ -27,7 +26,6 @@ export function SitePage() {
   const { t } = useTranslation();
   const { services } = useApp();
   const { message } = App.useApp();
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined ?? "").replace(/\/$/, "");
   const { accountId } = useParams<{ accountId: string }>();
   const messageRef = useRef(message);
   messageRef.current = message;
@@ -222,42 +220,6 @@ export function SitePage() {
           </Card>
         </Col>
 
-        {/* Site links */}
-        <Col span={24}>
-          <Card
-            title={
-              <>
-                <GlobalOutlined style={{ marginRight: 8 }} />
-                {t("site.links.title")}
-              </>
-            }
-            loading={configLoading}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                  {t("site.links.siteUrl")}
-                </Text>
-                {config?.siteUrl ? (
-                  <Link href={config.siteUrl} target="_blank">{config.siteUrl}</Link>
-                ) : (
-                  <Text type="secondary">—</Text>
-                )}
-              </div>
-              <div>
-                <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                  {t("site.links.gmbUrl")}
-                </Text>
-                {config?.gmbUrl ? (
-                  <Link href={config.gmbUrl} target="_blank">{config.gmbUrl}</Link>
-                ) : (
-                  <Text type="secondary">—</Text>
-                )}
-              </div>
-            </div>
-          </Card>
-        </Col>
-
         {/* Notification config */}
         <Col span={24}>
           <Card
@@ -312,7 +274,7 @@ export function SitePage() {
                       </div>
                       <Button
                         size="small"
-                        style={{ marginLeft: "auto" }}
+                        style={{ marginInlineStart: "auto" }}
                         loading={waConnecting}
                         icon={<ReloadOutlined />}
                         onClick={async () => {
@@ -438,19 +400,6 @@ export function SitePage() {
             </Button>
           </Card>
         </Col>
-
-        {/* Integration card */}
-        {config?.publicToken && (
-          <Col span={24}>
-            <SiteIntegrationCard
-              accountId={accountId ?? "0"}
-              publicToken={config.publicToken}
-              apiBaseUrl={apiBaseUrl}
-              onTokenRegenerated={(newToken) => setConfig((c) => c ? { ...c, publicToken: newToken } : c)}
-              regenerateToken={(id) => services.site.regenerateToken(id)}
-            />
-          </Col>
-        )}
 
         {/* Leads table */}
         <Col span={24}>

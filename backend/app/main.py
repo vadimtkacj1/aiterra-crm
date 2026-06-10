@@ -37,6 +37,9 @@ async def lifespan(app: FastAPI):
     await asyncio.to_thread(init_db)
     _log_smtp_env()
 
+    from app.services.whatsapp.queue import wa_queue
+    wa_queue.start()
+
     scheduler = None
     try:
         from apscheduler.schedulers.background import BackgroundScheduler

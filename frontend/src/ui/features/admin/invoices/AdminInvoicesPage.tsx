@@ -322,7 +322,7 @@ export function AdminInvoicesPage() {
                 },
               ],
               extra: (
-                <div style={{ textAlign: "right" }}>
+                <div style={{ textAlign: "end" }}>
                   <Typography.Text strong style={{ fontSize: 14 }}>
                     {r.amount != null ? fmtMoney(r.amount, r.currency) : "-"}
                   </Typography.Text>

@@ -42,6 +42,8 @@ class UserBusinessSiteOut(BaseModel):
     publicToken: str | None = None
     notifyChannel: str | None = "whatsapp"
     waOwnerPhone: str | None = None
+    waOwnerPhoneVerified: str | None = None
+    waConnectCode: str | None = None
     waNotifyMessage: str | None = None
     emailNotifySubject: str | None = None
     emailNotifyMessage: str | None = None

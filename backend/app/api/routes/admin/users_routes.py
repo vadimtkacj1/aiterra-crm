@@ -394,6 +394,8 @@ def _site_config_to_admin_out(account_id: int, config: AccountSiteConfig | None)
         publicToken=config.public_token,
         notifyChannel=config.notify_channel or "whatsapp",
         waOwnerPhone=config.wa_owner_phone,
+        waOwnerPhoneVerified=config.wa_owner_phone_verified,
+        waConnectCode=config.wa_connect_code,
         waNotifyMessage=config.wa_notify_message,
         emailNotifySubject=config.email_notify_subject,
         emailNotifyMessage=config.email_notify_message,

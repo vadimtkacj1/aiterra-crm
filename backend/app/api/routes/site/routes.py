@@ -15,6 +15,7 @@ from app.db.session import get_db
 from app.models.core import User, AccountMembership
 from app.models.site import AccountSiteConfig, SiteLead
 from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, GreenApiWebhookIn
+from app.services.whatsapp.queue import wa_queue
 from app.services.whatsapp.sender import send_whatsapp_message
 from app.services.email.smtp_mail import send_simple_email
 
@@ -214,11 +215,10 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
             message=body.message or "—",
             treatment=body.treatment or "—",
         )
-        threading.Thread(
-            target=send_whatsapp_message,
-            args=(settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token, config.wa_owner_phone, wa_message),
-            daemon=True,
-        ).start()
+        wa_queue.enqueue(
+            settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
+            config.wa_owner_phone, wa_message,
+        )
 
     if send_email:
         # Notify account owner(s), not the lead
@@ -388,16 +388,10 @@ def whatsapp_connect_webhook(
 
     # Send confirmation back to the user
     if settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token:
-        threading.Thread(
-            target=send_whatsapp_message,
-            args=(
-                settings.greenapi_url,
-                settings.greenapi_id_instance,
-                settings.greenapi_token,
-                phone,
-                "✅ הטלפון שלך חובר בהצלחה!\nמעכשיו תקבל התראות על לידים חדשים מהאתר שלך.",
-            ),
-            daemon=True,
-        ).start()
+        wa_queue.enqueue(
+            settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
+            phone,
+            "✅ הטלפון שלך חובר בהצלחה!\nמעכשיו תקבל התראות על לידים חדשים מהאתר שלך.",
+        )
 
     return {"ok": True}

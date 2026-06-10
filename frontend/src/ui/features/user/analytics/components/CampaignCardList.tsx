@@ -13,7 +13,7 @@ function MetricRow({ label, value }: { label: string; value: string | number }) 
       <Typography.Text type="secondary" style={{ fontSize: 13 }}>
         {label}
       </Typography.Text>
-      <Typography.Text strong style={{ fontSize: 13, textAlign: "right" }}>
+      <Typography.Text strong style={{ fontSize: 13, textAlign: "end" }}>
         {value}
       </Typography.Text>
     </div>

@@ -63,6 +63,8 @@
       "testBtn": "Send Test",
       "testSent": "Test message sent! Check your WhatsApp.",
       "testError": "Failed to send. Check Green API credentials and owner phone.",
+      "connectCode": "WhatsApp Connect Code",
+      "notConnected": "Not connected yet",
       "connected": "WhatsApp Connected",
       "refresh": "Refresh",
       "connectInstructions": "Send the code below as a WhatsApp message to our bot. This code is permanent — send it once.",

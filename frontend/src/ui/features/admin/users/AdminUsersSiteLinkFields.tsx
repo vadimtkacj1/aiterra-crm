@@ -1,5 +1,7 @@
-import { Form, Input, Radio, Switch } from "antd";
-import { LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
+import { Form, Input, Radio, Switch, Tag, Typography } from "antd";
+import { CheckCircleOutlined, LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
+
+const { Text } = Typography;
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { UserBusinessSite } from "@/services/admin/AdminService";
@@ -66,6 +68,28 @@ export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, rege
                   <Radio value="none">{t("site.notify.channelNone")}</Radio>
                 </Radio.Group>
               </Form.Item>
+
+              {/* WhatsApp connect code (read-only info) */}
+              {siteInfo?.waConnectCode && (
+                <Form.Item label={t("site.whatsapp.connectCode")}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <Tag
+                      color="blue"
+                      style={{ fontSize: 16, letterSpacing: 3, fontFamily: "monospace", padding: "4px 12px" }}
+                    >
+                      {siteInfo.waConnectCode}
+                    </Tag>
+                    {siteInfo.waOwnerPhoneVerified ? (
+                      <Text style={{ color: "#52c41a" }}>
+                        <CheckCircleOutlined style={{ marginRight: 4 }} />
+                        {siteInfo.waOwnerPhoneVerified}
+                      </Text>
+                    ) : (
+                      <Text type="secondary">{t("site.whatsapp.notConnected")}</Text>
+                    )}
+                  </div>
+                </Form.Item>
+              )}
 
               {/* WhatsApp config fields */}
               <Form.Item

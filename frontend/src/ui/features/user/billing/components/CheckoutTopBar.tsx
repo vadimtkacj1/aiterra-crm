@@ -31,7 +31,7 @@ export function CheckoutTopBar({ onBack }: Props) {
           {t("common.back")}
         </Button>
       )}
-      <Flex align="center" gap={6} style={{ marginLeft: "auto", color: token.colorTextSecondary, fontSize: 13 }}>
+      <Flex align="center" gap={6} style={{ marginInlineStart: "auto", color: token.colorTextSecondary, fontSize: 13 }}>
         <LockOutlined style={{ fontSize: 13 }} />
         {t("billing.secureCheckout")}
       </Flex>

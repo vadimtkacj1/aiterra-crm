@@ -8,6 +8,7 @@ from app.api.deps import require_admin
 from app.db.session import get_db
 from app.models.core import Account, AccountMembership, User
 from app.models.site import AccountSiteConfig
+from app.api.routes.site.routes import _generate_connect_code
 
 router = APIRouter()
 
@@ -28,6 +29,13 @@ def list_whatsapp_connections(
 ) -> list[WaConnectionOut]:
     """List all accounts that have a site config, with their WhatsApp status."""
     configs = db.query(AccountSiteConfig).all()
+    dirty = False
+    for cfg in configs:
+        if not cfg.wa_connect_code:
+            cfg.wa_connect_code = _generate_connect_code()
+            dirty = True
+    if dirty:
+        db.commit()
     result = []
     for cfg in configs:
         account = db.query(Account).filter(Account.id == cfg.account_id).first()

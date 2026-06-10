@@ -43,7 +43,6 @@ export function SitePage() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [waSaving, setWaSaving] = useState(false);
-  const [waTesting, setWaTesting] = useState(false);
   const [waConnectCode, setWaConnectCode] = useState("");
   const [waConnectBotPhone, setWaConnectBotPhone] = useState("");
   const [waConnecting, setWaConnecting] = useState(false);

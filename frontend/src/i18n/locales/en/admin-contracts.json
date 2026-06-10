@@ -3,6 +3,10 @@
     "contracts": {
       "title": "Contracts",
       "create": "New Contract",
+      "empty": {
+        "title": "No contracts yet",
+        "description": "Create your first contract to start collecting signatures and payments."
+      },
       "createdSuccess": "Contract created",
       "sentSuccess": "Contract sent to client",
       "voidedSuccess": "Contract voided",

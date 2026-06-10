@@ -7,7 +7,9 @@ import { LanguageSwitcher } from "@/ui/shared/components/LanguageSwitcher";
 
 const { Sider } = Layout;
 
-const SIDEBAR_DARK_BG = "#0f172a";
+import { brand } from "@/ui/theme/tokens";
+
+const SIDEBAR_DARK_BG = brand.sidebarBg;
 
 interface SidebarProps {
   isMobile: boolean;
@@ -45,7 +47,9 @@ function SidebarLogo({ maxWidth }: { maxWidth: number }) {
     <img
       src={logoUrl}
       alt={t("layout.brand")}
-      style={{ display: "block", width: "100%", maxWidth, height: "auto", objectFit: "contain" }}
+      width={maxWidth}
+      height={maxWidth}
+      style={{ display: "block", width: "100%", maxWidth, height: "auto", objectFit: "contain", aspectRatio: "1/1" }}
     />
   );
 }
@@ -57,7 +61,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
     return (
       <Drawer
         title={null}
-        placement="right"
+        placement="left"
         open={drawerOpen}
         onClose={onDrawerClose}
         closable={false}
@@ -74,6 +78,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
             shape="circle"
             icon={<CloseOutlined />}
             onClick={onDrawerClose}
+            aria-label={t("layout.closeMenu")}
             style={{ color: "rgba(255,255,255,0.65)" }}
           />
         </div>

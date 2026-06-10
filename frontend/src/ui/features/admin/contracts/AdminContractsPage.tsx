@@ -9,6 +9,7 @@ import {
   SyncOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import {
   App,
   Button,
@@ -570,6 +571,15 @@ export function AdminContractsPage() {
             dataSource={contracts}
             rowKey="id"
             loading={loading}
+            locale={{
+              emptyText: (
+                <EmptyState
+                  title={t("admin.contracts.empty.title")}
+                  description={t("admin.contracts.empty.description")}
+                  action={{ label: t("admin.contracts.create"), onClick: () => setCreateOpen(true) }}
+                />
+              ),
+            }}
             pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => `${n} contracts` }}
             expandable={{
               rowExpandable: (c) => !!(c.monthlyAmount && c.monthlyAmount > 0),

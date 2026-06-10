@@ -65,6 +65,10 @@ class Settings(BaseSettings):
     greenapi_token: str = ""
     # The bot's own WhatsApp number shown to users so they know where to write
     greenapi_bot_phone: str = ""
+    # Shared secret appended to the webhook URL as ?token=<secret>.
+    # Set in .env and configure Green API webhook URL accordingly.
+    # If empty, webhook authentication is skipped (dev only).
+    greenapi_webhook_secret: str = ""
 
     # Optional SMTP — signed contract PDF emailed after /contracts/{token}/sign
     # Private Email (Namecheap): mail.privateemail.com — either port 587 + TLS, or 465 + SSL (not both).

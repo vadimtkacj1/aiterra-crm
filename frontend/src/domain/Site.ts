@@ -8,6 +8,7 @@ export interface SiteConfig {
   waOwnerPhone: string | null;
   waOwnerPhoneVerified: string | null;
   waConnectCode: string | null;
+  waBotPhone: string | null;
   waNotifyMessage: string | null;
   emailNotifySubject: string | null;
   emailNotifyMessage: string | null;

@@ -4,7 +4,15 @@
     "subtitle": "ניהול משתמשים ועסקים. רק מנהלים יכולים לגשת לעמוד זה.",
     "users": {
       "title": "ניהול משתמשים",
-      "description": "ניהול משתמשים ועסקים. רק מנהלים יכולים לגשת לעמוד זה."
+      "description": "ניהול משתמשים ועסקים. רק מנהלים יכולים לגשת לעמוד זה.",
+      "listEmpty": "אין משתמשים עדיין",
+      "listEmptyDesc": "צור חשבון משתמש ראשון כדי להתחיל.",
+      "searchEmpty": "אין תוצאות",
+      "searchEmptyDesc": "לא נמצאו משתמשים התואמים את החיפוש. נסה שם או אימייל אחר.",
+      "bulkDelete": "מחק {{count}} נבחרים",
+      "bulkDeleteConfirmTitle": "למחוק משתמשים נבחרים?",
+      "bulkDeleteConfirmContent": "פעולה זו תמחק לצמיתות {{count}} משתמש/ים. לא ניתן לבטל.",
+      "bulkDeleteSuccess": "{{count}} משתמש/ים נמחקו"
     },
     "userListTitle": "כל המשתמשים",
     "businesses": "עסקים",
@@ -87,7 +95,9 @@
       "billingAmountRequired": "הזינו סכום גדול מאפס לסוג חיוב זה.",
       "billingCurrency": "מטבע",
       "billingDescription": "תיאור (אופציונלי)",
-      "billingDescriptionPlaceholder": "יוצג בחשבון הלקוח"
+      "billingDescriptionPlaceholder": "יוצג בחשבון הלקוח",
+      "integrationsSection": "אינטגרציות",
+      "integrationsSectionHint": "אופציונלי"
     },
     "loadError": "לא ניתן לטעון משתמשים",
     "createSuccess": "החשבון נוצר"

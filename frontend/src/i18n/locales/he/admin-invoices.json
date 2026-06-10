@@ -23,6 +23,9 @@
       "paymentUnpaid": "לא שולם",
       "paymentPending": "ממתין",
       "empty": "אין חשבוניות או מנויים עדיין.",
+      "emptyTitle": "אין חשבוניות עדיין",
+      "emptyDescription": "צור חשבונית ראשונה כדי להתחיל לחייב לקוחות.",
+      "bulkDownload": "הורד {{count}} PDF",
       "loadError": "נכשל בטעינת חשבוניות.",
       "createModal": {
         "title": "צור חשבונית או מנוי",

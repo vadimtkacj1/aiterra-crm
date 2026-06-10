@@ -33,6 +33,9 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Account security and preferences.",
+    "profileSectionTitle": "Your profile",
+    "noDisplayName": "No display name set",
+    "languageSectionTitle": "Language",
     "passwordSectionTitle": "Change password",
     "signedInAs": "Signed in as {{email}}",
     "currentPassword": "Current password",
@@ -44,7 +47,11 @@
     "passwordMinLength": "Use at least 8 characters",
     "passwordMismatch": "The two passwords do not match",
     "savePassword": "Update password",
-    "passwordSuccess": "Your password was updated."
+    "passwordSuccess": "Your password was updated.",
+    "unsavedTitle": "Unsaved changes",
+    "unsavedContent": "You have unsaved changes. Are you sure you want to leave?",
+    "unsavedLeave": "Leave",
+    "unsavedStay": "Stay"
   },
   "accounts": {
     "title": "Your businesses",

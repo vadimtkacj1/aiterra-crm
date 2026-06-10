@@ -39,7 +39,6 @@ export function SitePage() {
 
   // Notification config form state
   const [notifyChannel, setNotifyChannel] = useState("whatsapp");
-  const [waOwnerPhone, setWaOwnerPhone] = useState("");
   const [waNotifyMessage, setWaNotifyMessage] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
@@ -48,7 +47,6 @@ export function SitePage() {
   const [waConnectCode, setWaConnectCode] = useState("");
   const [waConnectBotPhone, setWaConnectBotPhone] = useState("");
   const [waConnecting, setWaConnecting] = useState(false);
-  const waConnectPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadConfig = useCallback(async () => {
     setConfigLoading(true);
@@ -56,14 +54,8 @@ export function SitePage() {
       const data = await services.site.getConfig(accountId ?? "0");
       setConfig(data);
       setNotifyChannel(data.notifyChannel ?? "whatsapp");
-      setWaOwnerPhone(data.waOwnerPhone ?? "");
       setWaConnectCode(data.waConnectCode ?? "");
-      // Load bot phone alongside config
-      if (!data.waOwnerPhoneVerified) {
-        services.site.waConnectGetCode(accountId ?? "0")
-          .then((r) => { setWaConnectBotPhone(r.botPhone); setWaConnectCode(r.code); })
-          .catch(() => {});
-      }
+      setWaConnectBotPhone(data.waBotPhone ?? "");
       setWaNotifyMessage(data.waNotifyMessage ?? "");
       setEmailSubject(data.emailNotifySubject ?? "");
       setEmailMessage(data.emailNotifyMessage ?? "");
@@ -96,7 +88,6 @@ export function SitePage() {
     try {
       const updated = await services.site.updateConfig(accountId ?? "0", {
         notifyChannel: notifyChannel || "whatsapp",
-        waOwnerPhone: waOwnerPhone || null,
         waNotifyMessage: waNotifyMessage || null,
         emailNotifySubject: emailSubject || null,
         emailNotifyMessage: emailMessage || null,
@@ -312,13 +303,13 @@ export function SitePage() {
                   </Text>
                 </Col>
                 <Col xs={24}>
-                  {config?.waOwnerPhoneVerified ? (
+                  {(config?.waOwnerPhoneVerified || config?.waOwnerPhone) ? (
                     /* ── Connected state ── */
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "#f6ffed", border: "1px solid #b7eb8f", borderRadius: 8 }}>
                       <WhatsAppOutlined style={{ color: "#52c41a", fontSize: 20 }} />
                       <div>
                         <Text strong style={{ color: "#52c41a" }}>✓ {t("site.whatsapp.connected")}</Text>
-                        <Text type="secondary" style={{ display: "block", fontSize: 12 }}>{config.waOwnerPhoneVerified}</Text>
+                        <Text type="secondary" style={{ display: "block", fontSize: 12 }}>{config.waOwnerPhoneVerified ?? config.waOwnerPhone}</Text>
                       </div>
                       <Button
                         size="small"
@@ -370,7 +361,6 @@ export function SitePage() {
                           try {
                             const status = await services.site.waConnectStatus(accountId ?? "0");
                             if (status.verified && status.phone) {
-                              if (waConnectPollRef.current) { clearInterval(waConnectPollRef.current); waConnectPollRef.current = null; }
                               await loadConfig();
                               void messageRef.current.success(t("site.whatsapp.connectSuccess"));
                             } else {

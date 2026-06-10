@@ -1,4 +1,7 @@
 {
+  "accessibility": {
+    "skipToContent": "Skip to main content"
+  },
   "common": {
     "reload": "Refresh",
     "cancel": "Cancel",
@@ -76,6 +79,7 @@
     "switchBusiness": "Switch business",
     "loadingBusiness": "Loading…",
     "openMenu": "Open menu",
+    "closeMenu": "Close menu",
     "menuSettings": "Settings",
     "adminContext": "Admin panel",
     "notifications": {

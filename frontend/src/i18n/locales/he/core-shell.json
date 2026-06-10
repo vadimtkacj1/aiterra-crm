@@ -1,4 +1,7 @@
 {
+  "accessibility": {
+    "skipToContent": "דלג לתוכן הראשי"
+  },
   "common": {
     "reload": "רענון",
     "cancel": "ביטול",
@@ -76,6 +79,7 @@
     "switchBusiness": "החלפת עסק",
     "loadingBusiness": "טוען…",
     "openMenu": "פתיחת תפריט",
+    "closeMenu": "סגירת תפריט",
     "menuSettings": "הגדרות",
     "adminContext": "לוח ניהול",
     "notifications": {

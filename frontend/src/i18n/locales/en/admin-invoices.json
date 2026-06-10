@@ -23,6 +23,9 @@
       "paymentUnpaid": "Unpaid",
       "paymentPending": "Pending",
       "empty": "No invoices or subscriptions yet.",
+      "emptyTitle": "No invoices yet",
+      "emptyDescription": "Create the first invoice to start billing your clients.",
+      "bulkDownload": "Download {{count}} PDF(s)",
       "loadError": "Failed to load invoices.",
       "createModal": {
         "title": "Create Invoice or Subscription",

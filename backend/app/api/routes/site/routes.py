@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
-import random
+import secrets
 import threading
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_account_member
@@ -14,7 +14,7 @@ from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User, AccountMembership
 from app.models.site import AccountSiteConfig, SiteLead
-from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, TestWhatsAppIn, GreenApiWebhookIn
+from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, GreenApiWebhookIn
 from app.services.whatsapp.sender import send_whatsapp_message
 from app.services.email.smtp_mail import send_simple_email
 
@@ -28,7 +28,7 @@ _CONNECT_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
 def _generate_connect_code() -> str:
-    return "CRM-" + "".join(random.choices(_CONNECT_CODE_CHARS, k=4))
+    return "CRM-" + "".join(secrets.choice(_CONNECT_CODE_CHARS) for _ in range(6))
 
 
 def _render(template: str, **fields: str) -> str:
@@ -74,6 +74,7 @@ def _config_to_out(config: AccountSiteConfig) -> SiteConfigOut:
         waOwnerPhone=config.wa_owner_phone,
         waOwnerPhoneVerified=config.wa_owner_phone_verified,
         waConnectCode=config.wa_connect_code,
+        waBotPhone=settings.greenapi_bot_phone or None,
         waNotifyMessage=config.wa_notify_message,
         emailNotifySubject=config.email_notify_subject,
         emailNotifyMessage=config.email_notify_message,
@@ -278,16 +279,18 @@ def test_notification(
 @router.post("/accounts/{account_id}/site-config/test-whatsapp")
 def test_whatsapp(
     account_id: int,
-    body: TestWhatsAppIn,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Send a test WhatsApp message using the account's configured template."""
+    """Send a test WhatsApp message to the account's configured owner phone."""
     require_account_member(account_id, db, current_user)
     config = _get_or_create_config(db, account_id)
 
     if not (settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token):
         raise HTTPException(status_code=503, detail="whatsapp_not_configured")
+
+    if not config.wa_owner_phone:
+        raise HTTPException(status_code=400, detail="no_owner_phone_configured")
 
     template = config.wa_notify_message or "ליד חדש: {name} השאיר פרטים באתר.\nטלפון: {phone}"
     message = _render(
@@ -302,7 +305,7 @@ def test_whatsapp(
         settings.greenapi_url,
         settings.greenapi_id_instance,
         settings.greenapi_token,
-        body.phone,
+        config.wa_owner_phone,
         f"[TEST]\n{message}",
     )
     if not sent:
@@ -343,9 +346,22 @@ def wa_connect_status(
 
 
 @router.post("/webhooks/whatsapp-connect")
-def whatsapp_connect_webhook(body: GreenApiWebhookIn, db: Session = Depends(get_db)):
+def whatsapp_connect_webhook(
+    body: GreenApiWebhookIn,
+    db: Session = Depends(get_db),
+    token: str = Query(default=""),
+):
     """Green API webhook — incoming messages.
-    Matches message text against wa_connect_code in DB — no expiry, permanent."""
+    Matches message text against wa_connect_code in DB — no expiry, permanent.
+
+    Authenticate by appending ?token=<GREENAPI_WEBHOOK_SECRET> to the webhook URL
+    registered in Green API. If GREENAPI_WEBHOOK_SECRET is unset (dev), auth is skipped.
+    """
+    if settings.greenapi_webhook_secret and not secrets.compare_digest(
+        token, settings.greenapi_webhook_secret
+    ):
+        raise HTTPException(status_code=403, detail="forbidden")
+
     if body.typeWebhook != "incomingMessageReceived":
         return {"ok": True}
 
@@ -369,4 +385,19 @@ def whatsapp_connect_webhook(body: GreenApiWebhookIn, db: Session = Depends(get_
     config.wa_owner_phone_verified = phone
     db.commit()
     logger.info("WhatsApp connected: account=%s phone=%s", config.account_id, phone)
+
+    # Send confirmation back to the user
+    if settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token:
+        threading.Thread(
+            target=send_whatsapp_message,
+            args=(
+                settings.greenapi_url,
+                settings.greenapi_id_instance,
+                settings.greenapi_token,
+                phone,
+                "✅ הטלפון שלך חובר בהצלחה!\nמעכשיו תקבל התראות על לידים חדשים מהאתר שלך.",
+            ),
+            daemon=True,
+        ).start()
+
     return {"ok": True}

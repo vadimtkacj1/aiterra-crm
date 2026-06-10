@@ -4,7 +4,15 @@
     "subtitle": "Manage users and businesses. Only administrators can access this page.",
     "users": {
       "title": "User management",
-      "description": "Manage users and businesses. Only administrators can access this page."
+      "description": "Manage users and businesses. Only administrators can access this page.",
+      "listEmpty": "No users yet",
+      "listEmptyDesc": "Create the first user account to get started.",
+      "searchEmpty": "No results",
+      "searchEmptyDesc": "No users match your search. Try a different name or email.",
+      "bulkDelete": "Delete {{count}} selected",
+      "bulkDeleteConfirmTitle": "Delete selected users?",
+      "bulkDeleteConfirmContent": "This will permanently delete {{count}} user(s). This action cannot be undone.",
+      "bulkDeleteSuccess": "{{count}} user(s) deleted"
     },
     "userListTitle": "All users",
     "businesses": "Businesses",
@@ -87,7 +95,9 @@
       "billingAmountRequired": "Enter an amount greater than zero for this charge type.",
       "billingCurrency": "Currency",
       "billingDescription": "Description (optional)",
-      "billingDescriptionPlaceholder": "Shown on the customer’s bill"
+      "billingDescriptionPlaceholder": "Shown on the customer’s bill",
+      "integrationsSection": "Integrations",
+      "integrationsSectionHint": "optional"
     },
     "loadError": "Failed to load users",
     "createSuccess": "Account created"

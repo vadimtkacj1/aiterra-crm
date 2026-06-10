@@ -33,6 +33,9 @@
   "settings": {
     "title": "הגדרות",
     "subtitle": "אבטחת חשבון והעדפות.",
+    "profileSectionTitle": "הפרופיל שלך",
+    "noDisplayName": "לא הוגדר שם תצוגה",
+    "languageSectionTitle": "שפה",
     "passwordSectionTitle": "שינוי סיסמה",
     "signedInAs": "מחובר/ת כ-{{email}}",
     "currentPassword": "סיסמה נוכחית",
@@ -44,7 +47,11 @@
     "passwordMinLength": "לפחות 8 תווים",
     "passwordMismatch": "הסיסמאות אינן תואמות",
     "savePassword": "עדכון סיסמה",
-    "passwordSuccess": "הסיסמה עודכנה."
+    "passwordSuccess": "הסיסמה עודכנה.",
+    "unsavedTitle": "שינויים לא שמורים",
+    "unsavedContent": "יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לעזוב?",
+    "unsavedLeave": "עזוב",
+    "unsavedStay": "הישאר"
   },
   "accounts": {
     "title": "העסקים שלך",

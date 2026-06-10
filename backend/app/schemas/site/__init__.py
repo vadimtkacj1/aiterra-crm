@@ -14,6 +14,7 @@ class SiteConfigOut(BaseModel):
     waOwnerPhone: Optional[str] = None
     waOwnerPhoneVerified: Optional[str] = None
     waConnectCode: Optional[str] = None
+    waBotPhone: Optional[str] = None
     waNotifyMessage: Optional[str] = None
     emailNotifySubject: Optional[str] = None
     emailNotifyMessage: Optional[str] = None

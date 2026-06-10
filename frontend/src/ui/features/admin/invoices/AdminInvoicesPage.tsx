@@ -5,10 +5,12 @@ import {
   PlusOutlined,
   RollbackOutlined,
 } from "@ant-design/icons";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import {
   App,
   Button,
   Col,
+  Flex,
   Form,
   Input,
   InputNumber,
@@ -23,6 +25,7 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
+import type { Key } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../../../../app/AppProviders";
 import type { BillingHistoryWithAccountRow } from "../../../../services/admin/AdminService";
@@ -64,6 +67,7 @@ export function AdminInvoicesPage() {
   const [creating, setCreating] = useState(false);
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [form] = Form.useForm<CreateFormValues>();
 
   const reload = () => {
@@ -356,6 +360,42 @@ export function AdminInvoicesPage() {
             emptyText={t("admin.invoices.empty")}
           />
         ) : (
+          <>
+          {selectedRowKeys.length > 0 && (
+            <Flex
+              align="center"
+              justify="space-between"
+              style={{
+                padding: "8px 12px",
+                background: "var(--ds-color-primary-surface, #eff6ff)",
+                border: "1px solid var(--ds-color-primary-surface-deep, #bfdbfe)",
+                borderRadius: 6,
+                marginBottom: 8,
+              }}
+            >
+              <Typography.Text style={{ fontSize: 13 }}>
+                {t("table.selectedCount", { count: selectedRowKeys.length })}
+              </Typography.Text>
+              <Flex gap={8}>
+                <Button size="small" onClick={() => setSelectedRowKeys([])}>
+                  {t("common.clearSelection")}
+                </Button>
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() => {
+                    const selected = invoices.filter((r) =>
+                      selectedRowKeys.includes(`${r.accountId}-${r.id}`),
+                    );
+                    selected.forEach(downloadPdf);
+                    setSelectedRowKeys([]);
+                  }}
+                >
+                  {t("admin.invoices.bulkDownload", { count: selectedRowKeys.length })}
+                </Button>
+              </Flex>
+            </Flex>
+          )}
           <Table
             columns={columns}
             dataSource={invoices}
@@ -363,8 +403,22 @@ export function AdminInvoicesPage() {
             loading={loading}
             pagination={{ pageSize: 20, showSizeChanger: true }}
             scroll={{ x: 1100 }}
-            locale={{ emptyText: t("admin.invoices.empty") }}
+            rowSelection={{
+              selectedRowKeys,
+              onChange: setSelectedRowKeys,
+              preserveSelectedRowKeys: true,
+            }}
+            locale={{
+              emptyText: (
+                <EmptyState
+                  title={t("admin.invoices.emptyTitle")}
+                  description={t("admin.invoices.emptyDescription")}
+                  action={{ label: t("admin.invoices.createButton"), onClick: () => setCreateOpen(true) }}
+                />
+              ),
+            }}
           />
+          </>
         )}
       </ListCard>
 

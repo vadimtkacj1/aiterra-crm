@@ -199,3 +199,219 @@ export async function mockHostedCheckout(page: Page) {
     }),
   );
 }
+
+// ─── Admin users (with data) ─────────────────────────────────────────────────
+
+export const mockAdminUserEntry = {
+  id: 2,
+  email: 'client@test.com',
+  displayName: 'Client User',
+  role: 'user' as const,
+  phone: '+972-50-1234567',
+  accountId: 10,
+};
+
+export async function mockAdminUsersWithData(page: Page, users = [mockAdminUserEntry]) {
+  await page.route('/api/admin/users', (route: Route) => {
+    if (route.request().method() === 'GET') {
+      return route.fulfill({ json: users });
+    }
+    return route.fulfill({ json: { ...mockAdminUserEntry, id: 99 } });
+  });
+}
+
+export async function mockAdminUserDelete(page: Page, id = 2) {
+  await page.route(`/api/admin/users/${id}`, (route: Route) => {
+    if (route.request().method() === 'DELETE') {
+      return route.fulfill({ status: 204 });
+    }
+    return route.continue();
+  });
+}
+
+// ─── Admin stats ─────────────────────────────────────────────────────────────
+
+export const mockStatsData = {
+  usersTotal: 50,
+  adminsTotal: 3,
+  regularUsersTotal: 47,
+  accountsTotal: 45,
+  trackedCampaignsTotal: 12,
+};
+
+export const mockPaymentStatsData = {
+  paidCount: 25,
+  unpaidCount: 8,
+  currencies: [{ currency: 'ILS', totalPaid: 15000 }],
+};
+
+export async function mockAdminStats(page: Page) {
+  await page.route('/api/admin/stats', (route: Route) =>
+    route.fulfill({ json: mockStatsData }),
+  );
+}
+
+export async function mockAdminPaymentStats(page: Page) {
+  await page.route('**/api/admin/stats/payments**', (route: Route) =>
+    route.fulfill({ json: mockPaymentStatsData }),
+  );
+}
+
+// ─── Admin leads ─────────────────────────────────────────────────────────────
+
+export const mockLeadEntry = {
+  id: 1,
+  accountId: 10,
+  accountName: 'Test Business',
+  name: 'John Lead',
+  phone: '+972-50-1234567',
+  email: 'john@lead.com',
+  message: 'Interested in your service',
+  treatment: 'new',
+  source: 'https://example.com',
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
+export async function mockAdminLeads(page: Page, leads = [mockLeadEntry]) {
+  await page.route('**/api/admin/leads**', (route: Route) =>
+    route.fulfill({ json: leads }),
+  );
+}
+
+// ─── Admin audit logs ────────────────────────────────────────────────────────
+
+export const mockAuditLogEntry = {
+  id: 1,
+  adminUserId: 1,
+  adminEmail: 'admin@test.com',
+  action: 'create_user',
+  resourceType: 'user',
+  resourceId: '2',
+  detail: 'Created user client@test.com',
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
+export async function mockAdminAuditLogs(page: Page, logs = [mockAuditLogEntry]) {
+  await page.route('**/api/admin/audit-logs**', (route: Route) =>
+    route.fulfill({ json: logs }),
+  );
+}
+
+// ─── Admin Meta topups ───────────────────────────────────────────────────────
+
+export const mockTopupEntry = {
+  id: 1,
+  accountId: 10,
+  amount: 500,
+  currency: 'USD',
+  status: 'sent_to_meta',
+  metaError: null,
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
+export async function mockAdminTopups(page: Page, topups = [mockTopupEntry]) {
+  await page.route('/api/admin/billing/topups', (route: Route) =>
+    route.fulfill({ json: topups }),
+  );
+}
+
+// ─── Admin accounts list ─────────────────────────────────────────────────────
+
+export const mockAdminAccountEntry = {
+  id: 10,
+  name: 'Test Business',
+  ownerEmail: 'user@test.com',
+};
+
+export async function mockAdminAccounts(page: Page, accounts = [mockAdminAccountEntry]) {
+  await page.route('/api/admin/accounts', (route: Route) =>
+    route.fulfill({ json: accounts }),
+  );
+}
+
+// ─── Admin billing history (all) ─────────────────────────────────────────────
+
+export const mockAdminBillingHistoryEntry = {
+  id: 1,
+  accountId: 10,
+  accountName: 'Test Business',
+  ownerEmail: 'user@test.com',
+  chargeType: 'one_time',
+  amount: 1000,
+  currency: 'ILS',
+  paymentStatus: 'pending',
+  recordStatus: 'active',
+  description: 'Monthly fee',
+  invoiceId: 'inv_001',
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
+export async function mockAdminBillingHistory(page: Page, rows = [mockAdminBillingHistoryEntry]) {
+  await page.route('**/api/admin/billing-history**', (route: Route) =>
+    route.fulfill({ json: rows }),
+  );
+}
+
+// ─── Account billing history (user) ─────────────────────────────────────────
+
+export const mockAccountBillingHistoryEntry = {
+  id: 1,
+  description: 'October billing',
+  chargeType: 'monthly',
+  amount: 1500,
+  currency: 'ILS',
+  paymentStatus: 'paid',
+  invoiceId: 'inv_001',
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
+export async function mockAccountBillingHistory(
+  page: Page,
+  accountId = '10',
+  rows = [mockAccountBillingHistoryEntry],
+) {
+  await page.route(`/api/accounts/${accountId}/billing/history`, (route: Route) =>
+    route.fulfill({ json: rows }),
+  );
+}
+
+// ─── Meta billing (for billing page MetaBillingCard) ─────────────────────────
+
+export async function mockMetaBilling(page: Page, accountId = '10') {
+  await page.route(`/api/meta/billing/${accountId}`, (route: Route) =>
+    route.fulfill({
+      json: {
+        accountId: 'act_123',
+        accountName: 'Test Meta Account',
+        accountStatus: 1,
+        amountSpent: '500.00',
+        balance: '1000.00',
+        spendCap: '5000.00',
+        currency: 'USD',
+        transactions: [],
+      },
+    }),
+  );
+}
+
+// ─── Change password ─────────────────────────────────────────────────────────
+
+export async function mockChangePassword(page: Page) {
+  await page.route('/api/auth/change-password', (route: Route) =>
+    route.fulfill({ status: 200, json: { message: 'Password changed' } }),
+  );
+}
+
+export async function mockChangePasswordFail(page: Page) {
+  await page.route('/api/auth/change-password', (route: Route) =>
+    route.fulfill({ status: 400, json: { detail: 'wrong_password' } }),
+  );
+}
+
+// ─── Invoice templates (admin payments) ──────────────────────────────────────
+
+export async function mockAdminInvoiceTemplates(page: Page) {
+  await page.route('/api/admin/invoice-templates', (route: Route) =>
+    route.fulfill({ json: [] }),
+  );
+}

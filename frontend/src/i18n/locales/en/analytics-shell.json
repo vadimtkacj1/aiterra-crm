@@ -9,7 +9,10 @@
       "thisYear": "This Year"
     },
     "meta": {
-      "title": "Meta (Facebook / Instagram) analytics"
+      "title": "Meta (Facebook / Instagram) analytics",
+      "notLinkedTitle": "Meta campaigns not linked",
+      "notLinkedDescription": "Your administrator hasn't linked a Meta campaign to this account yet. Contact them to get access to ad analytics.",
+      "goToBilling": "Go to billing"
     },
     "google": {
       "title": "Google Ads analytics",

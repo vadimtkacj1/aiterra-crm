@@ -22,6 +22,7 @@ export function AdminUsersPage() {
         onEdit={p.openEditUser}
         onResetPassword={p.openResetPassword}
         onDelete={p.handleDeleteUser}
+        onDeleteBulk={p.handleDeleteBulk}
         onCreateUser={p.openCreate}
       />
 

@@ -3,6 +3,10 @@
     "contracts": {
       "title": "חוזים",
       "create": "חוזה חדש",
+      "empty": {
+        "title": "אין חוזים עדיין",
+        "description": "צור חוזה ראשון כדי להתחיל לאסוף חתימות ותשלומים."
+      },
       "createdSuccess": "החוזה נוצר",
       "sentSuccess": "החוזה נשלח ללקוח",
       "voidedSuccess": "החוזה בוטל",

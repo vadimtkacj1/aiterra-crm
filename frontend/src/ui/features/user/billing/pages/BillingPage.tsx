@@ -1,5 +1,5 @@
 ﻿import { FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
-import { App, Alert, Button, Card, Flex, Space } from "antd";
+import { App, Alert, Button, Card, Flex, Skeleton, Space } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -172,12 +172,14 @@ export function BillingPage() {
         <MetaBillingCard metaBilling={metaBilling} metaLoading={metaLoading} appLocale={appLocale} />
 
         {!isAdmin && (
-          <PaymentsSection
-            overview={overview}
-            loading={loading}
-            appLocale={appLocale}
-            accountId={accountId ?? "0"}
-          />
+          loading
+            ? <Skeleton active paragraph={{ rows: 4 }} style={{ padding: "16px 0" }} />
+            : <PaymentsSection
+                overview={overview}
+                loading={loading}
+                appLocale={appLocale}
+                accountId={accountId ?? "0"}
+              />
         )}
 
         <BillingHistorySection

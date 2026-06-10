@@ -237,10 +237,21 @@ export function useAdminUsersPage() {
     });
   };
 
+  const handleDeleteBulk = async (ids: number[]) => {
+    try {
+      await Promise.all(ids.map((id) => services.admin.deleteUser(id)));
+      message.success(t("admin.users.bulkDeleteSuccess", { count: ids.length }));
+      await refreshUsers();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : t("errors.generic"));
+    }
+  };
+
   return {
     t,
     services,
     form,
+    handleDeleteBulk,
     metaCampaigns,
     metaCampaignsLoading,
     users,

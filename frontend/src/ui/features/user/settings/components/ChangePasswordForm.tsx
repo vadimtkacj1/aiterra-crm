@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TranslatableError } from "../../../../../domain/errors";
 import { useApp } from "../../../../../app/AppProviders";
+import { useUnsavedChangesWarning } from "../../../../shared/hooks/useUnsavedChangesWarning";
 
 type PasswordForm = {
   currentPassword: string;
@@ -18,12 +19,21 @@ export function ChangePasswordForm() {
   const { token } = theme.useToken();
   const [form] = Form.useForm<PasswordForm>();
   const [submitting, setSubmitting] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  useUnsavedChangesWarning(isDirty, {
+    title: t("settings.unsavedTitle"),
+    content: t("settings.unsavedContent"),
+    okText: t("settings.unsavedLeave"),
+    cancelText: t("settings.unsavedStay"),
+  });
 
   const onFinish = async (values: PasswordForm) => {
     setSubmitting(true);
     try {
       await services.auth.changeOwnPassword(values.currentPassword, values.newPassword);
       void message.success(t("settings.passwordSuccess"));
+      setIsDirty(false);
       form.resetFields();
     } catch (e) {
       if (e instanceof TranslatableError) {
@@ -53,7 +63,7 @@ export function ChangePasswordForm() {
         </span>
       }
     >
-      <Form form={form} layout="vertical" onFinish={(v) => void onFinish(v)} requiredMark="optional">
+      <Form form={form} layout="vertical" onFinish={(v) => void onFinish(v)} requiredMark="optional" onValuesChange={() => setIsDirty(true)}>
         <Form.Item
           name="currentPassword"
           label={t("settings.currentPassword")}

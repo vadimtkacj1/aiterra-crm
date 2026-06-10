@@ -1,5 +1,5 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { App as AntApp, Button, Form, Input } from "antd";
+import { Alert, Button, Form, Input } from "antd";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,22 +23,23 @@ const ltrCredentialInput: { input: CSSProperties } = {
 export function LoginForm({ onSuccess, isMobile }: Props) {
   const { login } = useApp();
   const { t } = useTranslation();
-  const { message } = AntApp.useApp();
   const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   return (
     <Form
       layout="vertical"
       onFinish={async (values: { email: string; password: string }) => {
         setSubmitting(true);
+        setAuthError(null);
         try {
           await login(values);
           onSuccess();
         } catch (e) {
           if (e instanceof TranslatableError) {
-            message.error(t(e.i18nKey));
+            setAuthError(t(e.i18nKey));
           } else {
-            message.error(e instanceof Error ? e.message : t("errors.generic"));
+            setAuthError(e instanceof Error ? e.message : t("errors.generic"));
           }
         } finally {
           setSubmitting(false);
@@ -70,6 +71,17 @@ export function LoginForm({ onSuccess, isMobile }: Props) {
           styles={ltrCredentialInput}
         />
       </Form.Item>
+      {authError && (
+        <Form.Item style={{ marginBottom: 12 }}>
+          <Alert
+            type="error"
+            message={authError}
+            showIcon
+            style={{ borderRadius: 8 }}
+            role="alert"
+          />
+        </Form.Item>
+      )}
       <Form.Item style={{ marginBottom: isMobile ? 8 : 12 }}>
         <Button type="primary" htmlType="submit" block size="large" loading={submitting}>
           {t("login.submit")}

@@ -25,12 +25,8 @@ export class SiteService implements ISiteService {
     return this.http.post(`/accounts/${accountId}/site-config/test-notification`, { email });
   }
 
-  sendTestWhatsApp(accountId: string, phone: string): Promise<void> {
-    return this.http.post(`/accounts/${accountId}/site-config/test-whatsapp`, { phone });
-  }
-
-  waConnectGetCode(accountId: string): Promise<{ code: string; botPhone: string; connected: boolean; phone: string | null }> {
-    return this.http.get(`/accounts/${accountId}/site-config/wa-connect/code`);
+  sendTestWhatsApp(accountId: string): Promise<void> {
+    return this.http.post(`/accounts/${accountId}/site-config/test-whatsapp`, {});
   }
 
   waConnectStatus(accountId: string): Promise<{ verified: boolean; phone: string | null }> {

@@ -9,7 +9,6 @@ import { useApp } from "@/app/AppProviders";
 import { AppTable } from "../../../shared/components/AppTable";
 import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
-import { PageHeader } from "../../../shared/components/PageHeader";
 import { ResponsiveCardView } from "../../../shared/components/ResponsiveCardView";
 
 const { Link, Text } = Typography;
@@ -149,7 +148,6 @@ export function AdminLeadsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("admin.leads.title")} description={t("admin.leads.subtitle")} />
       <ListCard
         icon={<TeamOutlined />}
         title={
@@ -190,7 +188,7 @@ export function AdminLeadsPage() {
                 ...(lead.email ? [{ label: lead.email, color: "green" }] : []),
               ],
               extra: (
-                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                   {new Date(lead.createdAt).toLocaleDateString()}
                 </Typography.Text>
               ),

@@ -9,7 +9,10 @@
       "thisYear": "השנה"
     },
     "meta": {
-      "title": "אנליטיקה של Meta (פייסבוק / אינסטגרם)"
+      "title": "אנליטיקה של Meta (פייסבוק / אינסטגרם)",
+      "notLinkedTitle": "קמפייני Meta לא מקושרים",
+      "notLinkedDescription": "המנהל שלך טרם קישר קמפיין Meta לחשבון זה. פנה אליו כדי לקבל גישה לנתוני הפרסום.",
+      "goToBilling": "עבור לחיוב"
     },
     "google": {
       "title": "אנליטיקה של Google Ads",

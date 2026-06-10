@@ -1,5 +1,5 @@
-import { UserAddOutlined } from "@ant-design/icons";
-import { Form, Input, Select } from "antd";
+import { ApiOutlined, UserAddOutlined } from "@ant-design/icons";
+import { Collapse, Form, Input, Select, Typography } from "antd";
 import { AppModal } from "@/ui/shared/components/AppModal";
 import type { FormInstance } from "antd/es/form";
 import type { TFunction } from "i18next";
@@ -63,14 +63,37 @@ export function AdminUsersCreateModal({ t, open, form, metaCampaigns, metaCampai
             ]}
           />
         </Form.Item>
-        <AdminUsersMetaLinkFields
-          t={t}
-          metaCampaigns={metaCampaigns}
-          metaCampaignsLoading={metaCampaignsLoading}
-          showLinkMetaExtra
+
+        <Collapse
+          ghost
+          style={{ marginTop: 4 }}
+          items={[
+            {
+              key: "integrations",
+              label: (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <ApiOutlined />
+                  <Typography.Text>{t("admin.form.integrationsSection")}</Typography.Text>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    — {t("admin.form.integrationsSectionHint")}
+                  </Typography.Text>
+                </span>
+              ),
+              children: (
+                <>
+                  <AdminUsersMetaLinkFields
+                    t={t}
+                    metaCampaigns={metaCampaigns}
+                    metaCampaignsLoading={metaCampaignsLoading}
+                    showLinkMetaExtra
+                  />
+                  <AdminUsersGoogleLinkFields t={t} mode="create" />
+                  <AdminUsersSiteLinkFields t={t} />
+                </>
+              ),
+            },
+          ]}
         />
-        <AdminUsersGoogleLinkFields t={t} mode="create" />
-        <AdminUsersSiteLinkFields t={t} />
       </Form>
     </AppModal>
   );

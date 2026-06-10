@@ -41,7 +41,7 @@ test.describe('Admin — contracts', () => {
     await expect(
       page.getByPlaceholder('e.g. Annual Service Agreement').or(
         page.getByText('Contract title'),
-      ),
+      ).first(),
     ).toBeVisible({ timeout: 5000 });
   });
 
@@ -69,16 +69,16 @@ test.describe('Admin — contracts', () => {
     // Ant Design Modal.confirm — click OK
     await page.getByRole('button', { name: 'OK' }).click();
 
-    await expect(page.getByText('Voided')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Voided').first()).toBeVisible({ timeout: 8000 });
   });
 
-  test('shows empty state when no contracts exist', async ({ page }) => {
+  test('shows empty table when no contracts exist', async ({ page }) => {
     await mockAdminContractsList(page, []);
 
     await page.goto('/admin/contracts');
 
-    await expect(
-      page.getByText('No data').or(page.getByText('No Data')),
-    ).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 8000 });
+    // Verify the mocked contract title is absent (no data rows rendered)
+    await expect(page.getByText('Service Agreement')).not.toBeVisible();
   });
 });

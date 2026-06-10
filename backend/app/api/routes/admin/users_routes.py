@@ -381,6 +381,11 @@ def get_user_business_site(
     if not m:
         return UserBusinessSiteOut()
     config = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
+    if config and not config.wa_connect_code:
+        from app.api.routes.site.routes import _generate_connect_code
+        config.wa_connect_code = _generate_connect_code()
+        db.commit()
+        db.refresh(config)
     return _site_config_to_admin_out(m.account_id, config)
 
 
@@ -418,13 +423,22 @@ def set_user_business_site(
     existing = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
     if payload.hasSite and not existing:
         import uuid as _uuid
-        existing = AccountSiteConfig(account_id=m.account_id, site_url=payload.siteUrl, public_token=str(_uuid.uuid4()))
+        from app.api.routes.site.routes import _generate_connect_code
+        existing = AccountSiteConfig(
+            account_id=m.account_id,
+            site_url=payload.siteUrl,
+            public_token=str(_uuid.uuid4()),
+            wa_connect_code=_generate_connect_code(),
+        )
         db.add(existing)
     elif not payload.hasSite and existing:
         db.delete(existing)
         existing = None
 
     if payload.hasSite and existing:
+        if not existing.wa_connect_code:
+            from app.api.routes.site.routes import _generate_connect_code
+            existing.wa_connect_code = _generate_connect_code()
         existing.site_url = payload.siteUrl
         if payload.notifyChannel is not None:
             existing.notify_channel = payload.notifyChannel or "whatsapp"

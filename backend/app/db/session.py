@@ -183,6 +183,10 @@ def _apply_lightweight_migrations() -> None:
         _ensure_column("account_site_configs", "wa_notify_message", "TEXT")
         _ensure_column("account_site_configs", "email_notify_subject", "TEXT")
         _ensure_column("account_site_configs", "email_notify_message", "TEXT")
+        # WhatsApp owner phone & verification
+        _ensure_column("account_site_configs", "wa_owner_phone", "VARCHAR(30)")
+        _ensure_column("account_site_configs", "wa_owner_phone_verified", "VARCHAR(30)")
+        _ensure_column("account_site_configs", "wa_connect_code", "VARCHAR(20)")
     except Exception:
         logger.exception("Lightweight DB migrations failed — check database permissions and schema.")
 

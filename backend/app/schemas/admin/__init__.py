@@ -59,6 +59,25 @@ class UserBusinessSiteUpdateRequest(BaseModel):
     emailNotifyMessage: str | None = None
 
 
+class WaPhoneOut(BaseModel):
+    id: int
+    accountId: int
+    connectCode: str
+    phone: str | None = None
+    label: str | None = None
+    verified: bool = False
+
+
+class WaPhoneCreate(BaseModel):
+    label: str | None = None
+    phone: str | None = None  # if provided, sets verified_phone immediately (admin override)
+
+
+class WaPhoneUpdate(BaseModel):
+    phone: str | None = None  # set/clear verified_phone
+    label: str | None = None
+
+
 class ResetPasswordRequest(BaseModel):
     password: str
 

@@ -51,7 +51,7 @@ export async function submitAdminUserEdit(params: {
     hasSite: values.linkSite,
     siteUrl: values.siteUrl?.trim() || null,
     notifyChannel: values.notifyChannel || null,
-    waOwnerPhone: values.waOwnerPhone?.trim() || null,
+    waOwnerPhone: null,
     waNotifyMessage: values.waNotifyMessage?.trim() || null,
     emailNotifySubject: values.emailNotifySubject?.trim() || null,
     emailNotifyMessage: values.emailNotifyMessage?.trim() || null,

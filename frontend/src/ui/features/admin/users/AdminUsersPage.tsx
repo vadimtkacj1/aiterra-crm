@@ -43,6 +43,7 @@ export function AdminUsersPage() {
         editMetaInfo={p.editMetaInfo}
         editGoogleHasCredentials={p.editGoogleHasCredentials}
         editSiteInfo={p.editSiteInfo}
+        editUserId={p.editUser != null ? String(p.editUser.id) : undefined}
         editForm={p.editForm}
         metaCampaigns={p.metaCampaigns}
         metaCampaignsLoading={p.metaCampaignsLoading}

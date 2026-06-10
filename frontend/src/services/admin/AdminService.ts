@@ -2,6 +2,15 @@ import type { HttpClient } from "@/infrastructure/HttpClient";
 import type { Contract, ContractCreateInput } from "@/domain/Contract";
 import type { SiteLeadAdmin } from "@/domain/Site";
 
+export interface WaPhoneRow {
+  id: number;
+  accountId: number;
+  connectCode: string;
+  phone: string | null;
+  label: string | null;
+  verified: boolean;
+}
+
 export interface AdminAccountRow {
   id: number;
   name: string;
@@ -432,16 +441,37 @@ export class AdminService {
     return this.http.get<WaConnectionRow[]>("/admin/whatsapp-connections");
   }
 
-  async disconnectWhatsApp(accountId: number): Promise<void> {
-    return this.http.delete(`/admin/whatsapp-connections/${accountId}`);
+  async deleteWhatsAppPhone(phoneId: number): Promise<void> {
+    return this.http.delete(`/admin/whatsapp-phones/${phoneId}`);
+  }
+
+  async listWaPhones(userId: string): Promise<WaPhoneRow[]> {
+    return this.http.get<WaPhoneRow[]>(`/admin/users/${userId}/whatsapp-phones`);
+  }
+
+  async addWaPhone(userId: string, label?: string, phone?: string): Promise<WaPhoneRow> {
+    return this.http.post<WaPhoneRow>(`/admin/users/${userId}/whatsapp-phones`, {
+      label: label || null,
+      phone: phone || null,
+    });
+  }
+
+  async updateWaPhone(userId: string, phoneId: number, data: { phone?: string | null; label?: string | null }): Promise<WaPhoneRow> {
+    return this.http.patch<WaPhoneRow>(`/admin/users/${userId}/whatsapp-phones/${phoneId}`, data);
+  }
+
+  async deleteWaPhone(userId: string, phoneId: number): Promise<void> {
+    return this.http.delete(`/admin/users/${userId}/whatsapp-phones/${phoneId}`);
   }
 }
 
 export interface WaConnectionRow {
+  phoneId: number;
   accountId: number;
   accountName: string;
   ownerEmail: string | null;
   phone: string | null;
   verified: boolean;
-  connectCode: string | null;
+  connectCode: string;
+  label: string | null;
 }

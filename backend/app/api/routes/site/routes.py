@@ -13,7 +13,7 @@ from app.api.deps import get_current_user, require_account_member
 from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User, AccountMembership
-from app.models.site import AccountSiteConfig, SiteLead
+from app.models.site import AccountSiteConfig, SiteLead, AccountWhatsAppPhone
 from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, GreenApiWebhookIn
 from app.services.whatsapp.queue import wa_queue
 from app.services.whatsapp.sender import send_whatsapp_message
@@ -201,24 +201,40 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
 
     if (
         send_wa
-        and config.wa_owner_phone
         and settings.greenapi_url
         and settings.greenapi_id_instance
         and settings.greenapi_token
     ):
-        template = config.wa_notify_message or "ליד חדש: {name}\nטלפון: {phone}\nאימייל: {email}\nהודעה: {message}"
-        wa_message = _render(
-            template,
-            name=body.name or "",
-            phone=body.phone or "—",
-            email=body.email or "—",
-            message=body.message or "—",
-            treatment=body.treatment or "—",
+        # Collect all verified phones from multi-phone table
+        wa_phones = (
+            db.query(AccountWhatsAppPhone)
+            .filter(
+                AccountWhatsAppPhone.account_id == config.account_id,
+                AccountWhatsAppPhone.verified_phone.isnot(None),
+            )
+            .all()
         )
-        wa_queue.enqueue(
-            settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
-            config.wa_owner_phone, wa_message,
-        )
+        phones_to_notify = [p.verified_phone for p in wa_phones]
+
+        # Legacy fallback if no multi-phone entries
+        if not phones_to_notify and config.wa_owner_phone:
+            phones_to_notify = [config.wa_owner_phone]
+
+        if phones_to_notify:
+            template = config.wa_notify_message or "ליד חדש: {name}\nטלפון: {phone}\nאימייל: {email}\nהודעה: {message}"
+            wa_message = _render(
+                template,
+                name=body.name or "",
+                phone=body.phone or "—",
+                email=body.email or "—",
+                message=body.message or "—",
+                treatment=body.treatment or "—",
+            )
+            for dest_phone in phones_to_notify:
+                wa_queue.enqueue(
+                    settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
+                    dest_phone, wa_message,
+                )
 
     if send_email:
         # Notify account owner(s), not the lead
@@ -377,13 +393,7 @@ def whatsapp_connect_webhook(
         logger.info("WA webhook: text does not start with CRM-, ignoring")
         return {"ok": True}
 
-    # Look up account by permanent connect code
-    config = db.query(AccountSiteConfig).filter_by(wa_connect_code=text).first()
-    if not config:
-        logger.warning("WA webhook: no account found for code=%r", text)
-        return {"ok": True}
-
-    # Extract phone: "972501234567@c.us" → "+972501234567"
+    # Extract sender phone: "972501234567@c.us" → "+972501234567"
     raw_chat_id = (body.senderData or {}).get("chatId", "")
     digits = raw_chat_id.split("@")[0]
     phone = f"+{digits}" if digits else None
@@ -391,17 +401,36 @@ def whatsapp_connect_webhook(
         logger.warning("WA webhook: could not extract phone from chatId=%r", raw_chat_id)
         return {"ok": True}
 
+    _CONFIRMATION = "✅ הטלפון שלך חובר בהצלחה!\nמעכשיו תקבל התראות על לידים חדשים מהאתר שלך."
+
+    # Check multi-phone table first
+    wa_phone = db.query(AccountWhatsAppPhone).filter_by(connect_code=text).first()
+    if wa_phone:
+        wa_phone.verified_phone = phone
+        db.commit()
+        logger.info("WhatsApp phone connected: account=%s phone=%s phone_id=%s", wa_phone.account_id, phone, wa_phone.id)
+        if settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token:
+            wa_queue.enqueue(
+                settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
+                phone, _CONFIRMATION,
+            )
+        return {"ok": True}
+
+    # Fallback: legacy single-phone (AccountSiteConfig.wa_connect_code)
+    config = db.query(AccountSiteConfig).filter_by(wa_connect_code=text).first()
+    if not config:
+        logger.warning("WA webhook: no account found for code=%r", text)
+        return {"ok": True}
+
     config.wa_owner_phone = phone
     config.wa_owner_phone_verified = phone
     db.commit()
-    logger.info("WhatsApp connected: account=%s phone=%s", config.account_id, phone)
+    logger.info("WhatsApp connected (legacy): account=%s phone=%s", config.account_id, phone)
 
-    # Send confirmation back to the user
     if settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token:
         wa_queue.enqueue(
             settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
-            phone,
-            "✅ הטלפון שלך חובר בהצלחה!\nמעכשיו תקבל התראות על לידים חדשים מהאתר שלך.",
+            phone, _CONFIRMATION,
         )
     else:
         logger.warning("WA webhook: connected phone but greenapi not configured — no confirmation sent")

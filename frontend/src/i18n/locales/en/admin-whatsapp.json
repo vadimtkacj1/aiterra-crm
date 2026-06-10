@@ -5,20 +5,32 @@
       "title": "WhatsApp connections",
       "connectedCount": "connected",
       "loadError": "Could not load connections.",
-      "empty": "No accounts with site configuration found.",
+      "empty": "No WhatsApp phone slots found.",
       "colAccount": "Account",
       "colEmail": "Owner email",
+      "colLabel": "Label",
       "colStatus": "Status",
       "colPhone": "Phone",
       "colCode": "Connect code",
       "statusConnected": "Connected",
-      "statusUnverified": "Pending",
       "statusNone": "Not linked",
-      "disconnectBtn": "Disconnect",
-      "disconnectConfirm": "Remove WhatsApp connection for this account?",
-      "disconnectOk": "Disconnect",
-      "disconnected": "WhatsApp disconnected.",
-      "disconnectError": "Could not disconnect. Try again."
+      "deleteBtn": "Delete",
+      "deleteConfirm": "Delete this WhatsApp phone slot?",
+      "deleted": "Phone slot deleted.",
+      "deleteError": "Could not delete. Try again.",
+      "phones": {
+        "title": "WhatsApp Numbers",
+        "empty": "No phone slots yet. Add one so the user can connect their WhatsApp.",
+        "notConnected": "Awaiting connection",
+        "addBtn": "Add phone slot",
+        "addConfirm": "Add",
+        "labelPlaceholder": "Label (optional, e.g. Main)",
+        "addError": "Could not add phone slot.",
+        "deleteConfirm": "Delete this phone slot?",
+        "deleteError": "Could not delete phone slot.",
+        "loadError": "Could not load phone slots.",
+        "editPhone": "Set phone number directly"
+      }
     }
   }
 }

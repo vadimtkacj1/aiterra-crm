@@ -1,4 +1,4 @@
-import { CheckCircleOutlined, CloseCircleOutlined, DisconnectOutlined, ReloadOutlined, WhatsAppOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, ReloadOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import { App, Button, Popconfirm, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useState } from "react";
@@ -18,7 +18,7 @@ export function AdminWhatsAppPage() {
 
   const [rows, setRows] = useState<WaConnectionRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [disconnecting, setDisconnecting] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,18 +34,16 @@ export function AdminWhatsAppPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  async function handleDisconnect(accountId: number) {
-    setDisconnecting(accountId);
+  async function handleDelete(phoneId: number) {
+    setDeletingId(phoneId);
     try {
-      await services.admin.disconnectWhatsApp(accountId);
-      void message.success(t("admin.whatsapp.disconnected"));
-      setRows((prev) => prev.map((r) =>
-        r.accountId === accountId ? { ...r, phone: null, verified: false } : r
-      ));
+      await services.admin.deleteWhatsAppPhone(phoneId);
+      void message.success(t("admin.whatsapp.deleted"));
+      setRows((prev) => prev.filter((r) => r.phoneId !== phoneId));
     } catch {
-      void message.error(t("admin.whatsapp.disconnectError"));
+      void message.error(t("admin.whatsapp.deleteError"));
     } finally {
-      setDisconnecting(null);
+      setDeletingId(null);
     }
   }
 
@@ -64,16 +62,23 @@ export function AdminWhatsAppPage() {
       render: (v: string | null) => v ?? "—",
     },
     {
+      title: t("admin.whatsapp.colLabel"),
+      dataIndex: "label",
+      key: "label",
+      width: 120,
+      render: (v: string | null) => v
+        ? <Text type="secondary">{v}</Text>
+        : <Text type="secondary">—</Text>,
+    },
+    {
       title: t("admin.whatsapp.colStatus"),
       key: "status",
-      width: 140,
+      width: 130,
       render: (_, r) =>
         r.verified ? (
           <Tag icon={<CheckCircleOutlined />} color="success">{t("admin.whatsapp.statusConnected")}</Tag>
-        ) : r.phone ? (
-          <Tag icon={<CloseCircleOutlined />} color="warning">{t("admin.whatsapp.statusUnverified")}</Tag>
         ) : (
-          <Tag color="default">{t("admin.whatsapp.statusNone")}</Tag>
+          <Tag icon={<CloseCircleOutlined />} color="default">{t("admin.whatsapp.statusNone")}</Tag>
         ),
     },
     {
@@ -89,33 +94,30 @@ export function AdminWhatsAppPage() {
       dataIndex: "connectCode",
       key: "connectCode",
       width: 140,
-      render: (v: string | null) => v
-        ? <Tag style={{ fontFamily: "monospace", letterSpacing: 1 }}>{v}</Tag>
-        : "—",
+      render: (v: string) => (
+        <Tag style={{ fontFamily: "monospace", letterSpacing: 1 }}>{v}</Tag>
+      ),
     },
     {
       title: "",
       key: "actions",
-      width: 120,
-      render: (_, r) =>
-        r.phone ? (
-          <Popconfirm
-            title={t("admin.whatsapp.disconnectConfirm")}
-            onConfirm={() => void handleDisconnect(r.accountId)}
-            okText={t("admin.whatsapp.disconnectOk")}
-            cancelText={t("common.cancel")}
-            okButtonProps={{ danger: true }}
-          >
-            <Button
-              danger
-              size="small"
-              icon={<DisconnectOutlined />}
-              loading={disconnecting === r.accountId}
-            >
-              {t("admin.whatsapp.disconnectBtn")}
-            </Button>
-          </Popconfirm>
-        ) : null,
+      width: 90,
+      render: (_, r) => (
+        <Popconfirm
+          title={t("admin.whatsapp.deleteConfirm")}
+          onConfirm={() => void handleDelete(r.phoneId)}
+          okText={t("common.confirm")}
+          cancelText={t("common.cancel")}
+          okButtonProps={{ danger: true }}
+        >
+          <Button
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            loading={deletingId === r.phoneId}
+          />
+        </Popconfirm>
+      ),
     },
   ];
 
@@ -142,7 +144,7 @@ export function AdminWhatsAppPage() {
         <AppTable<WaConnectionRow>
           loading={loading}
           dataSource={rows}
-          rowKey="accountId"
+          rowKey="phoneId"
           columns={columns}
           locale={{ emptyText: t("admin.whatsapp.empty") }}
         />

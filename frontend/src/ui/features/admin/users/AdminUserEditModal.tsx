@@ -16,6 +16,7 @@ type Props = {
   editMetaInfo: UserBusinessMeta | null;
   editGoogleHasCredentials: boolean;
   editSiteInfo: UserBusinessSite | null;
+  editUserId?: string;
   editForm: FormInstance<AdminEditUserFormValues>;
   metaCampaigns: MetaCampaignOption[];
   metaCampaignsLoading: boolean;
@@ -33,6 +34,7 @@ export function AdminUserEditModal({
   editMetaInfo,
   editGoogleHasCredentials,
   editSiteInfo,
+  editUserId,
   editForm,
   metaCampaigns,
   metaCampaignsLoading,
@@ -77,6 +79,7 @@ export function AdminUserEditModal({
               />
               <AdminUsersSiteLinkFields
                 t={t}
+                userId={editUserId}
                 siteInfo={editSiteInfo}
                 onTokenRegenerated={onSiteTokenRegenerated}
                 regenerateToken={regenerateSiteToken}

@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.models.campaign import TrackedCampaign
 from app.models.core import Account, AccountMembership, User
 from app.models.integrations import GoogleAdsIntegration
-from app.models.site import AccountSiteConfig
+from app.models.site import AccountSiteConfig, AccountWhatsAppPhone
 from app.schemas.admin import (
     ResetPasswordRequest,
     UpdateUserRequest,
@@ -19,6 +19,9 @@ from app.schemas.admin import (
     UserBusinessMetaUpdateRequest,
     UserBusinessSiteOut,
     UserBusinessSiteUpdateRequest,
+    WaPhoneOut,
+    WaPhoneCreate,
+    WaPhoneUpdate,
 )
 from app.schemas.auth import UserOut
 from app.services.admin.audit import log_admin_action
@@ -504,6 +507,7 @@ def delete_user(
         .all()
     )
     for m in owned:
+        db.query(AccountWhatsAppPhone).filter_by(account_id=m.account_id).delete(synchronize_session=False)
         db.query(AccountSiteConfig).filter_by(account_id=m.account_id).delete(synchronize_session=False)
         db.query(AccountMembership).filter_by(account_id=m.account_id).delete(synchronize_session=False)
         account = db.query(Account).filter_by(id=m.account_id).first()
@@ -514,3 +518,99 @@ def delete_user(
     db.delete(u)
     db.commit()
     return {"ok": True}
+
+
+# ── WhatsApp multi-phone management ────────────────────────────────────────
+
+
+def _wa_phone_to_out(p: AccountWhatsAppPhone) -> WaPhoneOut:
+    return WaPhoneOut(
+        id=p.id,
+        accountId=p.account_id,
+        connectCode=p.connect_code,
+        phone=p.verified_phone,
+        label=p.label,
+        verified=bool(p.verified_phone),
+    )
+
+
+@router.get("/users/{user_id}/whatsapp-phones", response_model=list[WaPhoneOut])
+def list_user_whatsapp_phones(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> list[WaPhoneOut]:
+    m = common.owner_membership(db, user_id)
+    if not m:
+        return []
+    phones = (
+        db.query(AccountWhatsAppPhone)
+        .filter_by(account_id=m.account_id)
+        .order_by(AccountWhatsAppPhone.id)
+        .all()
+    )
+    return [_wa_phone_to_out(p) for p in phones]
+
+
+@router.post("/users/{user_id}/whatsapp-phones", response_model=WaPhoneOut, status_code=201)
+def add_user_whatsapp_phone(
+    user_id: int,
+    payload: WaPhoneCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> WaPhoneOut:
+    m = common.owner_membership(db, user_id)
+    if not m:
+        raise HTTPException(status_code=400, detail="no_owner_business")
+    from app.api.routes.site.routes import _generate_connect_code
+    raw_phone = (payload.phone or "").strip() or None
+    phone = AccountWhatsAppPhone(
+        account_id=m.account_id,
+        connect_code=_generate_connect_code(),
+        label=payload.label or None,
+        verified_phone=raw_phone,
+    )
+    db.add(phone)
+    db.commit()
+    db.refresh(phone)
+    return _wa_phone_to_out(phone)
+
+
+@router.patch("/users/{user_id}/whatsapp-phones/{phone_id}", response_model=WaPhoneOut)
+def update_user_whatsapp_phone(
+    user_id: int,
+    phone_id: int,
+    payload: WaPhoneUpdate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> WaPhoneOut:
+    m = common.owner_membership(db, user_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="not_found")
+    phone = db.query(AccountWhatsAppPhone).filter_by(id=phone_id, account_id=m.account_id).first()
+    if not phone:
+        raise HTTPException(status_code=404, detail="not_found")
+    if "phone" in payload.model_fields_set:
+        phone.verified_phone = (payload.phone or "").strip() or None
+    if "label" in payload.model_fields_set:
+        phone.label = (payload.label or "").strip() or None
+    db.commit()
+    db.refresh(phone)
+    return _wa_phone_to_out(phone)
+
+
+@router.delete("/users/{user_id}/whatsapp-phones/{phone_id}", status_code=204)
+def delete_user_whatsapp_phone(
+    user_id: int,
+    phone_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> None:
+    m = common.owner_membership(db, user_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="not_found")
+    phone = db.query(AccountWhatsAppPhone).filter_by(id=phone_id, account_id=m.account_id).first()
+    if not phone:
+        raise HTTPException(status_code=404, detail="not_found")
+    db.delete(phone)
+    db.commit()

@@ -5,20 +5,32 @@
       "title": "חיבורי WhatsApp",
       "connectedCount": "מחוברים",
       "loadError": "לא ניתן לטעון את החיבורים.",
-      "empty": "לא נמצאו חשבונות עם הגדרת אתר.",
+      "empty": "לא נמצאו כרטיסי טלפון WhatsApp.",
       "colAccount": "חשבון",
       "colEmail": "אימייל בעלים",
+      "colLabel": "תווית",
       "colStatus": "סטטוס",
       "colPhone": "טלפון",
       "colCode": "קוד חיבור",
       "statusConnected": "מחובר",
-      "statusUnverified": "ממתין",
       "statusNone": "לא מקושר",
-      "disconnectBtn": "נתק",
-      "disconnectConfirm": "להסיר את חיבור ה-WhatsApp של חשבון זה?",
-      "disconnectOk": "נתק",
-      "disconnected": "WhatsApp נותק.",
-      "disconnectError": "לא ניתן לנתק. נסה שוב."
+      "deleteBtn": "מחק",
+      "deleteConfirm": "למחוק את כרטיס הטלפון הזה?",
+      "deleted": "כרטיס הטלפון נמחק.",
+      "deleteError": "לא ניתן למחוק. נסה שוב.",
+      "phones": {
+        "title": "מספרי WhatsApp",
+        "empty": "אין כרטיסי טלפון עדיין. הוסף אחד כדי שהמשתמש יוכל לחבר את ה-WhatsApp שלו.",
+        "notConnected": "ממתין לחיבור",
+        "addBtn": "הוסף מספר",
+        "addConfirm": "הוסף",
+        "labelPlaceholder": "תווית (אופציונלי, לדוג׳ ראשי)",
+        "addError": "לא ניתן להוסיף כרטיס טלפון.",
+        "deleteConfirm": "למחוק את כרטיס הטלפון הזה?",
+        "deleteError": "לא ניתן למחוק כרטיס טלפון.",
+        "loadError": "לא ניתן לטעון כרטיסי טלפון.",
+        "editPhone": "הגדר מספר טלפון ישירות"
+      }
     }
   }
 }

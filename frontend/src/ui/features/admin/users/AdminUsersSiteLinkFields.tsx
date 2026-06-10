@@ -1,5 +1,5 @@
-import { Form, Input, Radio, Switch, Tag, Typography } from "antd";
-import { CheckCircleOutlined, LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
+import { Form, Input, Radio, Switch, Typography } from "antd";
+import { LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 import { useMemo } from "react";
@@ -7,16 +7,18 @@ import type { TFunction } from "i18next";
 import type { UserBusinessSite } from "@/services/admin/AdminService";
 import { Env } from "@/config/Env";
 import { SiteIntegrationCard } from "@/ui/features/user/site/components/SiteIntegrationCard";
+import { WaPhoneManager } from "./WaPhoneManager";
 
 type Props = {
   t: TFunction;
+  userId?: string;
   siteInfo?: UserBusinessSite | null;
   onTokenRegenerated?: (newToken: string) => void;
   regenerateToken?: (accountId: string) => Promise<{ publicToken: string | null }>;
   sendTestNotification?: (accountId: string, email: string) => Promise<void>;
 };
 
-export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, regenerateToken, sendTestNotification }: Props) {
+export function AdminUsersSiteLinkFields({ t, userId, siteInfo, onTokenRegenerated, regenerateToken, sendTestNotification }: Props) {
   const apiBaseUrl = useMemo(() => new Env().apiBaseUrl, []);
 
   return (
@@ -69,25 +71,15 @@ export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, rege
                 </Radio.Group>
               </Form.Item>
 
-              {/* WhatsApp connect code (read-only info) */}
-              {siteInfo?.waConnectCode && (
-                <Form.Item label={t("site.whatsapp.connectCode")}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    <Tag
-                      color="blue"
-                      style={{ fontSize: 16, letterSpacing: 3, fontFamily: "monospace", padding: "4px 12px" }}
-                    >
-                      {siteInfo.waConnectCode}
-                    </Tag>
-                    {siteInfo.waOwnerPhoneVerified ? (
-                      <Text style={{ color: "#52c41a" }}>
-                        <CheckCircleOutlined style={{ marginRight: 4 }} />
-                        {siteInfo.waOwnerPhoneVerified}
-                      </Text>
-                    ) : (
-                      <Text type="secondary">{t("site.whatsapp.notConnected")}</Text>
-                    )}
-                  </div>
+              {/* WhatsApp multi-phone manager */}
+              {userId && (
+                <Form.Item label={
+                  <span>
+                    <WhatsAppOutlined style={{ color: "#25d366", marginRight: 6 }} />
+                    {t("admin.whatsapp.phones.title")}
+                  </span>
+                }>
+                  <WaPhoneManager userId={userId} />
                 </Form.Item>
               )}
 
@@ -100,20 +92,12 @@ export function AdminUsersSiteLinkFields({ t, siteInfo, onTokenRegenerated, rege
                   const ch = gfv("notifyChannel") as string;
                   if (ch !== "whatsapp" && ch !== "both") return null;
                   return (
-                    <>
-                      <Form.Item name="waOwnerPhone" label={t("site.whatsapp.ownerPhone")}>
-                        <Input
-                          prefix={<WhatsAppOutlined style={{ color: "#25d366" }} />}
-                          placeholder={t("site.whatsapp.ownerPhonePlaceholder")}
-                        />
-                      </Form.Item>
-                      <Form.Item name="waNotifyMessage" label={t("site.whatsapp.message")}>
-                        <Input.TextArea
-                          placeholder={t("site.whatsapp.messagePlaceholder")}
-                          rows={2}
-                        />
-                      </Form.Item>
-                    </>
+                    <Form.Item name="waNotifyMessage" label={t("site.whatsapp.message")}>
+                      <Input.TextArea
+                        placeholder={t("site.whatsapp.messagePlaceholder")}
+                        rows={2}
+                      />
+                    </Form.Item>
                   );
                 }}
               </Form.Item>

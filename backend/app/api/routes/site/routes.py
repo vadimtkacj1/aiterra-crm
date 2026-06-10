@@ -6,7 +6,7 @@ import threading
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_account_member
@@ -343,23 +343,6 @@ def wa_connect_status(
         "verified": bool(config.wa_owner_phone_verified),
         "phone": config.wa_owner_phone_verified,
     }
-
-
-@router.post("/webhooks/whatsapp-debug")
-async def whatsapp_debug_webhook(request: Request):
-    """Temporary debug endpoint — logs raw body and headers from Green API.
-    Point Green API webhook here to see exactly what it sends.
-    Remove after debugging.
-    """
-    body_bytes = await request.body()
-    logger.info(
-        "WA DEBUG — method=%s url=%s headers=%s body=%s",
-        request.method,
-        str(request.url),
-        dict(request.headers),
-        body_bytes.decode("utf-8", errors="replace"),
-    )
-    return {"ok": True}
 
 
 @router.post("/webhooks/whatsapp-connect")

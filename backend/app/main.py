@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import logging.config
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,6 +10,35 @@ from app.api.router import api_router
 from app.core.settings import settings
 from app.db.session import init_db
 
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "loggers": {
+        # WhatsApp — DEBUG так что видно каждый шаг очереди и webhook
+        "app.services.whatsapp": {"level": "DEBUG", "handlers": ["console"], "propagate": False},
+        "app.api.routes.site": {"level": "DEBUG", "handlers": ["console"], "propagate": False},
+        # Всё остальное приложение — INFO
+        "app": {"level": "INFO", "handlers": ["console"], "propagate": False},
+        # Uvicorn/FastAPI — WARNING чтобы не засорять
+        "uvicorn": {"level": "WARNING", "handlers": ["console"], "propagate": False},
+        "uvicorn.access": {"level": "WARNING", "handlers": ["console"], "propagate": False},
+    },
+    "root": {"level": "WARNING", "handlers": ["console"]},
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 

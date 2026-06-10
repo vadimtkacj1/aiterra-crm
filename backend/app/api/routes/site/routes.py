@@ -357,21 +357,30 @@ def whatsapp_connect_webhook(
     Authenticate by appending ?token=<GREENAPI_WEBHOOK_SECRET> to the webhook URL
     registered in Green API. If GREENAPI_WEBHOOK_SECRET is unset (dev), auth is skipped.
     """
+    logger.info("WA webhook received: type=%s senderData=%s messageData=%s",
+                body.typeWebhook, body.senderData, body.messageData)
+
     if settings.greenapi_webhook_secret and not secrets.compare_digest(
         token, settings.greenapi_webhook_secret
     ):
+        logger.warning("WA webhook rejected: invalid token=%r", token)
         raise HTTPException(status_code=403, detail="forbidden")
 
     if body.typeWebhook != "incomingMessageReceived":
+        logger.debug("WA webhook ignored: typeWebhook=%s", body.typeWebhook)
         return {"ok": True}
 
     text = (body.messageData or {}).get("textMessageData", {}).get("textMessage", "").strip().upper()
+    logger.info("WA webhook text extracted: %r", text)
+
     if not text.startswith("CRM-"):
+        logger.info("WA webhook: text does not start with CRM-, ignoring")
         return {"ok": True}
 
     # Look up account by permanent connect code
     config = db.query(AccountSiteConfig).filter_by(wa_connect_code=text).first()
     if not config:
+        logger.warning("WA webhook: no account found for code=%r", text)
         return {"ok": True}
 
     # Extract phone: "972501234567@c.us" → "+972501234567"
@@ -379,6 +388,7 @@ def whatsapp_connect_webhook(
     digits = raw_chat_id.split("@")[0]
     phone = f"+{digits}" if digits else None
     if not phone:
+        logger.warning("WA webhook: could not extract phone from chatId=%r", raw_chat_id)
         return {"ok": True}
 
     config.wa_owner_phone = phone
@@ -393,5 +403,7 @@ def whatsapp_connect_webhook(
             phone,
             "✅ הטלפון שלך חובר בהצלחה!\nמעכשיו תקבל התראות על לידים חדשים מהאתר שלך.",
         )
+    else:
+        logger.warning("WA webhook: connected phone but greenapi not configured — no confirmation sent")
 
     return {"ok": True}

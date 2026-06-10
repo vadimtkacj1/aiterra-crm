@@ -69,6 +69,12 @@ class Settings(BaseSettings):
     # Set in .env and configure Green API webhook URL accordingly.
     # If empty, webhook authentication is skipped (dev only).
     greenapi_webhook_secret: str = ""
+    # Seconds between sends — Green API allows ~1 msg/s on paid plans, 3s on free.
+    # Lower = faster delivery but higher risk of rate-limit errors.
+    greenapi_send_interval: float = 1.5
+    # Max messages waiting in queue. If exceeded, new messages are dropped with a warning.
+    # 500 = safe ceiling for ~100 accounts; raise if needed.
+    greenapi_queue_max_size: int = 500
 
     # Optional SMTP — signed contract PDF emailed after /contracts/{token}/sign
     # Private Email (Namecheap): mail.privateemail.com — either port 587 + TLS, or 465 + SSL (not both).

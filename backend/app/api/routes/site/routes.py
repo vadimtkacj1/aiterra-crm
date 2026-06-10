@@ -205,10 +205,10 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
         and settings.greenapi_url
         and settings.greenapi_id_instance
         and settings.greenapi_token
-        and config.wa_notify_message
     ):
+        template = config.wa_notify_message or "ליד חדש: {name}\nטלפון: {phone}\nאימייל: {email}\nהודעה: {message}"
         wa_message = _render(
-            config.wa_notify_message,
+            template,
             name=body.name or "",
             phone=body.phone or "—",
             email=body.email or "—",

@@ -1,0 +1,24 @@
+{
+  "admin": {
+    "whatsapp": {
+      "menuTitle": "WhatsApp connections",
+      "title": "WhatsApp connections",
+      "connectedCount": "connected",
+      "loadError": "Could not load connections.",
+      "empty": "No accounts with site configuration found.",
+      "colAccount": "Account",
+      "colEmail": "Owner email",
+      "colStatus": "Status",
+      "colPhone": "Phone",
+      "colCode": "Connect code",
+      "statusConnected": "Connected",
+      "statusUnverified": "Pending",
+      "statusNone": "Not linked",
+      "disconnectBtn": "Disconnect",
+      "disconnectConfirm": "Remove WhatsApp connection for this account?",
+      "disconnectOk": "Disconnect",
+      "disconnected": "WhatsApp disconnected.",
+      "disconnectError": "Could not disconnect. Try again."
+    }
+  }
+}

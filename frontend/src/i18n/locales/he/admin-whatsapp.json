@@ -1,0 +1,24 @@
+{
+  "admin": {
+    "whatsapp": {
+      "menuTitle": "חיבורי WhatsApp",
+      "title": "חיבורי WhatsApp",
+      "connectedCount": "מחוברים",
+      "loadError": "לא ניתן לטעון את החיבורים.",
+      "empty": "לא נמצאו חשבונות עם הגדרת אתר.",
+      "colAccount": "חשבון",
+      "colEmail": "אימייל בעלים",
+      "colStatus": "סטטוס",
+      "colPhone": "טלפון",
+      "colCode": "קוד חיבור",
+      "statusConnected": "מחובר",
+      "statusUnverified": "ממתין",
+      "statusNone": "לא מקושר",
+      "disconnectBtn": "נתק",
+      "disconnectConfirm": "להסיר את חיבור ה-WhatsApp של חשבון זה?",
+      "disconnectOk": "נתק",
+      "disconnected": "WhatsApp נותק.",
+      "disconnectError": "לא ניתן לנתק. נסה שוב."
+    }
+  }
+}

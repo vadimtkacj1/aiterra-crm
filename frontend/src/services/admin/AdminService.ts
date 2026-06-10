@@ -427,4 +427,21 @@ export class AdminService {
     const qs = accountId != null ? `?account_id=${accountId}` : "";
     return this.http.get<SiteLeadAdmin[]>(`/admin/leads${qs}`);
   }
+
+  async listWhatsAppConnections(): Promise<WaConnectionRow[]> {
+    return this.http.get<WaConnectionRow[]>("/admin/whatsapp-connections");
+  }
+
+  async disconnectWhatsApp(accountId: number): Promise<void> {
+    return this.http.delete(`/admin/whatsapp-connections/${accountId}`);
+  }
+}
+
+export interface WaConnectionRow {
+  accountId: number;
+  accountName: string;
+  ownerEmail: string | null;
+  phone: string | null;
+  verified: boolean;
+  connectCode: string | null;
 }

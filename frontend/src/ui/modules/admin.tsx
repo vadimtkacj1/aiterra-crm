@@ -7,6 +7,7 @@ import {
   SafetyCertificateOutlined,
   TeamOutlined,
   FormOutlined,
+  WhatsAppOutlined,
 } from '@ant-design/icons';
 import { AdminStatisticsPage } from '@/ui/features/admin/stats/AdminStatisticsPage';
 import { AdminAuditPage } from '@/ui/features/admin/audit/AdminAuditPage';
@@ -16,6 +17,7 @@ import { AdminContractsPage } from '@/ui/features/admin/contracts/AdminContracts
 import { AdminInvoicesPage } from '@/ui/features/admin/invoices/AdminInvoicesPage';
 import { AdminMetaBudgetPage } from '@/ui/features/admin/meta-budget/AdminMetaBudgetPage';
 import { AdminLeadsPage } from '@/ui/features/admin/leads/AdminLeadsPage';
+import { AdminWhatsAppPage } from '@/ui/features/admin/whatsapp/AdminWhatsAppPage';
 import { Paths } from '@/ui/navigation/paths';
 import type { AdminModule } from './types';
 
@@ -73,4 +75,11 @@ export const adminLeadsModule: AdminModule = {
   path: 'leads',
   element: <AdminLeadsPage />,
   navItem: (t) => ({ key: Paths.adminLeads, icon: <FormOutlined />, label: t('admin.leads.menuTitle') }),
+};
+
+export const adminWhatsAppModule: AdminModule = {
+  id: 'admin-whatsapp',
+  path: 'whatsapp',
+  element: <AdminWhatsAppPage />,
+  navItem: (t) => ({ key: Paths.adminWhatsApp, icon: <WhatsAppOutlined style={{ color: '#25d366' }} />, label: t('admin.whatsapp.menuTitle') }),
 };

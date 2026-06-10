@@ -18,6 +18,7 @@ import adminTopup from "./admin-topup.json";
 import adminContracts from "./admin-contracts.json";
 import adminInvoices from "./admin-invoices.json";
 import adminLeads from "./admin-leads.json";
+import adminWhatsapp from "./admin-whatsapp.json";
 import meta from "./meta.json";
 import legal from "./legal.json";
 import errors from "./errors.json";
@@ -46,6 +47,7 @@ const merged = deepMerge(
   adminContracts,
   adminInvoices,
   adminLeads,
+  adminWhatsapp,
   meta,
   legal,
   errors,

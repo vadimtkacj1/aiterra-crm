@@ -98,6 +98,20 @@ def list_whatsapp_connections(
     return result
 
 
+@router.post("/whatsapp-phones/{phone_id}/disconnect", status_code=204)
+def disconnect_whatsapp_phone(
+    phone_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> None:
+    """Clear the verified phone from a slot (keeps slot + connect code intact)."""
+    phone = db.query(AccountWhatsAppPhone).filter_by(id=phone_id).first()
+    if not phone:
+        raise HTTPException(status_code=404, detail="not_found")
+    phone.verified_phone = None
+    db.commit()
+
+
 @router.delete("/whatsapp-phones/{phone_id}", status_code=204)
 def delete_whatsapp_phone(
     phone_id: int,

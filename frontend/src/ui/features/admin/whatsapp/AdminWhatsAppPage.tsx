@@ -1,5 +1,5 @@
 import {
-  CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined,
+  CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, DisconnectOutlined,
   PlusOutlined, ReloadOutlined, WhatsAppOutlined, CrownOutlined,
 } from "@ant-design/icons";
 import { App, Button, Divider, Input, Popconfirm, Tag, Typography } from "antd";
@@ -148,6 +148,7 @@ export function AdminWhatsAppPage() {
   const [rows, setRows] = useState<WaConnectionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [disconnectingId, setDisconnectingId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -162,6 +163,19 @@ export function AdminWhatsAppPage() {
   }, [services.admin, message, t]);
 
   useEffect(() => { void load(); }, [load]);
+
+  async function handleDisconnect(phoneId: number) {
+    setDisconnectingId(phoneId);
+    try {
+      await services.admin.disconnectWhatsAppPhone(phoneId);
+      void message.success(t("admin.whatsapp.disconnected"));
+      setRows((prev) => prev.map((r) => r.phoneId === phoneId ? { ...r, phone: null, verified: false } : r));
+    } catch {
+      void message.error(t("admin.whatsapp.disconnectError"));
+    } finally {
+      setDisconnectingId(null);
+    }
+  }
 
   async function handleDelete(phoneId: number) {
     setDeletingId(phoneId);
@@ -228,17 +242,36 @@ export function AdminWhatsAppPage() {
     {
       title: "",
       key: "actions",
-      width: 60,
+      width: 110,
       render: (_, r) => (
-        <Popconfirm
-          title={t("admin.whatsapp.deleteConfirm")}
-          onConfirm={() => void handleDelete(r.phoneId)}
-          okText={t("common.confirm")}
-          cancelText={t("common.cancel")}
-          okButtonProps={{ danger: true }}
-        >
-          <Button danger size="small" icon={<DeleteOutlined />} loading={deletingId === r.phoneId} />
-        </Popconfirm>
+        <div style={{ display: "flex", gap: 6 }}>
+          {r.verified && (
+            <Popconfirm
+              title={t("admin.whatsapp.disconnectConfirm")}
+              onConfirm={() => void handleDisconnect(r.phoneId)}
+              okText={t("admin.whatsapp.disconnectOk")}
+              cancelText={t("common.cancel")}
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                size="small"
+                icon={<DisconnectOutlined />}
+                loading={disconnectingId === r.phoneId}
+              >
+                {t("admin.whatsapp.disconnectBtn")}
+              </Button>
+            </Popconfirm>
+          )}
+          <Popconfirm
+            title={t("admin.whatsapp.deleteConfirm")}
+            onConfirm={() => void handleDelete(r.phoneId)}
+            okText={t("common.confirm")}
+            cancelText={t("common.cancel")}
+            okButtonProps={{ danger: true }}
+          >
+            <Button danger size="small" icon={<DeleteOutlined />} loading={deletingId === r.phoneId} />
+          </Popconfirm>
+        </div>
       ),
     },
   ];

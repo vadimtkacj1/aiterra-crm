@@ -459,6 +459,10 @@ export class AdminService {
     return this.http.delete(`/admin/whatsapp-admin-phones/${phoneId}`);
   }
 
+  async disconnectWhatsAppPhone(phoneId: number): Promise<void> {
+    return this.http.post(`/admin/whatsapp-phones/${phoneId}/disconnect`);
+  }
+
   async deleteWhatsAppPhone(phoneId: number): Promise<void> {
     return this.http.delete(`/admin/whatsapp-phones/${phoneId}`);
   }

@@ -1,7 +1,5 @@
-import { Form, Input, Radio, Switch, Typography } from "antd";
+import { Form, Input, Radio, Switch } from "antd";
 import { LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
-
-const { Text } = Typography;
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { UserBusinessSite } from "@/services/admin/AdminService";

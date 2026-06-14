@@ -11,6 +11,12 @@ export interface WaPhoneRow {
   verified: boolean;
 }
 
+export interface AdminWaPhone {
+  id: number;
+  phone: string;
+  label: string | null;
+}
+
 export interface AdminAccountRow {
   id: number;
   name: string;
@@ -439,6 +445,18 @@ export class AdminService {
 
   async listWhatsAppConnections(): Promise<WaConnectionRow[]> {
     return this.http.get<WaConnectionRow[]>("/admin/whatsapp-connections");
+  }
+
+  async listAdminWaPhones(): Promise<AdminWaPhone[]> {
+    return this.http.get<AdminWaPhone[]>("/admin/whatsapp-admin-phones");
+  }
+
+  async addAdminWaPhone(phone: string, label?: string): Promise<AdminWaPhone> {
+    return this.http.post<AdminWaPhone>("/admin/whatsapp-admin-phones", { phone, label: label || null });
+  }
+
+  async deleteAdminWaPhone(phoneId: number): Promise<void> {
+    return this.http.delete(`/admin/whatsapp-admin-phones/${phoneId}`);
   }
 
   async deleteWhatsAppPhone(phoneId: number): Promise<void> {

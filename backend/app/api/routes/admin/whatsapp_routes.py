@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import require_admin
 from app.db.session import get_db
 from app.models.core import Account, AccountMembership, User
-from app.models.site import AccountWhatsAppPhone
+from app.models.site import AccountWhatsAppPhone, AdminWhatsAppPhone
 from app.api.routes.site.routes import _generate_connect_code
 
 router = APIRouter()
@@ -83,4 +83,56 @@ def delete_whatsapp_phone(
     if not phone:
         raise HTTPException(status_code=404, detail="not_found")
     db.delete(phone)
+    db.commit()
+
+
+# ── Global admin phones ─────────────────────────────────────────────────────
+
+
+class AdminWaPhoneOut(BaseModel):
+    id: int
+    phone: str
+    label: str | None
+
+
+class AdminWaPhoneCreate(BaseModel):
+    phone: str
+    label: str | None = None
+
+
+@router.get("/whatsapp-admin-phones", response_model=list[AdminWaPhoneOut])
+def list_admin_whatsapp_phones(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> list[AdminWaPhoneOut]:
+    rows = db.query(AdminWhatsAppPhone).order_by(AdminWhatsAppPhone.id).all()
+    return [AdminWaPhoneOut(id=r.id, phone=r.phone, label=r.label) for r in rows]
+
+
+@router.post("/whatsapp-admin-phones", response_model=AdminWaPhoneOut, status_code=201)
+def add_admin_whatsapp_phone(
+    payload: AdminWaPhoneCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> AdminWaPhoneOut:
+    phone = payload.phone.strip()
+    if not phone:
+        raise HTTPException(status_code=400, detail="phone_required")
+    row = AdminWhatsAppPhone(phone=phone, label=(payload.label or "").strip() or None)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return AdminWaPhoneOut(id=row.id, phone=row.phone, label=row.label)
+
+
+@router.delete("/whatsapp-admin-phones/{phone_id}", status_code=204)
+def delete_admin_whatsapp_phone(
+    phone_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> None:
+    row = db.query(AdminWhatsAppPhone).filter_by(id=phone_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="not_found")
+    db.delete(row)
     db.commit()

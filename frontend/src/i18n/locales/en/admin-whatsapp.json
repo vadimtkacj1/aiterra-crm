@@ -18,6 +18,18 @@
       "deleteConfirm": "Delete this WhatsApp phone slot?",
       "deleted": "Phone slot deleted.",
       "deleteError": "Could not delete. Try again.",
+      "admin": {
+        "title": "Admin Phones (Global)",
+        "hint": "These numbers receive leads from ALL accounts, with the account name shown.",
+        "empty": "No admin phones configured.",
+        "addBtn": "Add admin phone",
+        "addConfirm": "Add",
+        "labelPlaceholder": "Label (e.g. Admin)",
+        "addError": "Could not add admin phone.",
+        "deleteConfirm": "Remove this admin phone?",
+        "deleteError": "Could not remove admin phone.",
+        "loadError": "Could not load admin phones."
+      },
       "phones": {
         "title": "WhatsApp Numbers",
         "empty": "No phone slots yet. Add one so the user can connect their WhatsApp.",

@@ -13,7 +13,8 @@ from app.api.deps import get_current_user, require_account_member
 from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import User, AccountMembership
-from app.models.site import AccountSiteConfig, SiteLead, AccountWhatsAppPhone
+from app.models.site import AccountSiteConfig, SiteLead, AccountWhatsAppPhone, AdminWhatsAppPhone
+from app.models.core import Account
 from app.schemas.site import SiteConfigOut, SiteConfigUpdate, SiteLeadCreate, SiteLeadOut, SiteLeadAdminOut, TestNotificationIn, GreenApiWebhookIn
 from app.services.whatsapp.queue import wa_queue
 from app.services.whatsapp.sender import send_whatsapp_message
@@ -259,6 +260,27 @@ def submit_lead(body: SiteLeadCreate, db: Session = Depends(get_db)):
                 args=(owner_email, subject, email_body),
                 daemon=True,
             ).start()
+
+    # Notify global admin phones (always, regardless of notify_channel)
+    if settings.greenapi_url and settings.greenapi_id_instance and settings.greenapi_token:
+        admin_phones = db.query(AdminWhatsAppPhone).all()
+        if admin_phones:
+            account = db.query(Account).filter_by(id=config.account_id).first()
+            account_name = account.name if account else f"Account #{config.account_id}"
+            site_url = config.site_url or "—"
+            admin_message = (
+                f"🔔 [{account_name}]\n"
+                f"🌐 {site_url}\n"
+                f"👤 {body.name or '—'}\n"
+                f"📞 {body.phone or '—'}\n"
+                f"📧 {body.email or '—'}"
+                + (f"\n💬 {body.message}" if body.message else "")
+            )
+            for ap in admin_phones:
+                wa_queue.enqueue(
+                    settings.greenapi_url, settings.greenapi_id_instance, settings.greenapi_token,
+                    ap.phone, admin_message,
+                )
 
     return SiteLeadOut(
         id=lead.id,

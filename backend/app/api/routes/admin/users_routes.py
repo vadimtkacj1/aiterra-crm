@@ -543,6 +543,24 @@ def list_user_whatsapp_phones(
     m = common.owner_membership(db, user_id)
     if not m:
         return []
+
+    # Auto-migrate legacy single-phone from AccountSiteConfig if no slots exist yet
+    existing = (
+        db.query(AccountWhatsAppPhone)
+        .filter_by(account_id=m.account_id)
+        .first()
+    )
+    if not existing:
+        cfg = db.query(AccountSiteConfig).filter_by(account_id=m.account_id).first()
+        if cfg and cfg.wa_connect_code:
+            slot = AccountWhatsAppPhone(
+                account_id=m.account_id,
+                connect_code=cfg.wa_connect_code,
+                verified_phone=cfg.wa_owner_phone_verified or None,
+            )
+            db.add(slot)
+            db.commit()
+
     phones = (
         db.query(AccountWhatsAppPhone)
         .filter_by(account_id=m.account_id)

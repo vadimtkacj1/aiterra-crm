@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import require_admin
 from app.db.session import get_db
 from app.models.core import Account, AccountMembership, User
-from app.models.site import AccountWhatsAppPhone, AdminWhatsAppPhone
+from app.models.site import AccountWhatsAppPhone, AdminWhatsAppPhone, AccountSiteConfig
 from app.api.routes.site.routes import _generate_connect_code
 
 router = APIRouter()
@@ -29,7 +29,33 @@ def list_whatsapp_connections(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ) -> list[WaConnectionOut]:
-    """List all WhatsApp phone slots across all accounts."""
+    """List all WhatsApp phone slots across all accounts.
+
+    Also auto-migrates legacy AccountSiteConfig entries (wa_connect_code) that
+    don't yet have a corresponding AccountWhatsAppPhone row.
+    """
+    # Auto-migrate legacy site configs that have wa_connect_code but no phone slot
+    site_configs = db.query(AccountSiteConfig).filter(
+        AccountSiteConfig.wa_connect_code.isnot(None)
+    ).all()
+    existing_account_ids = {
+        p.account_id
+        for p in db.query(AccountWhatsAppPhone.account_id).all()
+    }
+    migrated = False
+    for cfg in site_configs:
+        if cfg.account_id not in existing_account_ids:
+            slot = AccountWhatsAppPhone(
+                account_id=cfg.account_id,
+                connect_code=cfg.wa_connect_code,
+                verified_phone=cfg.wa_owner_phone_verified or None,
+            )
+            db.add(slot)
+            existing_account_ids.add(cfg.account_id)
+            migrated = True
+    if migrated:
+        db.commit()
+
     phones = (
         db.query(AccountWhatsAppPhone)
         .order_by(AccountWhatsAppPhone.account_id, AccountWhatsAppPhone.id)

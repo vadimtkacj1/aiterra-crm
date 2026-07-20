@@ -1,13 +1,11 @@
-import { EnvironmentOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import { MailOutlined, PhoneOutlined } from "@ant-design/icons";
 import { theme } from "antd";
 import { Link } from "react-router-dom";
 
 const BUSINESS_CONTACTS = {
-  // TODO(real business details for credit-card-company review):
-  phone: "03-0000000",               // ← replace with real phone
-  email: "office@aiterra.co.il",     // real
-  address: "רחוב לדוגמה 10, תל אביב", // ← replace with real registered address
-  legalEntityNumber: "000000000",    // ← replace with real ח.פ / עוסק מורשה
+  phone: "+972 52-678-0739",
+  email: "office@aiterra.co.il",
+  legalEntityNumber: "000000000",    // ← still a placeholder: replace with real ח.פ / עוסק מורשה
 };
 
 const PAYMENT_METHODS = [
@@ -54,11 +52,6 @@ export function SiteFooter() {
             <span>{BUSINESS_CONTACTS.email}</span>
             <MailOutlined />
           </a>
-
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText }}>
-            <span>{BUSINESS_CONTACTS.address}</span>
-            <EnvironmentOutlined />
-          </div>
         </div>
 
         <div style={{ display: "grid", gap: 8 }}>

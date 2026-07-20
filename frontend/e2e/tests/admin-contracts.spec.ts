@@ -51,8 +51,9 @@ test.describe('Admin — contracts', () => {
 
     await page.goto('/admin/contracts');
 
-    // The send button is an icon-only button (SendOutlined) — match by icon aria-label
-    await page.getByRole('button', { name: 'send' }).first().click();
+    // Row actions live in an overflow (⋯) menu — open it, then click "Send to client".
+    await page.locator('.anticon-more').first().click();
+    await page.getByRole('menuitem', { name: /Send to client/i }).click();
 
     await expect(page.getByText('Awaiting signature')).toBeVisible({ timeout: 8000 });
   });
@@ -63,11 +64,12 @@ test.describe('Admin — contracts', () => {
 
     await page.goto('/admin/contracts');
 
-    // The void button is MinusCircleOutlined — match by icon aria-label
-    await page.getByRole('button', { name: 'minus-circle' }).first().click();
+    // Row actions live in an overflow (⋯) menu — open it, then click "Void".
+    await page.locator('.anticon-more').first().click();
+    await page.getByRole('menuitem', { name: /Void/i }).click();
 
-    // Ant Design Modal.confirm — click OK
-    await page.getByRole('button', { name: 'OK' }).click();
+    // Confirmation dialog — click the confirm button.
+    await page.getByRole('button', { name: 'Confirm' }).click();
 
     await expect(page.getByText('Voided').first()).toBeVisible({ timeout: 8000 });
   });

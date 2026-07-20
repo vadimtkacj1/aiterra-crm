@@ -6,22 +6,22 @@
 
 # Test info
 
-- Name: tests\admin-users.spec.ts >> Admin — users >> delete button triggers confirmation dialog
-- Location: e2e\tests\admin-users.spec.ts:58:3
+- Name: tests\admin-users.spec.ts >> Admin — users >> opens create user modal on button click
+- Location: e2e\tests\admin-users.spec.ts:35:3
 
 # Error details
 
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table')
+Locator: getByRole('button', { name: /Create account/i })
 Expected: visible
 Timeout: 8000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 8000ms
-  - waiting for getByRole('table')
+  - waiting for getByRole('button', { name: /Create account/i })
     - waiting for" http://localhost:5173/login" navigation to finish...
     - navigated to "http://localhost:5173/login"
 
@@ -69,7 +69,8 @@ Call log:
   37 | 
   38 |     const usersPage = new AdminUsersPage(page);
   39 |     await usersPage.goto();
-  40 |     await expect(usersPage.createUserButton).toBeVisible({ timeout: 8000 });
+> 40 |     await expect(usersPage.createUserButton).toBeVisible({ timeout: 8000 });
+     |                                              ^ Error: expect(locator).toBeVisible() failed
   41 |     await usersPage.createUserButton.click();
   42 | 
   43 |     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 8000 });
@@ -93,8 +94,7 @@ Call log:
   61 | 
   62 |     const usersPage = new AdminUsersPage(page);
   63 |     await usersPage.goto();
-> 64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-     |                                        ^ Error: expect(locator).toBeVisible() failed
+  64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
   65 |     await usersPage.deleteButton().click();
   66 | 
   67 |     await expect(

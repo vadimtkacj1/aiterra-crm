@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: tests\admin-users.spec.ts >> Admin — users >> delete button triggers confirmation dialog
-- Location: e2e\tests\admin-users.spec.ts:58:3
+- Name: tests\admin-users.spec.ts >> Admin — users >> opens reset password modal on lock button click
+- Location: e2e\tests\admin-users.spec.ts:46:3
 
 # Error details
 
@@ -80,7 +80,8 @@ Call log:
   48 | 
   49 |     const usersPage = new AdminUsersPage(page);
   50 |     await usersPage.goto();
-  51 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
+> 51 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
+     |                                        ^ Error: expect(locator).toBeVisible() failed
   52 |     await usersPage.resetPasswordButton().click();
   53 | 
   54 |     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
@@ -93,8 +94,7 @@ Call log:
   61 | 
   62 |     const usersPage = new AdminUsersPage(page);
   63 |     await usersPage.goto();
-> 64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-     |                                        ^ Error: expect(locator).toBeVisible() failed
+  64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
   65 |     await usersPage.deleteButton().click();
   66 | 
   67 |     await expect(

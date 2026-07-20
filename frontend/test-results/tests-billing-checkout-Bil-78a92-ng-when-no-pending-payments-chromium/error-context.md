@@ -6,25 +6,66 @@
 
 # Test info
 
-- Name: tests\billing-checkout.spec.ts >> Billing checkout page >> calls checkout API when Pay is clicked
-- Location: e2e\tests\billing-checkout.spec.ts:20:3
+- Name: tests\billing-checkout.spec.ts >> Billing checkout page >> redirects back to billing when no pending payments
+- Location: e2e\tests\billing-checkout.spec.ts:46:3
 
 # Error details
 
 ```
-Error: expect(locator).toBeVisible() failed
+Error: expect(page).toHaveURL(expected) failed
 
-Locator: getByRole('button', { name: /Pay/ })
-Expected: visible
+Expected pattern: /\/a\/10\/billing/
+Received string:  "http://localhost:5173/accounts"
 Timeout: 8000ms
-Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 8000ms
-  - waiting for getByRole('button', { name: /Pay/ })
-    - waiting for" http://localhost:5173/login" navigation to finish...
-    - navigated to "http://localhost:5173/login"
+  - Expect "toHaveURL" with timeout 8000ms
+    5 × unexpected value "http://localhost:5173/accounts"
+    3 × unexpected value "http://localhost:5173/login"
+      - unexpected value "http://localhost:5173/login"
+      - unexpected value "http://localhost:5173/login"
+      - unexpected value "http://localhost:5173/accounts"
+    - unexpected value "http://localhost:5173/accounts"
 
+```
+
+```yaml
+- link "Skip to main content":
+  - /url: "#main-content"
+- complementary:
+  - img "Aiterra CRM"
+  - menu:
+    - menuitem "wallet Payments & subscriptions":
+      - img "wallet"
+      - text: Payments & subscriptions
+    - menuitem "file-text Contracts":
+      - img "file-text"
+      - text: Contracts
+    - menuitem "question-circle Help & CRM guide":
+      - img "question-circle"
+      - text: Help & CRM guide
+    - menuitem "setting Settings":
+      - img "setting"
+      - text: Settings
+  - text: English
+  - combobox "Language"
+  - img "global"
+- banner:
+  - text: Loading… Test User
+  - button "Notifications":
+    - img "bell"
+  - button "Settings":
+    - img "setting"
+  - button "Sign out":
+    - img "logout"
+- main:
+  - heading "Your businesses" [level=4]
+  - text: Pick where you want to work. You can switch anytime from the top bar or the side menu.
+  - list:
+    - listitem
+    - listitem
+    - listitem
+    - listitem
 ```
 
 # Test source
@@ -66,8 +107,7 @@ Call log:
   34 |     });
   35 | 
   36 |     await page.goto(`/a/${ACCOUNT_ID}/billing/checkout`);
-> 37 |     await expect(page.getByRole('button', { name: /Pay/ })).toBeVisible({ timeout: 8000 });
-     |                                                             ^ Error: expect(locator).toBeVisible() failed
+  37 |     await expect(page.getByRole('button', { name: /Pay/ })).toBeVisible({ timeout: 8000 });
   38 | 
   39 |     await page.getByRole('button', { name: /Pay/ }).click();
   40 | 
@@ -86,7 +126,8 @@ Call log:
   53 |     await page.goto(`/a/${ACCOUNT_ID}/billing/checkout`);
   54 | 
   55 |     // No pending payment → app calls goBack() → billing page
-  56 |     await expect(page).toHaveURL(new RegExp(`/a/${ACCOUNT_ID}/billing`), { timeout: 8000 });
+> 56 |     await expect(page).toHaveURL(new RegExp(`/a/${ACCOUNT_ID}/billing`), { timeout: 8000 });
+     |                        ^ Error: expect(page).toHaveURL(expected) failed
   57 |   });
   58 | 
   59 |   test('shows error feedback when hosted checkout API fails', async ({ page }) => {

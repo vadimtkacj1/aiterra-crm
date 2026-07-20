@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: tests\billing-checkout.spec.ts >> Billing checkout page >> calls checkout API when Pay is clicked
-- Location: e2e\tests\billing-checkout.spec.ts:20:3
+- Name: tests\billing-checkout.spec.ts >> Billing checkout page >> shows pay button when pending payment exists
+- Location: e2e\tests\billing-checkout.spec.ts:12:3
 
 # Error details
 
@@ -22,9 +22,71 @@ Error: element(s) not found
 Call log:
   - Expect "toBeVisible" with timeout 8000ms
   - waiting for getByRole('button', { name: /Pay/ })
-    - waiting for" http://localhost:5173/login" navigation to finish...
-    - navigated to "http://localhost:5173/login"
+    2 × waiting for" http://localhost:5173/login" navigation to finish...
+      - navigated to "http://localhost:5173/login"
 
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - link "Skip to main content" [ref=e5] [cursor=pointer]:
+    - /url: "#main-content"
+  - complementary [ref=e6]:
+    - generic [ref=e8]:
+      - img "Aiterra CRM" [ref=e10]
+      - menu [ref=e12]:
+        - menuitem "wallet Payments & subscriptions" [ref=e13] [cursor=pointer]:
+          - img "wallet" [ref=e14]:
+            - img [ref=e15]
+          - generic [ref=e17]: Payments & subscriptions
+        - menuitem "file-text Contracts" [ref=e18] [cursor=pointer]:
+          - img "file-text" [ref=e19]:
+            - img [ref=e20]
+          - generic [ref=e22]: Contracts
+        - menuitem "question-circle Help & CRM guide" [ref=e23] [cursor=pointer]:
+          - img "question-circle" [ref=e24]:
+            - img [ref=e25]
+          - generic [ref=e28]: Help & CRM guide
+        - menuitem "setting Settings" [ref=e29] [cursor=pointer]:
+          - img "setting" [ref=e30]:
+            - img [ref=e31]
+          - generic [ref=e33]: Settings
+      - generic [ref=e35] [cursor=pointer]:
+        - generic "English" [ref=e36]:
+          - text: English
+          - combobox "Language" [ref=e37]
+        - img "global" [ref=e39]:
+          - img [ref=e40]
+  - generic [ref=e42]:
+    - banner [ref=e43]:
+      - generic [ref=e56]: Loading…
+      - generic [ref=e57]:
+        - generic "Test User" [ref=e58]
+        - generic [ref=e60]:
+          - button "Notifications" [ref=e61] [cursor=pointer]:
+            - img "bell" [ref=e63]:
+              - img [ref=e64]
+          - superscript:
+            - generic:
+              - generic: "1"
+        - button "Settings" [ref=e66] [cursor=pointer]:
+          - img "setting" [ref=e68]:
+            - img [ref=e69]
+        - button "Sign out" [ref=e71] [cursor=pointer]:
+          - img "logout" [ref=e73]:
+            - img [ref=e74]
+    - main [ref=e76]:
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - heading "Your businesses" [level=4] [ref=e80]
+          - generic [ref=e81]: Pick where you want to work. You can switch anytime from the top bar or the side menu.
+        - list [ref=e86]:
+          - listitem [ref=e87]
+          - listitem [ref=e88]
+          - listitem [ref=e89]
+          - listitem [ref=e90]
 ```
 
 # Test source
@@ -46,7 +108,8 @@ Call log:
   14 | 
   15 |     await page.goto(`/a/${ACCOUNT_ID}/billing/checkout`);
   16 | 
-  17 |     await expect(page.getByRole('button', { name: /Pay/ })).toBeVisible({ timeout: 8000 });
+> 17 |     await expect(page.getByRole('button', { name: /Pay/ })).toBeVisible({ timeout: 8000 });
+     |                                                             ^ Error: expect(locator).toBeVisible() failed
   18 |   });
   19 | 
   20 |   test('calls checkout API when Pay is clicked', async ({ page }) => {
@@ -66,8 +129,7 @@ Call log:
   34 |     });
   35 | 
   36 |     await page.goto(`/a/${ACCOUNT_ID}/billing/checkout`);
-> 37 |     await expect(page.getByRole('button', { name: /Pay/ })).toBeVisible({ timeout: 8000 });
-     |                                                             ^ Error: expect(locator).toBeVisible() failed
+  37 |     await expect(page.getByRole('button', { name: /Pay/ })).toBeVisible({ timeout: 8000 });
   38 | 
   39 |     await page.getByRole('button', { name: /Pay/ }).click();
   40 | 

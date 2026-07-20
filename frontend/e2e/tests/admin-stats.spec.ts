@@ -34,6 +34,10 @@ test.describe('Admin — statistics', () => {
     await statsPage.goto();
 
     await expect(statsPage.downloadPdfButton).toBeVisible({ timeout: 10000 });
+    await expect(statsPage.exportMenuButton).toBeVisible();
+
+    // The CSV exports are grouped under the Export dropdown menu.
+    await statsPage.openExportMenu();
     await expect(statsPage.exportUsersCsvButton).toBeVisible();
     await expect(statsPage.exportBillingCsvButton).toBeVisible();
   });

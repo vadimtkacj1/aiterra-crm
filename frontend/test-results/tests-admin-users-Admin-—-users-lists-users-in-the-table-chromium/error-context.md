@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: tests\admin-users.spec.ts >> Admin — users >> delete button triggers confirmation dialog
-- Location: e2e\tests\admin-users.spec.ts:58:3
+- Name: tests\admin-users.spec.ts >> Admin — users >> lists users in the table
+- Location: e2e\tests\admin-users.spec.ts:15:3
 
 # Error details
 
@@ -25,6 +25,75 @@ Call log:
     - waiting for" http://localhost:5173/login" navigation to finish...
     - navigated to "http://localhost:5173/login"
 
+```
+
+```yaml
+- link "Skip to main content":
+  - /url: "#main-content"
+- complementary:
+  - img "Aiterra CRM"
+  - menu:
+    - menuitem "bar-chart System Statistics":
+      - img "bar-chart"
+      - text: System Statistics
+    - menuitem "safety-certificate Audit & security":
+      - img "safety-certificate"
+      - text: Audit & security
+    - menuitem "team All users":
+      - img "team"
+      - text: All users
+    - menuitem "file-text Create Invoice":
+      - img "file-text"
+      - text: Create Invoice
+    - menuitem "container Contracts":
+      - img "container"
+      - text: Contracts
+    - menuitem "dollar Invoices & Subscriptions":
+      - img "dollar"
+      - text: Invoices & Subscriptions
+    - menuitem "credit-card Meta Ad Budget":
+      - img "credit-card"
+      - text: Meta Ad Budget
+    - menuitem "form Landing page leads":
+      - img "form"
+      - text: Landing page leads
+    - menuitem "whats-app WhatsApp connections":
+      - img "whats-app"
+      - text: WhatsApp connections
+    - menuitem "question-circle Help & CRM guide":
+      - img "question-circle"
+      - text: Help & CRM guide
+    - menuitem "setting Settings":
+      - img "setting"
+      - text: Settings
+  - text: English
+  - combobox "Language"
+  - img "global"
+- banner:
+  - text: Admin User
+  - button "Settings":
+    - img "setting"
+  - button "Sign out":
+    - img "logout"
+- main:
+  - heading "System Statistics" [level=4]
+  - button "file-pdf Executive PDF" [disabled]:
+    - img "file-pdf"
+    - text: Executive PDF
+  - button "download Export" [disabled]:
+    - img "download"
+    - text: Export
+  - button "safety-certificate Admin audit log" [disabled]:
+    - img "safety-certificate"
+    - text: Admin audit log
+  - button "loading Refresh":
+    - img "loading"
+    - text: Refresh
+  - list:
+    - listitem
+    - listitem
+    - listitem
+    - listitem
 ```
 
 # Test source
@@ -50,7 +119,8 @@ Call log:
   18 |     const usersPage = new AdminUsersPage(page);
   19 |     await usersPage.goto();
   20 | 
-  21 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
+> 21 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
+     |                                        ^ Error: expect(locator).toBeVisible() failed
   22 |     await expect(page.getByText(mockAdminUserEntry.email)).toBeVisible();
   23 |     await expect(page.getByText(mockAdminUserEntry.displayName)).toBeVisible();
   24 |   });
@@ -93,8 +163,7 @@ Call log:
   61 | 
   62 |     const usersPage = new AdminUsersPage(page);
   63 |     await usersPage.goto();
-> 64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-     |                                        ^ Error: expect(locator).toBeVisible() failed
+  64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
   65 |     await usersPage.deleteButton().click();
   66 | 
   67 |     await expect(

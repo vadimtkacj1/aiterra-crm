@@ -1,7 +1,14 @@
-"""Integration tests: FastAPI + in-memory SQLite + dependency overrides."""
+"""Integration tests: FastAPI + DB (in-memory SQLite by default) + overrides.
+
+Set TEST_DATABASE_URL to a Postgres URL to run the SAME suite against Postgres,
+e.g.  TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/crm_test
+The schema is reset around every test so runs stay isolated. Never point this at
+a database that holds real data — the fixture drops all tables.
+"""
 
 from __future__ import annotations
 
+import os
 from unittest.mock import patch
 
 import pytest
@@ -18,13 +25,33 @@ from app.services.auth.security import hash_password
 
 @pytest.fixture
 def engine():
-    """Fresh SQLite in-memory database (single connection pool)."""
+    """Fresh test database.
+
+    Default: in-memory SQLite (single-connection pool), one per test.
+    If TEST_DATABASE_URL is set (Postgres), use it and reset the schema around
+    each test for isolation — gives production-parity coverage on Postgres.
+    """
+    url = os.environ.get("TEST_DATABASE_URL")
+    if url:
+        from app.db import base  # noqa: F401 — register all model metadata
+
+        eng = create_engine(url)
+        Base.metadata.drop_all(bind=eng)
+        Base.metadata.create_all(bind=eng)
+        try:
+            yield eng
+        finally:
+            Base.metadata.drop_all(bind=eng)
+            eng.dispose()
+        return
+
     eng = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    return eng
+    yield eng
+    eng.dispose()
 
 
 def _seed_users(session: Session) -> dict[str, int]:

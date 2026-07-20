@@ -10,6 +10,8 @@ import { CancellationPolicyPage } from "@/ui/features/shared/legal/pages/Cancell
 import { PrivacyPolicyPage } from "@/ui/features/shared/legal/pages/PrivacyPolicyPage";
 import { TermsPage } from "@/ui/features/shared/legal/pages/TermsPage";
 import { PricingPage } from "@/ui/features/shared/pricing/pages/PricingPage";
+import { BuyLandingPage } from "@/ui/features/shared/landing/pages/BuyLandingPage";
+import { BuyLandingSuccessPage } from "@/ui/features/shared/landing/pages/BuyLandingSuccessPage";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 import { accountModules, adminModules } from "@/ui/modules";
 import { Paths } from "@/ui/navigation/paths";
@@ -32,13 +34,16 @@ export function AppRoutes() {
           the business address. Logged-in users are sent straight to their app. */}
       <Route
         path={Paths.root}
-        element={session ? <Navigate to={homeRedirect} replace /> : <PricingPage />}
+        element={session ? <Navigate to={homeRedirect} replace /> : <PricingPage hidePlans />}
       />
       <Route
         path={Paths.login}
         element={session ? <Navigate to={homeRedirect} replace /> : <LoginPage />}
       />
       <Route path={Paths.subscribe} element={<SubscribePage />} />
+      {/* Public landing-page purchase (no login) — pay ₪2,400 for a 12-month landing page */}
+      <Route path={Paths.buyLanding} element={<BuyLandingPage />} />
+      <Route path={Paths.buyLandingSuccess} element={<BuyLandingSuccessPage />} />
       <Route path={Paths.pricing} element={<PricingPage />} />
       <Route path={Paths.terms} element={<TermsPage />} />
       <Route path={Paths.cancelPolicy} element={<CancellationPolicyPage />} />

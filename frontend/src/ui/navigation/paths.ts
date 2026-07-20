@@ -40,6 +40,9 @@ export const Paths = {
   privacyPolicy: "/privacy-policy",
   takanon: "/takanon",
   root: "/",
+  /** Public landing-page purchase (no login). */
+  buyLanding: "/buy",
+  buyLandingSuccess: "/buy/success",
   /** CRM guide (authenticated). */
   help: "/help",
   site: "/a/:accountId/site",

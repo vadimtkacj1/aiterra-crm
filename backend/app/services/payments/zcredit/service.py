@@ -352,6 +352,69 @@ def create_invoice(
     return session_id, session_url
 
 
+def create_public_checkout(
+    *,
+    amount_minor: int,
+    currency: str,
+    description: str,
+    unique_ref: str,
+    success_url: str,
+    cancel_url: str,
+    callback_url: str | None = None,
+) -> tuple[str, str]:
+    """Create a Z-Credit WebCheckout session for a PUBLIC (no-account) purchase.
+
+    Used by the public landing-page order page: the buyer is not a CRM account,
+    so success/cancel URLs are passed explicitly and there is no Account
+    dependency. Mirrors ``create_invoice`` body. Returns (session_id, session_url).
+    """
+    if not _is_webcheckout_configured():
+        raise HTTPException(status_code=503, detail="zcredit_not_configured")
+    if amount_minor <= 0:
+        raise HTTPException(status_code=400, detail="invalid_amount")
+
+    amt_major = f"{amount_minor / 100:.2f}"
+    cur = (currency or "ILS").upper()
+    cart = [
+        {
+            "Amount": amt_major,
+            "Currency": cur,
+            "Name": (description or "Payment")[:120],
+            "Description": (description or "")[:500],
+            "Quantity": 1,
+            "Image": "",
+            "IsTaxFree": "false",
+            "AdjustAmount": "false",
+        }
+    ]
+    cb = callback_url if callback_url else _callback_url()
+    body = {
+        "Key": (settings.zcredit_api_key or "").strip(),
+        "Local": (settings.zcredit_checkout_local or "En").strip() or "En",
+        "UniqueId": unique_ref,
+        "SuccessUrl": success_url,
+        "CancelUrl": cancel_url,
+        "CallbackUrl": cb,
+        "FailureCallBackUrl": cb,
+        "NumberOfFailures": 3,
+        "PaymentType": "regular",
+        "CreateInvoice": "false",
+        "AdditionalText": _sanitize_additional_text(description),
+        "ShowCart": "true",
+        "ThemeColor": "005ebb",
+        "Installments": _installments_for_amount_minor(amount_minor),
+        "CartItems": cart,
+        "FocusType": "None",
+        "UseLightMode": "false",
+        "ShowTotalSumInPayButton": "true",
+        "Bypass3DS": "false",
+        "SaveToken": "false",
+    }
+    url = f"{_webcheckout_base()}/CreateSession"
+    data = _post_json(url, body, WEBCHECKOUT_TIMEOUT)
+    return _parse_create_session(data)
+
+
 def create_invoice_with_line_items(
     account: Account,
     currency: str,

@@ -43,7 +43,7 @@ function displayPrice(price: string): string {
 
 const hasContactPhone = /\d/.test(CONTACT_PHONE);
 
-export function PricingPage() {
+export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {}) {
   const { token } = theme.useToken();
 
   return (
@@ -85,6 +85,13 @@ export function PricingPage() {
             </Tag>
           ))}
         </Space>
+        <div style={{ marginTop: 28 }}>
+          <Link to={Paths.buyLanding}>
+            <Button size="large" style={{ height: 48, paddingInline: 32, fontWeight: 600 }}>
+              רכישת דף נחיתה
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Features ── */}
@@ -114,7 +121,8 @@ export function PricingPage() {
         </Row>
       </div>
 
-      {/* ── Pricing ── */}
+      {/* ── Pricing (hidden on the public root landing) ── */}
+      {!hidePlans && (
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px" }}>
         <Title level={2} style={{ textAlign: "center", marginBottom: 8 }}>תוכניות מחיר</Title>
         <Paragraph type="secondary" style={{ textAlign: "center", marginBottom: 40 }}>
@@ -170,6 +178,7 @@ export function PricingPage() {
           כל המחירים כוללים מע"מ. תשלום בכרטיס אשראי בלבד. ניתן לשדרג / לשנמך את התוכנית בכל עת.
         </Paragraph>
       </div>
+      )}
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px", textAlign: "center" }}>
         <Paragraph style={{ marginBottom: 0, color: token.colorTextSecondary }}>

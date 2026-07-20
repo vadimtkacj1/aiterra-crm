@@ -108,7 +108,7 @@ export function WaPhoneManager({ userId }: Props) {
               alignItems: "center",
               gap: 8,
               padding: "6px 0",
-              borderBottom: "1px solid var(--ds-color-border-subtle, #f0f0f0)",
+              borderBottom: "1px solid var(--ds-color-border-subtle, var(--ds-border-subtle))",
               flexWrap: "wrap",
             }}
           >
@@ -148,7 +148,7 @@ export function WaPhoneManager({ userId }: Props) {
             ) : (
               <>
                 {p.verified ? (
-                  <Text style={{ color: "#52c41a", fontSize: 13 }}>
+                  <Text style={{ color: "var(--ds-color-success)", fontSize: 13 }}>
                     <CheckCircleOutlined style={{ marginRight: 4 }} />
                     {p.phone}
                   </Text>

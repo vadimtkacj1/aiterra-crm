@@ -1,4 +1,4 @@
-import { Modal, Button } from "antd";
+import { App, Button } from "antd";
 import type { TFunction } from "i18next";
 
 interface ConfirmButtonProps {
@@ -28,8 +28,9 @@ export function ConfirmButton({
   buttonSize = "middle",
   buttonIcon,
 }: ConfirmButtonProps) {
+  const { modal } = App.useApp();
   const handleClick = () => {
-    Modal.confirm({
+    modal.confirm({
       title: title || t("common.confirm"),
       content: content || t("common.confirmAction"),
       okText: okText || t("common.ok"),

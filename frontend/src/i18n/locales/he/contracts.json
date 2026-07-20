@@ -67,7 +67,8 @@
       "downloadSignedPdf": "הורדת PDF",
       "backToSite": "חזרה לאתר",
       "notFound": "החוזה לא נמצא",
-      "alreadySigned": "החוזה כבר נחתם"
+      "alreadySigned": "החוזה כבר נחתם",
+      "stagesSummary": "{{count}} שלבי תשלום"
     }
   }
 }

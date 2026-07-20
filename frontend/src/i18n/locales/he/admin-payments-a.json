@@ -80,7 +80,7 @@
       "linesInvalid": "הוסיפו לפחות שורה עם תיאור וסכום, או עברו לסכום יחיד.",
       "step1Title": "בחירת לקוח",
       "step1Desc": "בחרו את מי לחייב",
-      "step2Title": "יצירת חשבונית",
+      "step2Title": "פרטי החשבונית",
       "step2Desc": "הגדרת סכום ופרטים",
       "nextStep": "הבא: יצירת חשבונית",
       "backStep": "חזרה לבחירת לקוח",
@@ -118,7 +118,9 @@
         "Fri": "שישי",
         "Sat": "שבת",
         "Sun": "ראשון"
-      }
+      },
+      "historyInstallmentFootnote": "{{total}} מחולק על {{months}} תשלומים",
+      "templateInstallmentTag": "{{months}} תשלומים"
     }
   }
 }

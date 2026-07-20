@@ -33,7 +33,7 @@ export function AdminPaymentsTemplatesPanel({
     <Collapse
       bordered={false}
       style={{ background: "transparent" }}
-      defaultActiveKey={[]}
+      defaultActiveKey={["templates"]}
       items={[
         {
           key: "templates",
@@ -47,9 +47,6 @@ export function AdminPaymentsTemplatesPanel({
           ),
           children: (
             <div style={{ paddingTop: 4 }}>
-              <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0, marginBottom: 12 }}>
-                {t("admin.payments.templatesIntroShort")}
-              </Typography.Paragraph>
               {templates.length === 0 && !templatesLoading ? (
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}

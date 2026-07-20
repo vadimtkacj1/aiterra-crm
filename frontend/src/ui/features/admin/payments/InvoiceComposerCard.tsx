@@ -65,7 +65,7 @@ function ChargeTypePicker({ value, onChange, token, t }: ChargeTypePickerProps) 
       icon: <CalendarOutlined style={{ fontSize: 24 }} />,
       label: t("admin.payments.chargeMonthlyShort"),
       desc: t("admin.payments.chargeMonthlyDesc"),
-      color: "#52c41a",
+      color: "#16a34a", // used in `${color}10` alpha concat below — must stay a literal hex
     },
   ];
 
@@ -154,6 +154,12 @@ export function InvoiceComposerCard({
       ? Math.round((amtW / splitN) * 100) / 100
       : null;
 
+  const sectionStyle = {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTop: "1px solid var(--ds-border-subtle)",
+  };
+
   return (
     <div
       style={{
@@ -168,7 +174,6 @@ export function InvoiceComposerCard({
       <Flex justify="space-between" align="flex-start" gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
         <div style={{ flex: "1 1 240px", minWidth: 0 }}>
           <SectionStep
-            step={t("admin.payments.stepLabel2")}
             title={t("admin.payments.stepInvoiceTitle")}
             hint={t("admin.payments.stepInvoiceHint")}
           />
@@ -275,15 +280,7 @@ export function InvoiceComposerCard({
 
           {/* Billing schedule — monthly only, shown regardless of itemized/single-total */}
           {chargeTypeW === "monthly" ? (
-            <div
-              style={{
-                marginTop: 16,
-                padding: "14px 16px",
-                background: token.colorFillAlter,
-                border: `1px solid ${token.colorBorderSecondary}`,
-                borderRadius: 10,
-              }}
-            >
+            <div style={sectionStyle}>
               <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 10 }}>
                 {t("admin.payments.billingScheduleLabel")}
               </Typography.Text>
@@ -365,15 +362,7 @@ export function InvoiceComposerCard({
 
           {/* Itemized line items */}
           {useBreakdownW ? (
-            <div
-              style={{
-                background: token.colorFillAlter,
-                border: `1px solid ${token.colorBorderSecondary}`,
-                borderRadius: 10,
-                padding: "14px 14px 12px",
-                marginBottom: 16,
-              }}
-            >
+            <div style={{ ...sectionStyle, marginBottom: 16 }}>
               <Flex justify="space-between" align="center" wrap="wrap" gap={8} style={{ marginBottom: 12 }}>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                   {t("admin.payments.linesHeading")}
@@ -441,13 +430,13 @@ export function InvoiceComposerCard({
               {(linesRunningTotal ?? 0) > 0 ? (
                 <Flex
                   justify="flex-end"
-                  style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${token.colorSplit}` }}
+                  style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--ds-border-subtle)" }}
                 >
                   <Space direction="vertical" align="end" size={0}>
                     <Typography.Text type="secondary" style={{ fontSize: 11 }}>
                       {t("admin.payments.linesTotal")}
                     </Typography.Text>
-                    <Typography.Text strong style={{ fontSize: 20, letterSpacing: "-0.02em" }}>
+                    <Typography.Text strong style={{ fontSize: 20, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
                       {formatMoney(linesRunningTotal ?? 0, currencyW)}
                     </Typography.Text>
                   </Space>

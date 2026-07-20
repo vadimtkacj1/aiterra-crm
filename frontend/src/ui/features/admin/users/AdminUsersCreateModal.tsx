@@ -87,8 +87,12 @@ export function AdminUsersCreateModal({ t, open, form, metaCampaigns, metaCampai
                     metaCampaignsLoading={metaCampaignsLoading}
                     showLinkMetaExtra
                   />
-                  <AdminUsersGoogleLinkFields t={t} mode="create" />
-                  <AdminUsersSiteLinkFields t={t} />
+                  <div style={{ borderTop: "1px solid var(--ds-border-subtle)", marginTop: "var(--ds-space-5)", paddingTop: "var(--ds-space-5)" }}>
+                    <AdminUsersGoogleLinkFields t={t} mode="create" />
+                  </div>
+                  <div style={{ borderTop: "1px solid var(--ds-border-subtle)", marginTop: "var(--ds-space-5)", paddingTop: "var(--ds-space-5)" }}>
+                    <AdminUsersSiteLinkFields t={t} />
+                  </div>
                 </>
               ),
             },

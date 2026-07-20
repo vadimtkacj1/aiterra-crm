@@ -13,6 +13,15 @@ import { ResponsiveCardView } from "../../../shared/components/ResponsiveCardVie
 
 const { Link, Text } = Typography;
 
+/** Isolate LTR data (phone, email, dates, URLs) so it doesn't bidi-reorder inside an RTL cell. */
+function Ltr({ children }: { children: React.ReactNode }) {
+  return (
+    <span dir="ltr" style={{ unicodeBidi: "isolate", fontVariantNumeric: "tabular-nums" }}>
+      {children}
+    </span>
+  );
+}
+
 export function AdminLeadsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -77,22 +86,24 @@ export function AdminLeadsPage() {
       title: t("admin.leads.colPhone"),
       dataIndex: "phone",
       key: "phone",
-      render: (v: string | null) => v ?? "—",
+      render: (v: string | null) => (v ? <Ltr>{v}</Ltr> : "—"),
       width: 130,
     },
     {
       title: t("admin.leads.colEmail"),
       dataIndex: "email",
       key: "email",
-      render: (v: string | null) => v ?? "—",
+      render: (v: string | null) => (v ? <Ltr>{v}</Ltr> : "—"),
       ellipsis: true,
       width: 200,
+      responsive: ["xl"],
     },
     {
       title: t("admin.leads.colMessage"),
       dataIndex: "message",
       key: "message",
       ellipsis: true,
+      width: 260,
       render: (v: string | null) =>
         v ? (
           <Tooltip title={<span style={{ whiteSpace: "pre-wrap" }}>{v}</span>} overlayStyle={{ maxWidth: 400 }}>
@@ -107,6 +118,7 @@ export function AdminLeadsPage() {
       dataIndex: "treatment",
       key: "treatment",
       width: 160,
+      responsive: ["xl"],
       render: (v: string | null) => v ?? "—",
     },
     {
@@ -115,6 +127,7 @@ export function AdminLeadsPage() {
       key: "source",
       ellipsis: true,
       width: 200,
+      responsive: ["xl"],
       render: (v: string | null) => {
         if (!v) return "—";
         let label = v;
@@ -131,7 +144,7 @@ export function AdminLeadsPage() {
         return (
           <Tooltip title={v}>
             <Link href={v} target="_blank" ellipsis style={{ maxWidth: 190 }}>
-              {label}
+              <Ltr>{label}</Ltr>
             </Link>
           </Tooltip>
         );
@@ -141,7 +154,7 @@ export function AdminLeadsPage() {
       title: t("admin.leads.colDate"),
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (v: string) => new Date(v).toLocaleString(),
+      render: (v: string) => <Ltr>{new Date(v).toLocaleString()}</Ltr>,
       width: 155,
     },
   ];
@@ -184,8 +197,8 @@ export function AdminLeadsPage() {
               subtitle: lead.accountName,
               description: lead.message || undefined,
               tags: [
-                ...(lead.phone ? [{ label: lead.phone, color: "blue" }] : []),
-                ...(lead.email ? [{ label: lead.email, color: "green" }] : []),
+                ...(lead.phone ? [{ label: lead.phone }] : []),
+                ...(lead.email ? [{ label: lead.email }] : []),
               ],
               extra: (
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>

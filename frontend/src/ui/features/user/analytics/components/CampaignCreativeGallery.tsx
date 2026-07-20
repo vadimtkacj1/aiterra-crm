@@ -186,7 +186,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                             gap: 4,
                           }}
                         >
-                          <LinkOutlined /> Preview
+                          <LinkOutlined /> {t("common.preview")}
                         </a>
                       )}
                     </div>

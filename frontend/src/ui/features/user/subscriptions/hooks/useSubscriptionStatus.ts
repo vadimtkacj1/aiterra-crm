@@ -1,6 +1,7 @@
 import { App } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { SubscriptionStatus } from "@/services/admin/AdminService";
 import { useApp } from "../../../../../app/AppProviders";
 
@@ -40,6 +41,8 @@ interface UseSubscriptionStatusResult {
 export function useSubscriptionStatus(contractId: number | null): UseSubscriptionStatusResult {
   const { services } = useApp();
   const { message } = App.useApp();
+  const { t } = useTranslation();
+  const k = (s: string) => `admin.contracts.subscription.${s}`;
 
   const [loading, setLoading] = useState(false);
   const [simulating, setSimulating] = useState(false);
@@ -62,7 +65,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       const data = await services.admin.getContractSubscriptionStatus(contractId);
       setStatus(data);
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to load subscription status"));
+      void message.error(extractErrorMessage(e, t(k("errLoad"))));
     } finally {
       setLoading(false);
     }
@@ -76,7 +79,7 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
       void message.success(result.message);
       await loadStatus();
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to simulate payment"));
+      void message.error(extractErrorMessage(e, t(k("errSimulate"))));
     } finally {
       setSimulating(false);
     }
@@ -88,9 +91,9 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
     try {
       const updated = await services.admin.updateContractBillingDay(contractId, day);
       setStatus(updated);
-      void message.success("Billing day updated");
+      void message.success(t(k("billingDayUpdated")));
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to update billing day"));
+      void message.error(extractErrorMessage(e, t(k("errBillingDay"))));
     } finally {
       setUpdatingBillingDay(false);
     }
@@ -102,9 +105,9 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
     try {
       const updated = await services.admin.pauseSubscription(contractId);
       setStatus(updated);
-      void message.success("Subscription paused");
+      void message.success(t(k("paused")));
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to pause subscription"));
+      void message.error(extractErrorMessage(e, t(k("errPause"))));
     } finally {
       setPausingOrResuming(false);
     }
@@ -116,9 +119,9 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
     try {
       const updated = await services.admin.resumeSubscription(contractId);
       setStatus(updated);
-      void message.success("Subscription resumed");
+      void message.success(t(k("resumed")));
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to resume subscription"));
+      void message.error(extractErrorMessage(e, t(k("errResume"))));
     } finally {
       setPausingOrResuming(false);
     }
@@ -130,9 +133,9 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
     try {
       const updated = await services.admin.cancelSubscription(contractId);
       setStatus(updated);
-      void message.success("Subscription cancelled");
+      void message.success(t(k("cancelled")));
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to cancel subscription"));
+      void message.error(extractErrorMessage(e, t(k("errCancel"))));
     } finally {
       setCancelling(false);
     }
@@ -144,9 +147,9 @@ export function useSubscriptionStatus(contractId: number | null): UseSubscriptio
     try {
       const updated = await services.admin.setTestInterval(contractId, minutes);
       setStatus(updated);
-      void message.success(minutes ? `Test mode: every ${minutes} min` : "Test mode disabled");
+      void message.success(minutes ? t(k("testModeEnabled"), { minutes }) : t(k("testModeDisabled")));
     } catch (e) {
-      void message.error(extractErrorMessage(e, "Failed to set test interval"));
+      void message.error(extractErrorMessage(e, t(k("errTestInterval"))));
     } finally {
       setSettingTestInterval(false);
     }

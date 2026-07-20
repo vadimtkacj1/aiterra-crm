@@ -1,5 +1,5 @@
 ﻿import { CheckCircleOutlined, DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Descriptions, Flex, Modal, Row, Space, Table, Tag, Typography } from "antd";
+import { Button, Card, Col, Flex, Modal, Row, Space, Table, Tag, Typography } from "antd";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PaymentRecord } from "@/domain/Billing";
@@ -75,20 +75,6 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
 
   return (
     <>
-      <Typography.Title
-        level={5}
-        style={{
-          margin: "4px 0 0",
-          fontWeight: 600,
-          fontSize: 13,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
-          color: "var(--ant-color-text-tertiary)",
-        }}
-      >
-        {t("billing.sectionYourPayments")}
-      </Typography.Title>
-
       <Row gutter={[16, 16]} align="stretch">
         <Col xs={24}>
           <Card
@@ -213,37 +199,67 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
         title={t("billing.invoiceDetailsTitle")}
         open={Boolean(activeInvoice)}
         onCancel={() => setActiveInvoice(null)}
-        footer={null}
+        footer={
+          activeInvoice ? (
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={() => downloadPaymentPdf(activeInvoice)}
+              style={{ borderRadius: 8 }}
+            >
+              {t("billing.downloadPdf")}
+            </Button>
+          ) : null
+        }
         width={480}
       >
         {activeInvoice ? (
           <>
-            <Flex justify="space-between" align="flex-start" gap={16} wrap="wrap" style={{ marginBottom: 16 }}>
+            <Flex align="flex-start" style={{ marginBottom: 16 }}>
               <div>
                 <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 6 }}>
                   {t("billing.status")}
                 </Typography.Text>
                 <InvoicePaymentStatusTag status={activeInvoice.status} />
               </div>
-              <Button
-                type="primary"
-                icon={<DownloadOutlined />}
-                onClick={() => downloadPaymentPdf(activeInvoice)}
-                style={{ borderRadius: 8 }}
-              >
-                {t("billing.downloadPdf")}
-              </Button>
             </Flex>
-            <Descriptions size="small" column={1} bordered>
-              <Descriptions.Item label={t("billing.date")}>{activeInvoice.date}</Descriptions.Item>
-              <Descriptions.Item label={t("billing.total")}>
-                {formatInvoiceMoney(activeInvoice.amount, activeInvoice.currency, appLocale)}
-              </Descriptions.Item>
-              <Descriptions.Item label={t("billing.description")}>{activeInvoice.description}</Descriptions.Item>
-              <Descriptions.Item label={t("billing.invoiceId")}>
-                <Typography.Text strong>{activeInvoice.id}</Typography.Text>
-              </Descriptions.Item>
-            </Descriptions>
+            <div>
+              {(
+                [
+                  { key: "date", label: t("billing.date"), value: activeInvoice.date },
+                  {
+                    key: "total",
+                    label: t("billing.total"),
+                    value: (
+                      <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                        {formatInvoiceMoney(activeInvoice.amount, activeInvoice.currency, appLocale)}
+                      </span>
+                    ),
+                  },
+                  { key: "description", label: t("billing.description"), value: activeInvoice.description },
+                  {
+                    key: "invoiceId",
+                    label: t("billing.invoiceId"),
+                    value: <Typography.Text strong>{activeInvoice.id}</Typography.Text>,
+                  },
+                ] as const
+              ).map((row, index) => (
+                <Flex
+                  key={row.key}
+                  justify="space-between"
+                  align="baseline"
+                  gap={16}
+                  style={
+                    index === 0
+                      ? undefined
+                      : { borderTop: "1px solid var(--ds-border-subtle)", paddingTop: 12, marginTop: 12 }
+                  }
+                >
+                  <Typography.Text type="secondary">{row.label}</Typography.Text>
+                  <Typography.Text style={{ textAlign: "end" }}>{row.value}</Typography.Text>
+                </Flex>
+              ))}
+            </div>
           </>
         ) : null}
       </Modal>

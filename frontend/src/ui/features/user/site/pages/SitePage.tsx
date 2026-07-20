@@ -181,7 +181,7 @@ export function SitePage() {
           <Card
             title={
               <>
-                <LinkOutlined style={{ marginRight: 8 }} />
+                <LinkOutlined style={{ marginInlineEnd: 8 }} />
                 {t("site.subscribe.title")}
               </>
             }
@@ -225,7 +225,7 @@ export function SitePage() {
           <Card
             title={
               <>
-                <NotificationOutlined style={{ marginRight: 8 }} />
+                <NotificationOutlined style={{ marginInlineEnd: 8 }} />
                 {t("site.notify.title")}
               </>
             }
@@ -242,11 +242,11 @@ export function SitePage() {
               </Text>
               <Radio.Group value={notifyChannel} onChange={(e) => setNotifyChannel(e.target.value as string)}>
                 <Radio value="whatsapp">
-                  <WhatsAppOutlined style={{ color: "#25d366", marginRight: 4 }} />
+                  <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 4 }} />
                   WhatsApp
                 </Radio>
                 <Radio value="email">
-                  <MailOutlined style={{ marginRight: 4 }} />
+                  <MailOutlined style={{ marginInlineEnd: 4 }} />
                   {t("site.notify.channelEmail")}
                 </Radio>
                 <Radio value="both">{t("site.notify.channelBoth")}</Radio>
@@ -259,17 +259,17 @@ export function SitePage() {
               <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
                 <Col xs={24}>
                   <Text strong style={{ display: "block", marginBottom: 8, color: "#25d366" }}>
-                    <WhatsAppOutlined style={{ marginRight: 6 }} />
+                    <WhatsAppOutlined style={{ marginInlineEnd: 6 }} />
                     {t("site.whatsapp.title")}
                   </Text>
                 </Col>
                 <Col xs={24}>
                   {(config?.waOwnerPhoneVerified || config?.waOwnerPhone) ? (
                     /* ── Connected state ── */
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "#f6ffed", border: "1px solid #b7eb8f", borderRadius: 8 }}>
-                      <WhatsAppOutlined style={{ color: "#52c41a", fontSize: 20 }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--ds-color-success-surface)", border: "1px solid #b7eb8f", borderRadius: 8 }}>
+                      <WhatsAppOutlined style={{ color: "var(--ds-color-success)", fontSize: 20 }} />
                       <div>
-                        <Text strong style={{ color: "#52c41a" }}>✓ {t("site.whatsapp.connected")}</Text>
+                        <Text strong style={{ color: "var(--ds-color-success)" }}>✓ {t("site.whatsapp.connected")}</Text>
                         <Text type="secondary" style={{ display: "block", fontSize: 12 }}>{config.waOwnerPhoneVerified ?? config.waOwnerPhone}</Text>
                       </div>
                       <Button
@@ -292,9 +292,9 @@ export function SitePage() {
                     </div>
                   ) : (
                     /* ── Not connected — show permanent code ── */
-                    <div style={{ padding: "14px 16px", background: "#fffbe6", border: "1px solid #ffe58f", borderRadius: 8 }}>
+                    <div style={{ padding: "14px 16px", background: "var(--ds-color-warning-surface)", border: "1px solid #ffe58f", borderRadius: 8 }}>
                       <Text strong style={{ display: "block", marginBottom: 6 }}>
-                        <WhatsAppOutlined style={{ color: "#25d366", marginRight: 6 }} />
+                        <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 6 }} />
                         {t("site.whatsapp.connectInstructions")}
                       </Text>
                       {waConnectBotPhone && (
@@ -308,7 +308,7 @@ export function SitePage() {
                         <Text
                           strong
                           copyable
-                          style={{ fontSize: 22, letterSpacing: 3, fontFamily: "monospace", color: "#1677ff" }}
+                          style={{ fontSize: 22, letterSpacing: 3, fontFamily: "monospace", color: "var(--ds-color-primary)" }}
                         >
                           {waConnectCode || "…"}
                         </Text>
@@ -359,7 +359,7 @@ export function SitePage() {
               <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
                 <Col xs={24}>
                   <Text strong style={{ display: "block", marginBottom: 8 }}>
-                    <MailOutlined style={{ marginRight: 6 }} />
+                    <MailOutlined style={{ marginInlineEnd: 6 }} />
                     {t("site.email.title")}
                   </Text>
                 </Col>
@@ -406,7 +406,7 @@ export function SitePage() {
           <Card
             title={
               <>
-                <TeamOutlined style={{ marginRight: 8 }} />
+                <TeamOutlined style={{ marginInlineEnd: 8 }} />
                 {t("site.leads.title")}
                 <Text type="secondary" style={{ fontWeight: 400, marginLeft: 8 }}>
                   ({leads.length})

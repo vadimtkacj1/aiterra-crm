@@ -7,6 +7,7 @@
     "clearSelection": "Clear Selection",
     "noData": "No data available",
     "close": "Close",
+    "actions": "Actions",
     "ok": "OK",
     "cancel": "Cancel",
     "reload": "Reload",
@@ -18,7 +19,10 @@
     "copyToClipboard": "Copy to clipboard",
     "save": "Save",
     "confirm": "Confirm",
-    "confirmAction": "Are you sure?"
+    "confirmAction": "Are you sure?",
+    "view": "View",
+    "remove": "Remove",
+    "preview": "Preview"
   },
   "export": {
     "csv": "Export as CSV",

@@ -44,7 +44,7 @@ export function PaymentCheckoutPage() {
   const total = formatInvoiceMoney(c.payment.amount, c.payment.currency, appLocale);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fafafa", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", background: "var(--ds-surface-1)", display: "flex", flexDirection: "column" }}>
       <CheckoutTopBar onBack={c.handleTopBack} />
 
       <div

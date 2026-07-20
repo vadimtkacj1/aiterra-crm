@@ -20,10 +20,7 @@ export function AdminPaymentsLibraryDrawer({ model }: Props) {
       afterOpenChange={model.afterOpenChange}
       styles={{ body: { paddingTop: 8, paddingBottom: 24 } }}
     >
-      <Typography.Title level={5} style={{ marginTop: 0 }}>
-        {model.t("admin.payments.templatesTitle")}
-      </Typography.Title>
-      <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 10 }}>
+      <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0, marginBottom: 10 }}>
         {model.t("admin.payments.templatesHint")}
       </Typography.Paragraph>
 

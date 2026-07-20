@@ -55,16 +55,18 @@ export function formatMoney(amount: number, currency: string): string {
   }
 }
 
-export function SectionStep({ step, title, hint }: { step: string; title: string; hint?: string }) {
+export function SectionStep({ step, title, hint }: { step?: string; title: string; hint?: string }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <Typography.Text
-        type="secondary"
-        style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", display: "block" }}
-      >
-        {step}
-      </Typography.Text>
-      <Typography.Title level={5} style={{ margin: "6px 0 0", fontWeight: 700 }}>
+      {step ? (
+        <Typography.Text
+          type="secondary"
+          style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", display: "block" }}
+        >
+          {step}
+        </Typography.Text>
+      ) : null}
+      <Typography.Title level={5} style={{ margin: step ? "6px 0 0" : 0, fontWeight: 700 }}>
         {title}
       </Typography.Title>
       {hint ? (

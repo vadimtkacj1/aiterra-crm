@@ -20,6 +20,8 @@ import {
 } from "antd";
 import { Link } from "react-router-dom";
 import { FeatureList } from "../components/FeatureList";
+import { SiteFooter } from "@/ui/shared/components/SiteFooter";
+import { Paths } from "@/ui/navigation/paths";
 import { tokens } from "@/styles/designSystem";
 import {
   CONTACT_EMAIL,
@@ -34,6 +36,13 @@ import {
 
 const { Title, Paragraph, Text } = Typography;
 
+/** Show a real price, or an honest fallback while a plan price is unset (placeholder). */
+function displayPrice(price: string): string {
+  return /\d/.test(price) ? price : "לפי בקשה";
+}
+
+const hasContactPhone = /\d/.test(CONTACT_PHONE);
+
 export function PricingPage() {
   const { token } = theme.useToken();
 
@@ -41,15 +50,22 @@ export function PricingPage() {
     <div dir="rtl" style={{ background: token.colorBgLayout }}>
 
       {/* ── Header ── */}
-      <div style={{ background: tokens.colors.primary, padding: "16px 40px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ background: tokens.colors.primaryDark, padding: "16px 40px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Title level={4} style={{ color: "#fff", margin: 0 }}>Aiterra CRM</Title>
-        <Space>
-          <a href={`tel:${CONTACT_PHONE}`} style={{ color: "rgba(255,255,255,0.75)", fontSize: 14 }}>
-            {CONTACT_PHONE} <PhoneOutlined />
-          </a>
+        <Space size={16} wrap>
+          {hasContactPhone ? (
+            <a href={`tel:${CONTACT_PHONE}`} style={{ color: "rgba(255,255,255,0.75)", fontSize: 14 }}>
+              {CONTACT_PHONE} <PhoneOutlined />
+            </a>
+          ) : null}
           <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "rgba(255,255,255,0.75)", fontSize: 14 }}>
             {CONTACT_EMAIL} <MailOutlined />
           </a>
+          <Link to={Paths.login}>
+            <Button type="primary" ghost style={{ color: "#fff", borderColor: "rgba(255,255,255,0.6)" }}>
+              כניסה / הרשמה
+            </Button>
+          </Link>
         </Space>
       </div>
 
@@ -63,9 +79,11 @@ export function PricingPage() {
           לנתח ביצועים בזמן אמת ולנהל חיוב לקוחות. הכול במקום אחד.
         </Paragraph>
         <Space size={12}>
-          <Tag color="blue" style={{ fontSize: 13, padding: "4px 12px" }}>SaaS</Tag>
-          <Tag color="green" style={{ fontSize: 13, padding: "4px 12px" }}>עברית ואנגלית</Tag>
-          <Tag color="gold" style={{ fontSize: 13, padding: "4px 12px" }}>מנוי חודשי</Tag>
+          {["SaaS", "עברית ואנגלית", "מנוי חודשי"].map((label) => (
+            <Tag key={label} style={{ fontSize: 13, padding: "4px 12px", background: "rgba(255,255,255,0.14)", color: "#fff", border: "none" }}>
+              {label}
+            </Tag>
+          ))}
         </Space>
       </div>
 
@@ -82,7 +100,7 @@ export function PricingPage() {
             { icon: <SafetyCertificateOutlined style={{ fontSize: 32, color: token.colorPrimary }} />, title: "אבטחה ועמידות", desc: "כניסה מאובטחת עם JWT, הפרדת הרשאות בין מנהלים למשתמשים, גיבויים שוטפים." },
           ].map(({ icon, title, desc }) => (
             <Col xs={24} sm={12} key={title}>
-              <Card variant="borderless" style={{ height: "100%", border: `1px solid ${token.colorBorder}` }}>
+              <Card variant="borderless" style={{ height: "100%", boxShadow: tokens.shadow.card }}>
                 <Flex gap={16} align="flex-start">
                   <div>
                     <Title level={5} style={{ margin: "0 0 8px" }}>{title}</Title>
@@ -96,8 +114,6 @@ export function PricingPage() {
         </Row>
       </div>
 
-      <Divider style={{ margin: 0 }} />
-
       {/* ── Pricing ── */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px" }}>
         <Title level={2} style={{ textAlign: "center", marginBottom: 8 }}>תוכניות מחיר</Title>
@@ -107,12 +123,12 @@ export function PricingPage() {
 
         <Row gutter={[24, 24]} justify="center">
           <Col xs={24} md={8}>
-            <Card variant="borderless" style={{ textAlign: "center", border: `1px solid ${token.colorBorder}` }}>
+            <Card variant="borderless" style={{ textAlign: "center", boxShadow: tokens.shadow.card }}>
               <Title level={4} style={{ marginBottom: 4 }}>Basic</Title>
               <Paragraph type="secondary">לעסקים קטנים</Paragraph>
               <div style={{ margin: "16px 0" }}>
-                <Text style={{ fontSize: 36, fontWeight: 700 }}>{PLAN_PRICE_BASIC}</Text>
-                <Text type="secondary"> / חודש</Text>
+                <Text style={{ fontSize: 36, fontWeight: 700 }}>{displayPrice(PLAN_PRICE_BASIC)}</Text>
+                {/\d/.test(PLAN_PRICE_BASIC) ? <Text type="secondary"> / חודש</Text> : null}
               </div>
               <Divider />
               <FeatureList items={FEATURES_BASIC} />
@@ -121,13 +137,13 @@ export function PricingPage() {
           </Col>
 
           <Col xs={24} md={8}>
-            <Card variant="borderless" style={{ textAlign: "center", border: `2px solid ${token.colorPrimary}` }}>
-              <Tag color="blue" style={{ marginBottom: 8 }}>הכי פופולרי</Tag>
+            <Card variant="borderless" style={{ textAlign: "center", boxShadow: tokens.shadow.cardHover }}>
+              <Tag color="purple" style={{ marginBottom: 8 }}>הכי פופולרי</Tag>
               <Title level={4} style={{ marginBottom: 4 }}>Pro</Title>
               <Paragraph type="secondary">לסוכנויות בצמיחה</Paragraph>
               <div style={{ margin: "16px 0" }}>
-                <Text style={{ fontSize: 36, fontWeight: 700 }}>{PLAN_PRICE_PRO}</Text>
-                <Text type="secondary"> / חודש</Text>
+                <Text style={{ fontSize: 36, fontWeight: 700 }}>{displayPrice(PLAN_PRICE_PRO)}</Text>
+                {/\d/.test(PLAN_PRICE_PRO) ? <Text type="secondary"> / חודש</Text> : null}
               </div>
               <Divider />
               <FeatureList items={FEATURES_PRO} />
@@ -136,12 +152,12 @@ export function PricingPage() {
           </Col>
 
           <Col xs={24} md={8}>
-            <Card variant="borderless" style={{ textAlign: "center", border: `1px solid ${token.colorBorder}` }}>
+            <Card variant="borderless" style={{ textAlign: "center", boxShadow: tokens.shadow.card }}>
               <Title level={4} style={{ marginBottom: 4 }}>Enterprise</Title>
               <Paragraph type="secondary">לחברות גדולות</Paragraph>
               <div style={{ margin: "16px 0" }}>
-                <Text style={{ fontSize: 36, fontWeight: 700 }}>{PLAN_PRICE_ENTERPRISE}</Text>
-                <Text type="secondary"> / חודש</Text>
+                <Text style={{ fontSize: 36, fontWeight: 700 }}>{displayPrice(PLAN_PRICE_ENTERPRISE)}</Text>
+                {/\d/.test(PLAN_PRICE_ENTERPRISE) ? <Text type="secondary"> / חודש</Text> : null}
               </div>
               <Divider />
               <FeatureList items={FEATURES_ENTERPRISE} />
@@ -155,14 +171,19 @@ export function PricingPage() {
         </Paragraph>
       </div>
 
-      <Divider style={{ margin: 0 }} />
-
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px", textAlign: "center" }}>
         <Paragraph style={{ marginBottom: 0, color: token.colorTextSecondary }}>
-          לתנאי שימוש ומדיניות ביטולים מלאים עברו לעמוד{" "}
-          <Link to="/terms">התקנון</Link>.
+          <Link to={Paths.terms}>תקנון ותנאי שימוש</Link>
+          {" · "}
+          <Link to={Paths.cancelPolicy}>מדיניות ביטולים</Link>
+          {" · "}
+          <Link to={Paths.privacyPolicy}>מדיניות פרטיות</Link>
         </Paragraph>
       </div>
+
+      {/* Business details + legal/policy links (visible without login,
+          for payment-processor / credit-card-company review) */}
+      <SiteFooter />
 
     </div>
   );

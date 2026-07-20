@@ -37,6 +37,7 @@
         "amount": "Amount",
         "currency": "Currency",
         "description": "Description",
+        "addDescription": "Add description",
         "descriptionPlaceholder": "Optional description for the invoice",
         "submit": "Create",
         "cancel": "Cancel",

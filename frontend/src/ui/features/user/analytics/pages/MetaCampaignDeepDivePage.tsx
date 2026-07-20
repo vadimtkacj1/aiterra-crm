@@ -15,7 +15,6 @@ import {
   Col,
   ConfigProvider,
   DatePicker,
-  Divider,
   Drawer,
   Dropdown,
   Flex,
@@ -302,11 +301,9 @@ export function MetaCampaignDeepDivePage() {
         )}
 
         {/* ── Creatives section (prominent, right after KPIs) ── */}
-        <Divider orientationMargin={0} style={{ margin: "4px 0" }}>
-          <Typography.Text strong style={{ fontSize: 14 }}>
-            {t("meta.deepdive.creativesTitle")}
-          </Typography.Text>
-        </Divider>
+        <Typography.Title level={5} style={{ margin: "8px 0 0" }}>
+          {t("meta.deepdive.creativesTitle")}
+        </Typography.Title>
         <CampaignCreativeGallery
           ads={adsData?.ads ?? []}
           currency={adsData?.currency ?? currency}
@@ -315,11 +312,9 @@ export function MetaCampaignDeepDivePage() {
         />
 
         {/* ── Detailed metrics section ── */}
-        <Divider orientationMargin={0} style={{ margin: "4px 0" }}>
-          <Typography.Text strong style={{ fontSize: 14 }}>
-            {t("meta.deepdive.metricsTitle")}
-          </Typography.Text>
-        </Divider>
+        <Typography.Title level={5} style={{ margin: "8px 0 0" }}>
+          {t("meta.deepdive.metricsTitle")}
+        </Typography.Title>
 
         {/* Toolbar: date range + manage columns + export */}
         <Flex gap={8} wrap="wrap" align="center" justify="space-between">
@@ -351,7 +346,7 @@ export function MetaCampaignDeepDivePage() {
                   {
                     key: "csv",
                     icon: <FileTextOutlined />,
-                    label: "Export CSV",
+                    label: t("meta.panel.exportCsv"),
                     onClick: () =>
                       campaign &&
                       exportCampaignDetailCsv(campaign, currency, adsData?.ads ?? []),
@@ -359,7 +354,7 @@ export function MetaCampaignDeepDivePage() {
                   {
                     key: "pdf",
                     icon: <FilePdfOutlined />,
-                    label: "Export PDF",
+                    label: t("meta.panel.exportPdf"),
                     onClick: () =>
                       campaign &&
                       exportCampaignDetailPdf(
@@ -373,7 +368,7 @@ export function MetaCampaignDeepDivePage() {
               }}
             >
               <Button icon={<DownloadOutlined />} size="small" disabled={!campaign}>
-                {!isMobile && "Export"}{" "}
+                {!isMobile && t("meta.panel.export")}{" "}
               </Button>
             </Dropdown>
             <Button
@@ -398,6 +393,7 @@ export function MetaCampaignDeepDivePage() {
               columns={metricsColumns}
               pagination={false}
               scroll={{ x: "max-content" }}
+              locale={{ emptyText: t("common.noData") }}
             />
           </Card>
         </ConfigProvider>

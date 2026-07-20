@@ -35,6 +35,7 @@
     "refreshPaymentStatus": "Check again",
     "monthlyNeedsCardTitle": "Monthly plan: card on file",
     "monthlyNeedsCardDesc": "Your plan is {{price}} per month. Add a saved card below so this amount can be charged each billing cycle.",
-    "checkoutPayNote": "Agreement was accepted on the previous step. Complete your payment below."
+    "checkoutPayNote": "Agreement was accepted on the previous step. Complete your payment below.",
+    "installmentPlanSubtitle": "{{perMonth}}/mo · {{total}} over {{months}} payments"
   }
 }

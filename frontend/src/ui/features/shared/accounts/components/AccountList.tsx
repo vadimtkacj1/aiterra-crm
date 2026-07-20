@@ -2,7 +2,6 @@ import { Card, Flex, Input, Typography } from "antd";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import logoUrl from "@/assets/logo-black.svg";
 import type { Account } from "@/services/accounts/IAccountService";
 import { accountPath, defaultAccountSection } from "@/ui/navigation/paths";
 import { AccountListItem } from "./AccountListItem";
@@ -29,19 +28,7 @@ export function AccountList({ accounts, loading }: Props) {
   const showSearch = accounts.length > 4;
 
   return (
-    <Card
-      loading={loading}
-      title={
-        <div style={{ display: "flex", justifyContent: "center", padding: "4px 0 8px" }}>
-          <img src={logoUrl} alt={t("layout.brand")} width={56} height={56} style={{ display: "block" }} />
-        </div>
-      }
-      style={{
-        borderRadius: 12,
-        border: "1px solid rgba(15, 23, 42, 0.06)",
-        boxShadow: "0 1px 3px rgba(15, 23, 42, 0.06)",
-      }}
-    >
+    <Card loading={loading}>
       {showSearch && !loading && accounts.length > 0 ? (
         <Input.Search
           allowClear

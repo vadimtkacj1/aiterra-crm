@@ -139,9 +139,14 @@ export function AppHeader({
       </div>
 
       {/* Right: user name, notifications, settings, logout, mobile menu */}
-      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 6 }}>
         {!isMobile && !hideHeaderRightName && headerRightLabel ? (
-          <Typography.Text type="secondary" ellipsis style={{ maxWidth: 220 }} title={headerRightLabel}>
+          <Typography.Text
+            type="secondary"
+            ellipsis
+            style={{ maxWidth: 200, fontSize: 13, fontWeight: 500, marginInlineEnd: 4 }}
+            title={headerRightLabel}
+          >
             {headerRightLabel}
           </Typography.Text>
         ) : null}
@@ -151,21 +156,23 @@ export function AppHeader({
         <Tooltip title={t("layout.menuSettings")}>
           <Button
             type="text"
-            icon={<SettingOutlined style={{ fontSize: 18 }} />}
+            shape="circle"
+            icon={<SettingOutlined style={{ fontSize: 17 }} />}
             onClick={() => navigate(settingsPath)}
             aria-label={t("layout.menuSettings")}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40 }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, height: 38 }}
           />
         </Tooltip>
-        {isMobile ? (
-          <Tooltip title={t("layout.signOut")}>
-            <Button type="text" icon={<LogoutOutlined />} onClick={onLogout} size="small" />
-          </Tooltip>
-        ) : (
-          <Button type="text" icon={<LogoutOutlined />} onClick={onLogout}>
-            {t("layout.signOut")}
-          </Button>
-        )}
+        <Tooltip title={t("layout.signOut")}>
+          <Button
+            type="text"
+            shape="circle"
+            icon={<LogoutOutlined style={{ fontSize: 17 }} />}
+            onClick={onLogout}
+            aria-label={t("layout.signOut")}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, height: 38 }}
+          />
+        </Tooltip>
       </div>
     </Header>
   );

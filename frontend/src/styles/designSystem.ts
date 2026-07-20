@@ -67,9 +67,9 @@ export const tokens = {
 
     // Surface hierarchy
     surface0: "#ffffff",     // card / panel
-    surface1: "#f8f7ff",     // layout bg
-    surface2: "#f0eeff",     // hover / subtle
-    surface3: "#e9e6fd",     // selected / active
+    surface1: "#f6f7f9",     // layout bg — cool near-white so violet reads as accent, not ambient wash
+    surface2: "#eef1f5",     // hover / subtle (neutral)
+    surface3: "#e9e6fd",     // selected / active (brand tint — reserved for real selection)
 
     // Text hierarchy
     textPrimary:   "#0f0a2e",
@@ -80,9 +80,9 @@ export const tokens = {
     textLink:      palette.violet[700],
     textLinkHover: palette.violet[600],
 
-    // Borders
-    borderSubtle:  palette.violet[100],
-    borderDefault: palette.slate[200],
+    // Borders — neutral hairlines (Hex/Default: crisp 1px, not violet-tinted)
+    borderSubtle:  "#eceef2",
+    borderDefault: "#e2e5ec",
     borderStrong:  palette.slate[400],
 
     // Legacy aliases (keep for backward compat)
@@ -129,14 +129,16 @@ export const tokens = {
 
   shadow: {
     none:     "none",
-    xs:       "0 1px 2px rgba(0,0,0,0.04)",
-    sm:       "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
-    md:       "0 4px 6px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04)",
-    lg:       "0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.04)",
-    xl:       "0 20px 25px rgba(0,0,0,0.10), 0 10px 10px rgba(0,0,0,0.04)",
-    card:     "0 1px 3px rgba(59,40,204,0.07), 0 1px 2px rgba(59,40,204,0.04)",
-    dropdown: "0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
-    modal:    "0 24px 48px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.08)",
+    xs:       "0 1px 2px rgba(16,24,40,0.04)",
+    sm:       "0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06)",
+    md:       "0 4px 6px rgba(16,24,40,0.05), 0 2px 4px rgba(16,24,40,0.04)",
+    lg:       "0 12px 20px -6px rgba(16,24,40,0.10), 0 4px 8px -4px rgba(16,24,40,0.06)",
+    xl:       "0 24px 32px -12px rgba(16,24,40,0.14), 0 8px 16px -8px rgba(16,24,40,0.08)",
+    // Layered "surface ring + soft drop" — real depth without heaviness (Hex)
+    card:     "0 0 0 1px rgba(16,24,40,0.04), 0 1px 2px rgba(16,24,40,0.04), 0 2px 8px -2px rgba(16,24,40,0.05)",
+    cardHover:"0 0 0 1px rgba(59,40,204,0.10), 0 2px 4px rgba(16,24,40,0.05), 0 12px 24px -8px rgba(16,24,40,0.12)",
+    dropdown: "0 8px 24px rgba(16,24,40,0.12), 0 2px 8px rgba(16,24,40,0.06)",
+    modal:    "0 24px 48px rgba(16,24,40,0.18), 0 8px 24px rgba(16,24,40,0.08)",
     focus:    "0 0 0 3px rgba(59,40,204,0.15)",
   },
 
@@ -311,7 +313,7 @@ export const appTheme = {
     // ── Card ─────────────────────────────────────────────────────
     Card: {
       colorBorderSecondary: tokens.colors.borderSubtle,
-      borderRadiusLG:       tokens.radius.lg,
+      borderRadiusLG:       tokens.radius.xl,
       headerFontSize:       tokens.fontSize.base,
       headerFontSizeSM:     tokens.fontSize.sm,
       headerHeight:         48,
@@ -323,9 +325,9 @@ export const appTheme = {
 
     // ── Table ─────────────────────────────────────────────────────
     Table: {
-      headerBg:              tokens.colors.primarySurface,
+      headerBg:              "#f4f6f9",
       headerColor:           tokens.colors.textSecondary,
-      headerSortActiveBg:    tokens.colors.primarySurfaceDeep,
+      headerSortActiveBg:    "#eef1f5",
       headerSortHoverBg:     tokens.colors.surface2,
       headerSplitColor:      tokens.colors.borderSubtle,
       rowHoverBg:            tokens.colors.surface2,
@@ -351,7 +353,7 @@ export const appTheme = {
       activeBorderColor:   tokens.colors.primary,
       hoverBorderColor:    tokens.colors.primaryLight,
       colorBgContainer:    tokens.colors.surface0,
-      borderRadius:        tokens.radius.md,
+      borderRadius:        tokens.radius.lg,
       paddingBlock:        8,
       paddingInline:       12,
     },
@@ -363,7 +365,7 @@ export const appTheme = {
       multipleItemBg:          tokens.colors.primarySurface,
       optionSelectedFontWeight: tokens.fontWeight.semibold,
       selectorBg:              tokens.colors.surface0,
-      borderRadius:            tokens.radius.md,
+      borderRadius:            tokens.radius.lg,
       optionFontSize:          tokens.fontSize.base,
       optionHeight:            36,
     },
@@ -386,18 +388,19 @@ export const appTheme = {
       hoverBorderColor:      tokens.colors.primaryLight,
       cellActiveWithRangeBg: tokens.colors.primarySurface,
       colorBgContainer:      tokens.colors.surface0,
-      borderRadius:          tokens.radius.md,
+      borderRadius:          tokens.radius.lg,
     },
 
     // ── Button ──────────────────────────────────────────────────────
     Button: {
-      borderRadius:        tokens.radius.md,
+      borderRadius:        tokens.radius.lg,
       borderRadiusSM:      tokens.radius.sm,
       borderRadiusLG:      tokens.radius.lg,
       fontWeight:          tokens.fontWeight.medium,
-      primaryShadow:       "0 1px 3px rgba(59,40,204,0.25)",
+      // Flat, premium buttons: whisper-soft brand tint instead of a heavy drop
+      primaryShadow:       "0 1px 2px 0 rgba(59,40,204,0.16)",
       defaultShadow:       tokens.shadow.xs,
-      dangerShadow:        "0 1px 3px rgba(220,38,38,0.25)",
+      dangerShadow:        "0 1px 2px 0 rgba(220,38,38,0.16)",
       contentFontSize:     tokens.fontSize.base,
       contentFontSizeSM:   tokens.fontSize.xs,
       contentFontSizeLG:   tokens.fontSize.md,
@@ -452,8 +455,8 @@ export const appTheme = {
 
     // ── Modal ────────────────────────────────────────────────────────
     Modal: {
-      borderRadiusLG:    tokens.radius.xl,
-      titleFontSize:     tokens.fontSize.md,
+      borderRadiusLG:    tokens.radius["2xl"],
+      titleFontSize:     tokens.fontSize.lg,
       titleLineHeight:   1.4,
       contentBg:         tokens.colors.surface0,
       headerBg:          tokens.colors.surface0,

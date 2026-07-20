@@ -32,7 +32,7 @@ export function CheckoutInvoiceSummary({ payment }: Props) {
           fontWeight: 600,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "#94a3b8",
+          color: "var(--ds-text-tertiary)",
           display: "block",
           marginBottom: 16,
         }}
@@ -64,7 +64,7 @@ export function CheckoutInvoiceSummary({ payment }: Props) {
               fontWeight: 600,
               letterSpacing: "0.07em",
               textTransform: "uppercase",
-              color: "#94a3b8",
+              color: "var(--ds-text-tertiary)",
               borderBottom: "1px solid rgba(15,23,42,.06)",
             }}
           >
@@ -80,7 +80,7 @@ export function CheckoutInvoiceSummary({ payment }: Props) {
                 borderTop: i > 0 ? "1px solid rgba(15,23,42,.05)" : undefined,
               }}
             >
-              <Typography.Text style={{ fontSize: 14, color: "#0f172a" }}>
+              <Typography.Text style={{ fontSize: 14, color: "var(--ds-text-primary)" }}>
                 {li.label}
                 {li.code ? (
                   <Typography.Text type="secondary" style={{ marginInlineStart: 6, fontSize: 12 }}>

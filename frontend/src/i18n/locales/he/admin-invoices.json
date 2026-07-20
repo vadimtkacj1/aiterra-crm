@@ -37,6 +37,7 @@
         "amount": "סכום",
         "currency": "מטבע",
         "description": "תיאור",
+        "addDescription": "הוסף תיאור",
         "descriptionPlaceholder": "תיאור אופציונלי לחשבונית",
         "submit": "צור",
         "cancel": "ביטול",

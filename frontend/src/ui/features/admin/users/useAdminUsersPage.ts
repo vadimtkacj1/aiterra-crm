@@ -13,7 +13,7 @@ import { submitAdminUserEdit } from "./adminUsersEditSave";
 
 export function useAdminUsersPage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const messageRef = useRef(message);
   const tRef = useRef(t);
   messageRef.current = message;
@@ -217,8 +217,7 @@ export function useAdminUsersPage() {
   };
 
   const handleDeleteUser = async (u: User) => {
-    const { Modal } = await import("antd");
-    Modal.confirm({
+    modal.confirm({
       title: t("admin.deleteUserConfirmTitle"),
       content: t("admin.deleteUserConfirmContent", { name: u.displayName || u.email }),
       okText: t("common.confirm"),

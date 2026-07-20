@@ -65,7 +65,8 @@
       "downloadSignedPdf": "Download PDF",
       "backToSite": "Back to site",
       "notFound": "Contract not found",
-      "alreadySigned": "This contract has already been signed"
+      "alreadySigned": "This contract has already been signed",
+      "stagesSummary": "{{count}} payment stages"
     }
   }
 }

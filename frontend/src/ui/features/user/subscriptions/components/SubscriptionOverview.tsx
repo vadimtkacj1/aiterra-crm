@@ -62,7 +62,11 @@ export function SubscriptionOverview({ status, t }: Props) {
       </Descriptions.Item>
       <Descriptions.Item label={t("admin.contracts.subscription.subscriptionStatus")}>
         <Tag color={getSubscriptionStatusColor(status.subscription_status)}>
-          {status.subscription_status?.toUpperCase() || "N/A"}
+          {status.subscription_status
+            ? t(`admin.contracts.subscription.state${status.subscription_status.charAt(0).toUpperCase()}${status.subscription_status.slice(1)}`, {
+                defaultValue: t("admin.contracts.subscription.stateUnknown"),
+              })
+            : t("admin.contracts.subscription.stateUnknown")}
         </Tag>
       </Descriptions.Item>
     </Descriptions>

@@ -20,7 +20,6 @@ import {
   Image,
   Input,
   InputNumber,
-  Modal,
   Row,
   Select,
   Space,
@@ -138,7 +137,7 @@ interface FormValues {
 
 export function AdminContractsPage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const { services, users } = useApp();
   const isMobile = useMobileView();
 
@@ -221,10 +220,12 @@ export function AdminContractsPage() {
   };
 
   const handleVoid = (c: Contract) => {
-    Modal.confirm({
+    modal.confirm({
       title: t("admin.contracts.voidConfirmTitle"),
       content: t("admin.contracts.voidConfirmContent"),
       okType: "danger",
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
       onOk: async () => {
         try {
           const updated = await services.admin.voidContract(c.id);
@@ -238,10 +239,11 @@ export function AdminContractsPage() {
   };
 
   const handleQuickTest = (contractId: number) => {
-    Modal.confirm({
+    modal.confirm({
       title: t("admin.contracts.subscription.quickTestConfirmTitle"),
       content: t("admin.contracts.subscription.quickTestConfirmContent"),
       okText: t("admin.contracts.subscription.quickTestConfirmOk"),
+      cancelText: t("common.cancel"),
       onOk: async () => {
         try {
           await services.admin.setTestInterval(contractId, 10);
@@ -256,10 +258,12 @@ export function AdminContractsPage() {
   };
 
   const handleDelete = (c: Contract) => {
-    Modal.confirm({
+    modal.confirm({
       title: t("admin.contracts.deleteConfirmTitle"),
       content: t("admin.contracts.deleteConfirmContent"),
       okType: "danger",
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
       onOk: async () => {
         try {
           await services.admin.deleteContract(c.id);
@@ -299,10 +303,11 @@ export function AdminContractsPage() {
     const currentStages: StageRow[] = form.getFieldValue("stages") ?? [];
     const hasData = currentStages.some((s) => s.description?.trim() || (s.amount && s.amount > 0));
     if (hasData) {
-      Modal.confirm({
+      modal.confirm({
         title: t("admin.contracts.form.equalSplitConfirmTitle"),
         content: t("admin.contracts.form.equalSplitConfirmContent"),
         okText: t("admin.contracts.form.equalSplitConfirmOk"),
+        cancelText: t("common.cancel"),
         onOk: doApply,
       });
     } else {
@@ -400,7 +405,7 @@ export function AdminContractsPage() {
         return (
           <div>
             <div style={{ fontWeight: 600 }}>{u?.displayName || `Account #${r.accountId}`}</div>
-            {u?.email && <div style={{ fontSize: 12, color: "#94a3b8" }}>{u.email}</div>}
+            {u?.email && <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{u.email}</div>}
           </div>
         );
       },
@@ -435,7 +440,7 @@ export function AdminContractsPage() {
         return (
           <div style={{ textAlign: "end" }}>
             <div style={{ fontWeight: 600 }}>{fmtMoney(r.totalAmount, r.currency)}</div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)", marginTop: 2 }}>
               {paidCount === total && total > 0
                 ? t("admin.contracts.installmentsTag.paid", { paid: paidCount, total })
                 : paidCount === 0
@@ -456,7 +461,7 @@ export function AdminContractsPage() {
           <div>
             <Tag color={color}>{t(key)}</Tag>
             {r.signedAt && (
-              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
+              <div style={{ fontSize: 11, color: "var(--ds-text-tertiary)", marginTop: 3 }}>
                 {new Date(r.signedAt).toLocaleDateString()}
               </div>
             )}
@@ -580,7 +585,7 @@ export function AdminContractsPage() {
                 />
               ),
             }}
-            pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => `${n} contracts` }}
+            pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => t("admin.contracts.totalCount", { count: n }) }}
             expandable={{
               rowExpandable: (c) => !!(c.monthlyAmount && c.monthlyAmount > 0),
               onExpand: handleRowExpand,
@@ -593,7 +598,7 @@ export function AdminContractsPage() {
                       <Spin size="small" />
                     ) : !status || status.payments.length === 0 ? (
                       <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                        No payment history yet.
+                        {t("admin.contracts.noPaymentHistory")}
                       </Typography.Text>
                     ) : (
                       <SubscriptionPaymentHistory payments={status.payments} t={t} />
@@ -665,15 +670,7 @@ export function AdminContractsPage() {
           </div>
 
           {/* ── Step 2: Contract Details ────────────────────────── */}
-          <div
-            style={{
-              padding: "16px",
-              background: "var(--ds-surface-1)",
-              border: "1px solid var(--ds-border-subtle)",
-              borderRadius: 8,
-              marginBottom: 16,
-            }}
-          >
+          <div style={{ marginBottom: 20, paddingTop: 16, borderTop: "1px solid var(--ds-border-subtle)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <div style={{
                 width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
@@ -714,14 +711,13 @@ export function AdminContractsPage() {
               >
                 <Input.TextArea
                   rows={4}
-                  placeholder={t("admin.contracts.form.bodyPlaceholder")}
                   style={{ fontFamily: "monospace", fontSize: 13 }}
                 />
               </Form.Item>
             )}
 
-            {/* PDF upload */}
-            <Form.Item label={t("admin.contracts.form.pdf")} style={{ marginBottom: 0 }}>
+            {/* PDF upload — label omitted: the "Upload PDF" button already names it */}
+            <Form.Item style={{ marginBottom: 0 }}>
               {pdfFileName ? (
                 <Flex align="center" gap={8}
                   style={{
@@ -777,7 +773,7 @@ export function AdminContractsPage() {
           </div>
 
           {/* ── Step 3: Payment Type ─────────────────────────────── */}
-          <div>
+          <div style={{ paddingTop: 16, borderTop: "1px solid var(--ds-border-subtle)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <div style={{
                 width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
@@ -886,12 +882,7 @@ export function AdminContractsPage() {
 
                     {/* ── One-time / Installments ───────────────────── */}
                     {!isSubscription && (
-                      <div style={{
-                        padding: "16px",
-                        background: "var(--ds-surface-1)",
-                        border: "1px solid var(--ds-border-subtle)",
-                        borderRadius: 8,
-                      }}>
+                      <div>
                         {/* Quick equal-split tool */}
                         <Flex
                           align={isMobile ? "stretch" : "center"}
@@ -899,10 +890,6 @@ export function AdminContractsPage() {
                           wrap="wrap"
                           vertical={isMobile}
                           style={{
-                            padding: isMobile ? "12px" : "9px 12px",
-                            background: "var(--ds-surface-0)",
-                            border: "1px solid var(--ds-border-subtle)",
-                            borderRadius: 6,
                             marginBottom: 14,
                           }}
                         >
@@ -928,9 +915,6 @@ export function AdminContractsPage() {
                               onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
                               style={{ width: 60 }}
                             />
-                            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                              {t("admin.contracts.form.equalSplitPartsLabel")}
-                            </Typography.Text>
                           </Flex>
                           <Button size="small" type="primary" ghost onClick={applyEqualSplit} block={isMobile}>
                             {t("admin.contracts.form.equalSplitApply")}
@@ -947,10 +931,11 @@ export function AdminContractsPage() {
                                   gap={8}
                                   align="center"
                                   style={{
-                                    padding: "8px 10px",
-                                    background: "var(--ds-surface-0)",
-                                    border: "1px solid var(--ds-border-subtle)",
-                                    borderRadius: 6,
+                                    padding: "8px 0",
+                                    borderBottom:
+                                      index < fields.length - 1
+                                        ? "1px solid var(--ds-border-subtle)"
+                                        : undefined,
                                   }}
                                 >
                                   <div style={{
@@ -1025,7 +1010,7 @@ export function AdminContractsPage() {
                               <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                                 {t("admin.contracts.form.stagesTotal")} ({stages.filter(s => (s?.amount ?? 0) > 0).length} {t("admin.contracts.form.stagesCount")})
                               </Typography.Text>
-                              <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)" }}>
+                              <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)", fontVariantNumeric: "tabular-nums" }}>
                                 {fmtMoney(total, currency)}
                               </Typography.Text>
                             </Flex>
@@ -1036,12 +1021,7 @@ export function AdminContractsPage() {
 
                     {/* ── Monthly Subscription ──────────────────────── */}
                     {isSubscription && (
-                      <div style={{
-                        padding: "16px",
-                        background: "var(--ds-surface-1)",
-                        border: "1px solid var(--ds-border-subtle)",
-                        borderRadius: 8,
-                      }}>
+                      <div>
                         {/* Monthly billing fields */}
                         <Row gutter={12}>
                           <Col xs={24} sm={12}>
@@ -1127,10 +1107,6 @@ export function AdminContractsPage() {
                         {(getFieldValue("hasOneTime") as boolean) && (
                           <div style={{
                             marginTop: 12,
-                            padding: "12px 14px",
-                            background: "var(--ds-surface-0)",
-                            border: "1px solid var(--ds-border-subtle)",
-                            borderRadius: 6,
                           }}>
                             <Row gutter={12}>
                               <Col xs={24} sm={14}>
@@ -1203,7 +1179,7 @@ export function AdminContractsPage() {
                                   )}
                                 </Flex>
                                 {recurringTotal !== null && (
-                                  <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)" }}>
+                                  <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)", fontVariantNumeric: "tabular-nums" }}>
                                     = {fmtMoney(recurringTotal + (showOneTime ? (oneTimeAmt ?? 0) : 0), currency)}
                                   </Typography.Text>
                                 )}
@@ -1237,24 +1213,23 @@ export function AdminContractsPage() {
       >
         {detailContract && (() => {
           const [statusColor, statusKey] = statusCfg(detailContract.status);
+          const sectionStyle: React.CSSProperties = {
+            paddingTop: 20,
+            borderTop: "1px solid var(--ds-border-subtle)",
+          };
           return (
             <Space direction="vertical" size={20} style={{ width: "100%" }}>
               {/* Metadata grid */}
               <Descriptions
                 size="small"
                 column={isMobile ? 1 : 2}
-                style={{
-                  background: "#f8fafc",
-                  borderRadius: 8,
-                  padding: "12px 16px",
-                  border: "1px solid #e2e8f0",
-                }}
+                style={sectionStyle}
               >
                 <Descriptions.Item label={t("admin.contracts.columns.status")}>
                   <Tag color={statusColor}>{t(statusKey)}</Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label={t("admin.contracts.columns.total")}>
-                  <Typography.Text strong>
+                  <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
                     {fmtMoney(detailContract.totalAmount, detailContract.currency)}
                   </Typography.Text>
                 </Descriptions.Item>
@@ -1262,7 +1237,7 @@ export function AdminContractsPage() {
                   <Descriptions.Item label={t("admin.contracts.columns.signedAt")} span={2}>
                     <div>{new Date(detailContract.signedAt).toLocaleDateString()}</div>
                     {detailContract.signerName && (
-                      <div style={{ color: "#64748b", fontSize: 12 }}>
+                      <div style={{ color: "var(--ds-text-secondary)", fontSize: 12 }}>
                         {detailContract.signerName}
                         {detailContract.signerPosition
                           ? ` · ${detailContract.signerPosition}`
@@ -1270,7 +1245,7 @@ export function AdminContractsPage() {
                       </div>
                     )}
                     {detailContract.signedCopyEmail && (
-                      <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 2 }}>
+                      <div style={{ color: "var(--ds-text-tertiary)", fontSize: 11, marginTop: 2 }}>
                         {t("admin.contracts.signedCopyEmail", {
                           email: detailContract.signedCopyEmail,
                         })}
@@ -1284,12 +1259,9 @@ export function AdminContractsPage() {
               {detailContract.body && (
                 <div
                   style={{
-                    background: "#f8fafc",
-                    borderRadius: 8,
-                    padding: "12px 16px",
+                    ...sectionStyle,
                     fontSize: 13,
                     lineHeight: 1.8,
-                    border: "1px solid #e2e8f0",
                   }}
                 >
                   {renderContractBody(detailContract.body, {
@@ -1311,7 +1283,7 @@ export function AdminContractsPage() {
                   </Typography.Text>
                   <PdfViewer
                     base64={detailContract.pdfBase64}
-                    style={{ border: "1px solid #e2e8f0", borderRadius: 8, height: 400 }}
+                    style={{ border: "1px solid var(--ds-border-subtle)", borderRadius: 8, height: 400 }}
                   />
                 </div>
               )}
@@ -1329,7 +1301,7 @@ export function AdminContractsPage() {
                         key={s.id}
                         justify="space-between"
                         align="center"
-                        style={{ padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}
+                        style={{ padding: "10px 0", borderBottom: "1px solid var(--ds-border-subtle)" }}
                       >
                         <div>
                           <Space size={8}>
@@ -1339,14 +1311,14 @@ export function AdminContractsPage() {
                             </Tag>
                           </Space>
                           {s.paidAt && (
-                            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: "var(--ds-text-tertiary)", marginTop: 2 }}>
                               {t("admin.contracts.stage.paidAt", {
                                 date: new Date(s.paidAt).toLocaleString(),
                               })}
                             </div>
                           )}
                         </div>
-                        <Typography.Text strong>
+                        <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
                           {fmtMoney(s.amount, detailContract.currency)}
                         </Typography.Text>
                       </Flex>
@@ -1360,24 +1332,22 @@ export function AdminContractsPage() {
                 <SubscriptionPaymentHistory payments={detailSubStatus.payments} t={t} />
               )}
 
-              {/* Signature image */}
-              {detailContract.status === "signed" && detailContract.signaturePngBase64 && (
+              {/* Signature image — shown only when the body template doesn't already embed it;
+                  signer name + date live in the metadata grid, so the caption stays neutral */}
+              {detailContract.status === "signed" &&
+                detailContract.signaturePngBase64 &&
+                !(detailContract.body ?? "").includes("{{signerSignature}}") && (
                 <div>
                   <Typography.Text
                     type="secondary"
                     style={{ fontSize: 12, display: "block", marginBottom: 8 }}
                   >
-                    <CheckCircleOutlined style={{ color: "#22c55e", marginInlineEnd: 4 }} />
-                    {t("admin.contracts.signedBy", {
-                      name: detailContract.signerName,
-                      date: detailContract.signedAt
-                        ? new Date(detailContract.signedAt).toLocaleString()
-                        : "",
-                    })}
+                    <CheckCircleOutlined style={{ color: "var(--ds-color-success)", marginInlineEnd: 4 }} />
+                    {t("admin.contracts.signatureCaption")}
                   </Typography.Text>
                   <Image
                     src={`data:image/png;base64,${detailContract.signaturePngBase64}`}
-                    style={{ border: "1px solid #e2e8f0", borderRadius: 8, maxWidth: 280 }}
+                    style={{ border: "1px solid var(--ds-border-subtle)", borderRadius: 8, maxWidth: 280 }}
                     alt="signature"
                   />
                 </div>
@@ -1386,14 +1356,7 @@ export function AdminContractsPage() {
               {/* Sign link */}
               {(detailContract.status === "pending_signature" ||
                 detailContract.status === "draft") && (
-                <div
-                  style={{
-                    background: "#f8fafc",
-                    borderRadius: 8,
-                    padding: "12px 16px",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
+                <div>
                   <Typography.Text
                     type="secondary"
                     style={{ fontSize: 12, display: "block", marginBottom: 8 }}
@@ -1410,7 +1373,7 @@ export function AdminContractsPage() {
                         block={isMobile}
                         icon={
                           copiedId === detailContract.id ? (
-                            <CheckCircleOutlined style={{ color: "#22c55e" }} />
+                            <CheckCircleOutlined style={{ color: "var(--ds-color-success)" }} />
                           ) : (
                             <CopyOutlined />
                           )
@@ -1428,14 +1391,7 @@ export function AdminContractsPage() {
 
               {/* Payment link */}
               {detailContract.status === "signed" && (
-                <div
-                  style={{
-                    background: "#f8fafc",
-                    borderRadius: 8,
-                    padding: "12px 16px",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
+                <div>
                   <Typography.Text
                     type="secondary"
                     style={{ fontSize: 12, display: "block", marginBottom: 8 }}
@@ -1452,7 +1408,7 @@ export function AdminContractsPage() {
                         block={isMobile}
                         icon={
                           copiedId === detailContract.id ? (
-                            <CheckCircleOutlined style={{ color: "#22c55e" }} />
+                            <CheckCircleOutlined style={{ color: "var(--ds-color-success)" }} />
                           ) : (
                             <CreditCardOutlined />
                           )

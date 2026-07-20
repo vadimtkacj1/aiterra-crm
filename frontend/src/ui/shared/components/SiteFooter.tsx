@@ -3,10 +3,11 @@ import { theme } from "antd";
 import { Link } from "react-router-dom";
 
 const BUSINESS_CONTACTS = {
-  phone: "03-0000000",
-  email: "support@example.co.il",
-  address: "רחוב לדוגמה 10, תל אביב",
-  legalEntityNumber: "000000000",
+  // TODO(real business details for credit-card-company review):
+  phone: "03-0000000",               // ← replace with real phone
+  email: "office@aiterra.co.il",     // real
+  address: "רחוב לדוגמה 10, תל אביב", // ← replace with real registered address
+  legalEntityNumber: "000000000",    // ← replace with real ח.פ / עוסק מורשה
 };
 
 const PAYMENT_METHODS = [

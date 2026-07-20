@@ -14,7 +14,6 @@ import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 import { useLayoutAccount } from "./useLayoutAccount";
 import { accountModules, adminModules, type AccountModuleCtx } from "@/ui/modules";
-import { brand } from "@/ui/theme/tokens";
 
 const { Content } = Layout;
 const DESKTOP_SIDEBAR_WIDTH = 248;
@@ -97,23 +96,7 @@ export function MainLayout() {
   return (
     <GuidedTourProvider isAdmin={isAdmin} showAccountContext={showAccountContext}>
       <Layout style={{ minHeight: "100vh", alignItems: "stretch" }}>
-      <a
-        href="#main-content"
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: 8,
-          zIndex: 9999,
-          padding: "8px 16px",
-          background: brand.primary,
-          color: "#fff",
-          borderRadius: 6,
-          fontWeight: 600,
-          textDecoration: "none",
-        }}
-        onFocus={(e) => { e.currentTarget.style.left = "8px"; }}
-        onBlur={(e) => { e.currentTarget.style.left = "-9999px"; }}
-      >
+      <a href="#main-content" className="skip-link">
         {t("accessibility.skipToContent")}
       </a>
       <AppSidebar

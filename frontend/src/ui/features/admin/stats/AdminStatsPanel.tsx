@@ -4,6 +4,7 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CreditCardOutlined,
+  DownloadOutlined,
   FilePdfOutlined,
   ReloadOutlined,
   SafetyCertificateOutlined,
@@ -12,8 +13,8 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import { Line, Pie } from "@ant-design/plots";
-import { App, Button, Card, Col, Row, Skeleton, Space, Typography, theme } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { App, Button, Card, Col, Dropdown, Row, Segmented, Space, Typography } from "antd";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
@@ -29,6 +30,7 @@ import {
 } from "./adminStatsData";
 import { Paths } from "@/ui/navigation/paths";
 import { downloadBlob } from "@/ui/shared/utils/downloadBlob";
+import { StatCard, type StatAccent } from "@/ui/shared/components/StatCard";
 
 type Period = AdminStatsPeriod;
 
@@ -51,7 +53,6 @@ export function AdminStatsPanel() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { services } = useApp();
-  const { token } = theme.useToken();
   const palette = usePlotPalette();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [paymentStats, setPaymentStats] = useState<AdminPaymentStats | null>(null);
@@ -93,17 +94,17 @@ export function AdminStatsPanel() {
     { key: "year", label: t("admin.stats.thisYear") },
   ];
 
-  const metricCards = useMemo(() => {
+  const metricCards = useMemo((): { title: string; value: string | number; icon: ReactNode; accent: StatAccent }[] => {
     if (!stats || !paymentStats) return [];
     return [
-      { title: t("admin.stats.users"), value: stats.usersTotal, icon: <UserOutlined /> },
-      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <TeamOutlined /> },
-      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <AppstoreOutlined /> },
-      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <WalletOutlined /> },
-      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChartOutlined /> },
-      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCardOutlined /> },
-      { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, icon: <CheckCircleOutlined /> },
-      { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, icon: <ClockCircleOutlined /> },
+      { title: t("admin.stats.users"), value: stats.usersTotal, icon: <UserOutlined />, accent: "primary" },
+      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <TeamOutlined />, accent: "violet" },
+      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <AppstoreOutlined />, accent: "blue" },
+      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <WalletOutlined />, accent: "cyan" },
+      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChartOutlined />, accent: "teal" },
+      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCardOutlined />, accent: "green" },
+      { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, icon: <CheckCircleOutlined />, accent: "green" },
+      { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, icon: <ClockCircleOutlined />, accent: "amber" },
     ];
   }, [stats, paymentStats, revenueText, t]);
 
@@ -158,8 +159,7 @@ export function AdminStatsPanel() {
   };
 
   const cardStyle = {
-    borderRadius: token.borderRadiusLG,
-    boxShadow: tokens.shadow.sm,
+    boxShadow: tokens.shadow.card,
   } as const;
 
   return (
@@ -173,12 +173,19 @@ export function AdminStatsPanel() {
           <Button size="small" icon={<FilePdfOutlined />} onClick={() => void onDownloadPdf()} loading={exporting === "pdf"} disabled={loading}>
             {t("admin.stats.downloadExecutivePdf")}
           </Button>
-          <Button size="small" onClick={() => void onExportUsers()} loading={exporting === "users"} disabled={loading}>
-            {t("admin.stats.exportUsersCsv")}
-          </Button>
-          <Button size="small" onClick={() => void onExportBilling()} loading={exporting === "billing"} disabled={loading}>
-            {t("admin.stats.exportBillingCsv")}
-          </Button>
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: [
+                { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
+                { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
+              ],
+            }}
+          >
+            <Button size="small" icon={<DownloadOutlined />} loading={exporting === "users" || exporting === "billing"} disabled={loading}>
+              {t("common.export")}
+            </Button>
+          </Dropdown>
           <Button size="small" icon={<SafetyCertificateOutlined />} onClick={() => navigate(Paths.adminAudit)} disabled={loading}>
             {t("admin.audit.title")}
           </Button>
@@ -193,16 +200,12 @@ export function AdminStatsPanel() {
           <Row gutter={[12, 12]}>
             {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
               <Col key={k} xs={12} sm={8} lg={6}>
-                <Card bordered={false} style={cardStyle}>
-                  <Skeleton active paragraph={{ rows: 1 }} />
-                </Card>
+                <StatCard title="" value="" loading />
               </Col>
             ))}
           </Row>
           <div style={{ marginTop: 16 }}>
-            <Card bordered={false} style={cardStyle}>
-              <Skeleton active paragraph={{ rows: 6 }} />
-            </Card>
+            <Card bordered={false} style={cardStyle} loading />
           </div>
         </>
       ) : (
@@ -211,25 +214,7 @@ export function AdminStatsPanel() {
           <Row gutter={[12, 12]}>
             {metricCards.map((m) => (
               <Col key={m.title} xs={12} sm={8} lg={6}>
-                <Card
-                  bordered={false}
-                  style={cardStyle}
-                  bodyStyle={{ padding: "14px 16px 12px" }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <Typography.Text type="secondary" style={{ fontSize: 12, display: "block" }}>
-                        {m.title}
-                      </Typography.Text>
-                      <Typography.Text strong style={{ fontSize: 26, lineHeight: 1.2 }}>
-                        {m.value}
-                      </Typography.Text>
-                    </div>
-                    <div style={{ color: token.colorPrimary, fontSize: 18, paddingTop: 4, flexShrink: 0, opacity: 0.7 }}>
-                      {m.icon}
-                    </div>
-                  </div>
-                </Card>
+                <StatCard title={m.title} value={m.value} icon={m.icon} accent={m.accent} />
               </Col>
             ))}
           </Row>
@@ -244,27 +229,12 @@ export function AdminStatsPanel() {
               <Typography.Title level={5} style={{ margin: 0 }}>
                 {t("admin.stats.paymentsChart")}
               </Typography.Title>
-              <div style={{ display: "flex", gap: 0, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, overflow: "hidden" }}>
-                {periodButtons.map((btn) => (
-                  <button
-                    key={btn.key}
-                    onClick={() => setPeriod(btn.key)}
-                    style={{
-                      padding: "4px 14px",
-                      fontSize: 13,
-                      border: "none",
-                      borderRight: btn.key !== "year" ? `1px solid ${token.colorBorder}` : "none",
-                      cursor: "pointer",
-                      background: period === btn.key ? token.colorPrimary : token.colorBgContainer,
-                      color: period === btn.key ? "#fff" : token.colorText,
-                      fontWeight: period === btn.key ? 600 : 400,
-                      transition: "background 0.15s",
-                    }}
-                  >
-                    {btn.label}
-                  </button>
-                ))}
-              </div>
+              <Segmented
+                size="small"
+                value={period}
+                onChange={(v) => setPeriod(v as Period)}
+                options={periodButtons.map((b) => ({ label: b.label, value: b.key }))}
+              />
             </div>
 
             {revenueLineData.length ? (
@@ -293,45 +263,9 @@ export function AdminStatsPanel() {
             )}
           </Card>
 
-          {/* Bottom row: paid/unpaid counts bar + currency pie */}
+          {/* Bottom row: currency pie */}
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            <Col xs={24} md={12}>
-              <Card
-                bordered={false}
-                style={cardStyle}
-                bodyStyle={{ padding: "20px 24px" }}
-              >
-                <Typography.Title level={5} style={{ margin: "0 0 16px" }}>
-                  {t("admin.stats.views")}
-                </Typography.Title>
-                {revenueLineData.length ? (
-                  <Line
-                    data={revenueLineData}
-                    xField="label"
-                    yField="value"
-                    seriesField="series"
-                    autoFit
-                    height={220}
-                    legend={{ position: "top" }}
-                    point={{ size: 3, shape: "circle" }}
-                    scale={{
-                      color: {
-                        domain: [t("admin.stats.paid"), t("admin.stats.unpaid")],
-                        range: [palette[1], palette[2]],
-                      },
-                    }}
-                    axis={{ x: { title: false }, y: { title: false } }}
-                    tooltip={{ formatter: lineSeriesTooltipFormatter }}
-                  />
-                ) : (
-                  <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Typography.Text type="secondary">-</Typography.Text>
-                  </div>
-                )}
-              </Card>
-            </Col>
-
-            <Col xs={24} md={12}>
+            <Col xs={24}>
               <Card
                 bordered={false}
                 style={cardStyle}

@@ -63,7 +63,7 @@ async function submitSignature(
 
 
 const pageBg =
-  "linear-gradient(165deg, #eef2f7 0%, #e2e8f0 38%, #f1f5f9 70%, #f8fafc 100%)";
+  "linear-gradient(165deg, #eef2f7 0%, #e2e8f0 38%, var(--ds-surface-2) 70%, var(--ds-surface-1) 100%)";
 const cardShadow = "0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 12px 24px -4px rgba(15, 23, 42, 0.12)";
 const panelShadow = "0 8px 30px -8px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.06)";
 
@@ -262,7 +262,7 @@ export function ContractSignPage() {
             textAlign: "center",
           }}
         >
-          <CheckCircleOutlined style={{ fontSize: 56, color: "#16a34a", marginBottom: 20 }} />
+          <CheckCircleOutlined style={{ fontSize: 56, color: "var(--ds-color-success)", marginBottom: 20 }} />
           <Typography.Title level={3} style={{ margin: "0 0 12px" }}>
             {t("contracts.sign.successTitle")}
           </Typography.Title>
@@ -331,7 +331,7 @@ export function ContractSignPage() {
           gap: 12,
         }}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "#475569", fontWeight: 500 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--ds-text-secondary)", fontWeight: 500 }}>
           <span
             style={{
               display: "inline-flex",
@@ -348,7 +348,7 @@ export function ContractSignPage() {
           </span>
           {t("contracts.sign.secureLabel")}
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ds-text-tertiary)" }}>
           <LockOutlined />
           {t("contracts.sign.encryptionNote")}
         </span>
@@ -390,14 +390,14 @@ export function ContractSignPage() {
                 fontWeight: 700,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: "#64748b",
+                color: "var(--ds-text-secondary)",
                 display: "block",
                 marginBottom: 10,
               }}
             >
               {t("contracts.sign.contractLabel")}
             </Typography.Text>
-            <Typography.Title level={2} style={{ margin: "0 0 20px", fontWeight: 700, letterSpacing: "-0.02em", color: "#0f172a" }}>
+            <Typography.Title level={2} style={{ margin: "0 0 20px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ds-text-primary)" }}>
               {contract.title}
             </Typography.Title>
 
@@ -405,7 +405,7 @@ export function ContractSignPage() {
               <div
                 style={{
                   marginBottom: 24,
-                  background: "#f8fafc",
+                  background: "var(--ds-surface-1)",
                   borderRadius: 12,
                   border: "1px solid rgba(15,23,42,.06)",
                   padding: "20px 22px",
@@ -461,7 +461,7 @@ export function ContractSignPage() {
                     >
                       <span style={{ fontSize: 32 }}>📄</span>
                       {t("contracts.sign.tapToViewPdf")}
-                      <span style={{ fontSize: 12, fontWeight: 400, color: "#64748b" }}>
+                      <span style={{ fontSize: 12, fontWeight: 400, color: "var(--ds-text-secondary)" }}>
                         {t("contracts.sign.tapToViewPdfSub")}
                       </span>
                     </button>
@@ -487,7 +487,7 @@ export function ContractSignPage() {
                 <div
                   style={{
                     padding: "14px 18px",
-                    background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+                    background: "linear-gradient(180deg, var(--ds-surface-1) 0%, var(--ds-surface-2) 100%)",
                     borderBottom: "1px solid rgba(15,23,42,.08)",
                     display: "flex",
                     alignItems: "center",
@@ -497,9 +497,9 @@ export function ContractSignPage() {
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <CreditCardOutlined style={{ fontSize: 18, color: "#475569" }} />
+                    <CreditCardOutlined style={{ fontSize: 18, color: "var(--ds-text-secondary)" }} />
                     <span>
-                      <Typography.Text strong style={{ display: "block", fontSize: 14, color: "#0f172a" }}>
+                      <Typography.Text strong style={{ display: "block", fontSize: 14, color: "var(--ds-text-primary)" }}>
                         {t("contracts.sign.paymentStages")}
                       </Typography.Text>
                       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
@@ -549,7 +549,7 @@ export function ContractSignPage() {
                       style={{
                         fontSize: 15,
                         fontVariantNumeric: "tabular-nums",
-                        color: "#0f172a",
+                        color: "var(--ds-text-primary)",
                         flexShrink: 0,
                       }}
                     >
@@ -563,7 +563,7 @@ export function ContractSignPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "18px 18px",
-                    background: "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)",
+                    background: "linear-gradient(180deg, #1e293b 0%, var(--ds-text-primary) 100%)",
                     color: "#fff",
                   }}
                 >
@@ -604,7 +604,7 @@ export function ContractSignPage() {
               <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
                 {t("contracts.sign.totalLabel")}
               </Typography.Text>
-              <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "#0f172a" }}>
+              <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ds-text-primary)" }}>
                 {fmtMoney(contract.totalAmount, contract.currency)}
               </Typography.Title>
               {stageCount > 1 && (
@@ -664,7 +664,7 @@ export function ContractSignPage() {
                 style={{
                   borderRadius: 12,
                   border: `2px dashed ${hasSignature ? "rgba(37, 99, 235, 0.35)" : "rgba(15,23,42,.18)"}`,
-                  background: "#fafafa",
+                  background: "var(--ds-surface-1)",
                   width: "100%",
                   transition: "border-color 0.2s ease",
                 }}
@@ -710,15 +710,15 @@ export function ContractSignPage() {
               <div
                 style={{
                   fontSize: 12,
-                  color: "#64748b",
+                  color: "var(--ds-text-secondary)",
                   lineHeight: 1.65,
                   padding: "10px 12px",
                   borderRadius: 10,
-                  background: "#f8fafc",
+                  background: "var(--ds-surface-1)",
                   border: "1px dashed rgba(15,23,42,.12)",
                 }}
               >
-                <Typography.Text strong style={{ fontSize: 12, color: "#475569", display: "block", marginBottom: 6 }}>
+                <Typography.Text strong style={{ fontSize: 12, color: "var(--ds-text-secondary)", display: "block", marginBottom: 6 }}>
                   {t("contracts.sign.completeToSign")}
                 </Typography.Text>
                 {!signerName.trim() && <div>• {t("contracts.sign.needName")}</div>}

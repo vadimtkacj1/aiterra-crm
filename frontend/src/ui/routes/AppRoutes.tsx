@@ -26,6 +26,14 @@ export function AppRoutes() {
   return (
     <Routes>
       {/* Public routes */}
+      {/* Root is a PUBLIC landing page (marketing + legal/address footer) so the
+          site is browsable without registration — e.g. for payment-processor /
+          credit-card-company review of the privacy & cancellation policies and
+          the business address. Logged-in users are sent straight to their app. */}
+      <Route
+        path={Paths.root}
+        element={session ? <Navigate to={homeRedirect} replace /> : <PricingPage />}
+      />
       <Route
         path={Paths.login}
         element={session ? <Navigate to={homeRedirect} replace /> : <LoginPage />}
@@ -48,7 +56,6 @@ export function AppRoutes() {
 
       {/* Authenticated app shell */}
       <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-        <Route path={Paths.root} element={<Navigate to={homeRedirect} replace />} />
         <Route path={Paths.accounts} element={<AccountSelectPage />} />
         <Route path={Paths.help} element={<HelpPage />} />
         <Route path={Paths.settings} element={<LegacySettingsRedirect />} />

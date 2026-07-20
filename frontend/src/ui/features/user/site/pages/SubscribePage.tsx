@@ -59,7 +59,7 @@ export function SubscribePage() {
     return (
       <div style={wrapStyle}>
         <Result
-          icon={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+          icon={<CheckCircleOutlined style={{ color: "var(--ds-color-success)" }} />}
           title={t("subscribe.successTitle")}
           subTitle={t("subscribe.successSubtitle")}
         />
@@ -78,7 +78,7 @@ export function SubscribePage() {
           </div>
 
           {error && (
-            <div style={{ color: "#ff4d4f", marginBottom: 16, textAlign: "center" }}>
+            <div style={{ color: "var(--ds-color-error)", marginBottom: 16, textAlign: "center" }}>
               {error}
             </div>
           )}
@@ -133,7 +133,7 @@ const wrapStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "#f5f5f5",
+  background: "var(--ds-surface-2)",
   padding: 16,
 };
 

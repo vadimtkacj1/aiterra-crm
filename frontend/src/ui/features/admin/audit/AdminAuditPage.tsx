@@ -1,10 +1,9 @@
-import { ReloadOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
-import { App, Button, Table } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+import { App, Button, Card, Table } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminAuditLogRow } from "@/services/admin/AdminService";
 import { useApp } from "@/app/AppProviders";
-import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
@@ -36,16 +35,16 @@ export function AdminAuditPage() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("admin.audit.title")} description={t("admin.audit.subtitle")} />
-      <ListCard
-        icon={<SafetyCertificateOutlined />}
+      <PageHeader
         title={t("admin.audit.title")}
-        extra={
+        description={t("admin.audit.subtitle")}
+        actions={
           <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
             {!isMobile && t("common.reload")}
           </Button>
         }
-      >
+      />
+      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
         {isMobile ? (
           <ResponsiveCardView
             items={rows.map((r) => ({
@@ -85,7 +84,7 @@ export function AdminAuditPage() {
             ]}
           />
         )}
-      </ListCard>
+      </Card>
     </PageContainer>
   );
 }

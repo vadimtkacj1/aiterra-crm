@@ -465,13 +465,13 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
                 {
                   key: "csv",
                   icon: <FileTextOutlined />,
-                  label: "Export CSV",
+                  label: t("meta.panel.exportCsv"),
                   onClick: () => data && exportCampaignListCsv(filteredRows, currency),
                 },
                 {
                   key: "pdf",
                   icon: <FilePdfOutlined />,
-                  label: "Export PDF",
+                  label: t("meta.panel.exportPdf"),
                   onClick: () => data && exportCampaignListPdf(filteredRows, currency, data.periodLabel),
                 },
               ],
@@ -482,7 +482,7 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
               size="small"
               disabled={!data || filteredRows.length === 0}
             >
-              {!isMobile && "Export"}{" "}
+              {!isMobile && t("meta.panel.export")}{" "}
             </Button>
           </Dropdown>
           <Button
@@ -507,16 +507,19 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
             columns={columns}
             pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: [10, 25, 50, 100] }}
             locale={{
-              emptyText: (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={
-                    statusFilter !== "ALL"
-                      ? `No ${statusFilter.toLowerCase()} campaigns`
-                      : t("analytics.empty.title")
-                  }
-                />
-              ),
+              emptyText:
+                statusFilter !== "ALL" ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={t("meta.panel.noFilteredCampaigns")}
+                  >
+                    <Button size="small" onClick={() => setStatusFilter("ALL")}>
+                      {t("meta.panel.showAllStatuses")}
+                    </Button>
+                  </Empty>
+                ) : (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("analytics.empty.title")} />
+                ),
             }}
             onRow={(row) => ({
               onClick: () => {

@@ -48,20 +48,6 @@ export function BillingHistorySection({ rows, loading, appLocale, accountId }: P
 
   return (
     <>
-      <Typography.Title
-        level={5}
-        style={{
-          margin: "4px 0 0",
-          fontWeight: 600,
-          fontSize: 13,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
-          color: "var(--ant-color-text-tertiary)",
-        }}
-      >
-        {t("billing.historyTitle")}
-      </Typography.Title>
-
       <Card
         title={t("billing.historyCardTitle")}
         loading={loading}

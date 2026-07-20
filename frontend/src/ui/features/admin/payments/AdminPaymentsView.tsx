@@ -1,5 +1,6 @@
-import { Button, Card, Empty, Flex, Form, Input, Modal, Spin, Steps, Typography } from "antd";
+import { Button, Card, Empty, Flex, Form, Input, Spin, Steps, Typography } from "antd";
 import { useState } from "react";
+import { AppModal } from "@/ui/shared/components/AppModal";
 import { AdminPaymentsHistoryTable } from "./AdminPaymentsHistoryTable";
 import { AdminPaymentsLibraryDrawer } from "./AdminPaymentsLibraryDrawer";
 import { AdminPaymentsPageHeader } from "./AdminPaymentsPageHeader";
@@ -187,7 +188,7 @@ export function AdminPaymentsPage() {
               />
             </Card>
 
-            <Modal
+            <AppModal
               title={p.t("admin.payments.saveTemplateModalTitle")}
               open={p.saveTemplateOpen}
               onCancel={() => {
@@ -199,7 +200,7 @@ export function AdminPaymentsPage() {
               confirmLoading={p.savingTemplate}
               onOk={() => p.onSaveTemplateOk()}
             >
-              <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              <Typography.Paragraph type="secondary" style={{ marginBottom: "var(--ds-space-3)" }}>
                 {p.t("admin.payments.saveTemplateHint")}
               </Typography.Paragraph>
               <Input
@@ -208,7 +209,7 @@ export function AdminPaymentsPage() {
                 placeholder={p.t("admin.payments.saveTemplateTitlePlaceholder")}
                 maxLength={200}
               />
-            </Modal>
+            </AppModal>
           </>
         )}
       </div>

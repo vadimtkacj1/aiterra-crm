@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import logoUrl from "@/assets/logo-black.svg";
 import { defaultLanguage } from "@/i18n";
 import { Paths } from "@/ui/navigation/paths";
-import { brand } from "@/ui/theme/tokens";
+import { tokens } from "@/styles/designSystem";
 import { LoginForm } from "../components/LoginForm";
 
 export function LoginPage() {
@@ -28,7 +28,7 @@ export function LoginPage() {
         justifyContent: "center",
         padding: isMobile ? 16 : 24,
         position: "relative",
-        background: "linear-gradient(145deg, #ece9fd 0%, #f8f7ff 45%, #f0eeff 100%)", // brand gradient
+        background: tokens.colors.surface1,
       }}
     >
       {/* Language switcher — fixed so it's always visible regardless of scroll */}
@@ -40,7 +40,7 @@ export function LoginPage() {
           zIndex: 200,
           background: "#ffffff",
           borderRadius: 8,
-          boxShadow: `0 2px 8px ${brand.primaryShadowLg}`,
+          boxShadow: tokens.shadow.sm,
           padding: "2px",
         }}
       >
@@ -48,7 +48,7 @@ export function LoginPage() {
           value={currentLang}
           style={{ minWidth: 130 }}
           variant="borderless"
-          suffixIcon={<GlobalOutlined style={{ color: brand.primary }} />}
+          suffixIcon={<GlobalOutlined style={{ color: tokens.colors.textTertiary }} />}
           aria-label={t("common.language")}
           options={[
             { value: "en", label: t("common.english") },
@@ -62,9 +62,9 @@ export function LoginPage() {
         style={{
           width: "100%",
           maxWidth: 420,
-          borderRadius: 16,
-          border: `1px solid ${brand.primaryBorder}`,
-          boxShadow: `0 24px 64px ${brand.primaryShadowMd}, 0 4px 16px ${brand.primaryShadowSm}`,
+          borderRadius: 12,
+          border: "none",
+          boxShadow: tokens.shadow.lg,
           background: "#ffffff",
         }}
         styles={{ body: { padding: isMobile ? 24 : 36 } }}
@@ -81,13 +81,13 @@ export function LoginPage() {
 
         <Typography.Title
           level={isMobile ? 4 : 3}
-          style={{ textAlign: "center", marginBottom: 6, fontWeight: 700, color: brand.dark }}
+          style={{ textAlign: "center", marginBottom: 6, fontWeight: 700, color: tokens.colors.textPrimary }}
         >
           {t("login.title")}
         </Typography.Title>
 
         <Typography.Paragraph
-          style={{ textAlign: "center", marginBottom: 28, color: brand.textSecondary, fontSize: 14, margin: "0 0 28px" }}
+          style={{ textAlign: "center", color: tokens.colors.textSecondary, fontSize: 14, margin: "0 0 28px" }}
         >
           {t("login.hint")}
         </Typography.Paragraph>

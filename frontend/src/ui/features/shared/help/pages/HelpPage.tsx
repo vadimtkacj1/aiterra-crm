@@ -10,6 +10,7 @@ import {
 import { Button, Card, Col, Row, Space, Typography, theme } from "antd";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { tokens } from "@/styles/designSystem";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { useGuidedTour } from "@/ui/shared/onboarding/guidedTourContext";
 
@@ -30,10 +31,8 @@ function SectionCard({
       variant="borderless"
       style={{
         height: "100%",
-        borderRadius: token.borderRadiusLG,
-        border: `1px solid ${token.colorBorderSecondary}`,
         background: token.colorBgContainer,
-        boxShadow: "0 1px 4px rgba(15,23,42,0.05)",
+        boxShadow: tokens.shadow.card,
       }}
       styles={{
         body: { padding: "18px 18px 16px" },
@@ -69,7 +68,7 @@ function SectionCard({
 export function HelpPage() {
   const { t } = useTranslation();
   const { token } = theme.useToken();
-  const accent = token.colorFillAlter;
+  const accent = tokens.colors.primarySurface;
   const { startGuidedTour, guidedTourAvailable } = useGuidedTour();
 
   return (
@@ -82,9 +81,6 @@ export function HelpPage() {
         <Typography.Paragraph type="secondary" style={{ fontSize: 15, lineHeight: 1.65, marginBottom: 0, maxWidth: 720 }}>
           {t("help.intro")}
         </Typography.Paragraph>
-        <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-          {t("help.tipMenu")}
-        </Typography.Text>
       </Space>
 
       {guidedTourAvailable ? (
@@ -146,7 +142,7 @@ export function HelpPage() {
             accent={accent}
           />
         </Col>
-        <Col xs={24}>
+        <Col xs={24} md={12}>
           <SectionCard
             icon={<BellOutlined />}
             title={t("help.section5Title")}

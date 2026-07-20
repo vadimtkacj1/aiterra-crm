@@ -15,7 +15,7 @@ export function SettingsPage() {
   const cardStyle: React.CSSProperties = {
     width: "100%",
     maxWidth: 400,
-    boxShadow: "0 2px 12px rgba(15,23,42,0.06)",
+    boxShadow: "var(--ds-shadow-card)",
     border: `1px solid ${token.colorBorderSecondary}`,
     borderRadius: Math.max(12, token.borderRadiusLG * 1.25),
   };
@@ -32,7 +32,7 @@ export function SettingsPage() {
             style={cardStyle}
             title={
               <span>
-                <UserOutlined style={{ marginRight: 8 }} />
+                <UserOutlined style={{ marginInlineEnd: 8 }} />
                 {t("settings.profileSectionTitle")}
               </span>
             }
@@ -58,7 +58,7 @@ export function SettingsPage() {
           style={cardStyle}
           title={
             <span>
-              <GlobalOutlined style={{ marginRight: 8 }} />
+              <GlobalOutlined style={{ marginInlineEnd: 8 }} />
               {t("settings.languageSectionTitle")}
             </span>
           }

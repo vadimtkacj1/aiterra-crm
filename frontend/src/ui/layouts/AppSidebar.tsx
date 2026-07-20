@@ -111,7 +111,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         zIndex: 20,
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 12px 16px" }}>
           <SidebarLogo maxWidth={120} />
         </div>

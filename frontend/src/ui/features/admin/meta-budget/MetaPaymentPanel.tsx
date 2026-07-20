@@ -1,5 +1,5 @@
 import { HistoryOutlined, ReloadOutlined } from "@ant-design/icons";
-import { App, Button, Card, Grid, Table } from "antd";
+import { App, Button, Card, Grid, Table, Tag } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminAccountRow, MetaTopupRecord } from "@/services/admin/AdminService";
@@ -57,7 +57,7 @@ export function MetaPaymentPanel() {
       <Card
         title={
           <span>
-            <HistoryOutlined style={{ marginRight: 8 }} />
+            <HistoryOutlined style={{ marginInlineEnd: 8 }} />
             {t("admin.topup.history")}
           </span>
         }
@@ -77,7 +77,7 @@ export function MetaPaymentPanel() {
               subtitle: r.createdAt ? r.createdAt.slice(0, 19).replace("T", " ") : "-",
               description: r.metaError || undefined,
               tags: [
-                { label: `${r.amount} ${r.currency}`, color: "blue" },
+                { label: `${r.amount} ${r.currency}` },
                 { label: getStatusLabel(r.status), color: getStatusColor(r.status) },
               ],
             }))}
@@ -89,6 +89,7 @@ export function MetaPaymentPanel() {
             size="small"
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: t("common.noData") }}
             pagination={{ pageSize: 15, showSizeChanger: false }}
             dataSource={topups}
             columns={[
@@ -116,7 +117,7 @@ export function MetaPaymentPanel() {
                 dataIndex: "status",
                 key: "status",
                 width: 120,
-                render: (s: string) => getStatusLabel(s),
+                render: (s: string) => <Tag color={getStatusColor(s)}>{getStatusLabel(s)}</Tag>,
               },
               {
                 title: t("admin.topup.colError"),

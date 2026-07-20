@@ -7,6 +7,7 @@
     "clearSelection": "נקה בחירה",
     "noData": "אין נתונים זמינים",
     "close": "סגור",
+    "actions": "פעולות",
     "ok": "אישור",
     "cancel": "ביטול",
     "reload": "טען מחדש",
@@ -18,7 +19,10 @@
     "copyToClipboard": "העתק ללוח",
     "save": "שמור",
     "confirm": "אישור",
-    "confirmAction": "האם אתה בטוח?"
+    "confirmAction": "האם אתה בטוח?",
+    "view": "צפייה",
+    "remove": "הסר",
+    "preview": "תצוגה מקדימה"
   },
   "export": {
     "csv": "ייצוא כ-CSV",

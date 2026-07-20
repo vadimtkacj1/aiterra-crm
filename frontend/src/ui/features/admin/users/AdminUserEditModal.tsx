@@ -44,6 +44,7 @@ export function AdminUserEditModal({
   regenerateSiteToken,
   sendTestNotification,
 }: Props) {
+  const sectionStyle = { paddingTop: 20, borderTop: "1px solid var(--ds-border-subtle)" };
   return (
     <AppModal
       title={t("admin.editUserTitle")}
@@ -71,20 +72,26 @@ export function AdminUserEditModal({
           ) : null}
           {editMetaInfo && editMetaInfo.accountId != null ? (
             <>
-              <AdminUsersMetaLinkFields t={t} metaCampaigns={metaCampaigns} metaCampaignsLoading={metaCampaignsLoading} />
-              <AdminUsersGoogleLinkFields
-                t={t}
-                mode="edit"
-                editGoogleHasCredentials={editGoogleHasCredentials}
-              />
-              <AdminUsersSiteLinkFields
-                t={t}
-                userId={editUserId}
-                siteInfo={editSiteInfo}
-                onTokenRegenerated={onSiteTokenRegenerated}
-                regenerateToken={regenerateSiteToken}
-                sendTestNotification={sendTestNotification}
-              />
+              <div style={sectionStyle}>
+                <AdminUsersMetaLinkFields t={t} metaCampaigns={metaCampaigns} metaCampaignsLoading={metaCampaignsLoading} />
+              </div>
+              <div style={sectionStyle}>
+                <AdminUsersGoogleLinkFields
+                  t={t}
+                  mode="edit"
+                  editGoogleHasCredentials={editGoogleHasCredentials}
+                />
+              </div>
+              <div style={sectionStyle}>
+                <AdminUsersSiteLinkFields
+                  t={t}
+                  userId={editUserId}
+                  siteInfo={editSiteInfo}
+                  onTokenRegenerated={onSiteTokenRegenerated}
+                  regenerateToken={regenerateSiteToken}
+                  sendTestNotification={sendTestNotification}
+                />
+              </div>
             </>
           ) : null}
         </Form>

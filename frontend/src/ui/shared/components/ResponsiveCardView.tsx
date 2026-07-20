@@ -51,8 +51,8 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
           key={item.id}
           size="small"
           style={{
-            borderRadius: 8,
-            border: "1px solid rgba(15, 23, 42, 0.06)",
+            borderRadius: 12,
+            boxShadow: "var(--ds-shadow-card)",
           }}
         >
           <Flex vertical style={{ width: "100%" }} gap={8}>

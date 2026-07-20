@@ -1,4 +1,4 @@
-import { UserOutlined, DollarOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { UserOutlined, DollarOutlined } from "@ant-design/icons";
 import { Alert, Button, Card, Descriptions, Form, Select, Space, Spin, Tag, Typography } from "antd";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
@@ -49,7 +49,7 @@ export function RecipientStepCard({
         {/* Header */}
         <div>
           <Typography.Title level={4} style={{ margin: 0, marginBottom: 8 }}>
-            <UserOutlined style={{ marginRight: 8, color: token.colorPrimary }} />
+            <UserOutlined style={{ marginInlineEnd: 8, color: token.colorPrimary }} />
             {t("admin.payments.stepRecipientTitle")}
           </Typography.Title>
           <Typography.Text type="secondary">
@@ -57,16 +57,8 @@ export function RecipientStepCard({
           </Typography.Text>
         </div>
 
-        {/* User Selection */}
-        <Form.Item
-          name="userId"
-          label={
-            <Typography.Text strong style={{ fontSize: 15 }}>
-              {t("admin.payments.selectClient")}
-            </Typography.Text>
-          }
-          style={{ marginBottom: 0 }}
-        >
+        {/* User Selection — label omitted: the card title + placeholder already name it */}
+        <Form.Item name="userId" style={{ marginBottom: 0 }}>
           <Select
             size="large"
             showSearch
@@ -102,13 +94,7 @@ export function RecipientStepCard({
         {/* Selected User Info */}
         {selectedUser && !selectedIsAdmin && (
           <Spin spinning={metaLoading}>
-            <Card
-              size="small"
-              style={{
-                background: token.colorFillAlter,
-                border: `1px solid ${token.colorBorder}`,
-              }}
-            >
+            <div style={{ paddingTop: 20, borderTop: "1px solid var(--ds-border-subtle)" }}>
               <Descriptions column={1} size="small">
                 <Descriptions.Item label={t("admin.payments.clientName")}>
                   <Typography.Text strong>{selectedUser.displayName || selectedUser.email}</Typography.Text>
@@ -150,22 +136,13 @@ export function RecipientStepCard({
                       </Button>
                     </Space>
                   }
-                  style={{ marginTop: 12 }}
+                  style={{ marginTop: 16 }}
                 />
               )}
-            </Card>
+            </div>
           </Spin>
         )}
 
-        {/* Help Text */}
-        {!selectedUser && (
-          <Alert
-            type="info"
-            showIcon
-            icon={<InfoCircleOutlined />}
-            message={t("admin.payments.selectUserToStart")}
-          />
-        )}
       </Space>
     </Card>
   );

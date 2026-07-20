@@ -10,9 +10,9 @@ import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
 import { ResponsiveCardView, useMobileView } from "../../../../shared/components/ResponsiveCardView";
 
-function fmtMoney(amount: number, currency: string) {
+function fmtMoney(amount: number, currency: string, locale?: string) {
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: (currency || "ILS").toUpperCase(),
       minimumFractionDigits: 2,
@@ -66,10 +66,13 @@ function paidCounts(contract: ContractMemberRow) {
 }
 
 export function MemberContractsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { message } = App.useApp();
   const { services } = useApp();
   const { accountId } = useParams<{ accountId: string }>();
+  const money = (amount: number, currency: string) => fmtMoney(amount, currency, i18n.language);
+  const fmtDate = (d: string) =>
+    new Date(d).toLocaleDateString(i18n.language, { year: "numeric", month: "short", day: "numeric" });
   const [rows, setRows] = useState<ContractMemberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [payLoadingId, setPayLoadingId] = useState<number | null>(null);
@@ -134,7 +137,7 @@ export function MemberContractsPage() {
                 {t("memberContracts.monthlyBadge")}
               </Tag>
               <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {t("memberContracts.monthlyAmount", { amount: fmtMoney(r.monthlyAmount!, r.currency) })}
+                {t("memberContracts.monthlyAmount", { amount: money(r.monthlyAmount!, r.currency) })}
                 {r.subscriptionMonths ? ` · ${t("memberContracts.monthlyDuration", { months: r.subscriptionMonths })}` : ""}
               </Typography.Text>
             </div>
@@ -156,15 +159,15 @@ export function MemberContractsPage() {
                 {t(key)}
               </Tag>
               <Typography.Text strong style={{ fontSize: 13 }}>
-                {fmtMoney(r.totalAmount, r.currency)}
+                {money(r.totalAmount, r.currency)}
               </Typography.Text>
             </div>
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               {t("memberContracts.paymentProgress", {
                 paid: stagesPaid,
                 total: stagesTotal,
-                paidAmount: fmtMoney(paidAmount, r.currency),
-                totalAmount: fmtMoney(r.totalAmount, r.currency),
+                paidAmount: money(paidAmount, r.currency),
+                totalAmount: money(r.totalAmount, r.currency),
               })}
             </Typography.Text>
           </div>
@@ -185,14 +188,7 @@ export function MemberContractsPage() {
       title: t("memberContracts.colSigned"),
       key: "signedAt",
       width: 120,
-      render: (_, r) =>
-        r.signedAt
-          ? new Date(r.signedAt).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : "-",
+      render: (_, r) => (r.signedAt ? <span style={{ fontVariantNumeric: "tabular-nums" }}>{fmtDate(r.signedAt)}</span> : "-"),
     },
     {
       title: t("memberContracts.colAction"),
@@ -231,7 +227,7 @@ export function MemberContractsPage() {
 
   return (
     <UserContentLayout>
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <div style={{ width: "100%" }}>
         <PageHeader
           title={t("memberContracts.title")}
           subtitle={t("memberContracts.subtitle")}
@@ -241,9 +237,11 @@ export function MemberContractsPage() {
             </Button>
           }
         />
-        <Card>
+        <Card styles={{ body: { padding: 0, overflow: "hidden", borderRadius: 12 } }}>
           {!loading && rows.length === 0 ? (
-            <Empty description={t("memberContracts.empty")} />
+            <div style={{ padding: 24 }}>
+              <Empty description={t("memberContracts.empty")} />
+            </div>
           ) : isMobile ? (
             <ResponsiveCardView
               items={rows.map((r) => {
@@ -256,29 +254,23 @@ export function MemberContractsPage() {
                 return {
                   id: r.id,
                   title: r.title,
-                  subtitle: r.signedAt
-                    ? new Date(r.signedAt).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })
-                    : t("memberContracts.notSigned"),
+                  subtitle: r.signedAt ? fmtDate(r.signedAt) : t("memberContracts.notSigned"),
                   description: monthly
                     ? [
-                        t("memberContracts.monthlyAmount", { amount: fmtMoney(r.monthlyAmount!, r.currency) }),
+                        t("memberContracts.monthlyAmount", { amount: money(r.monthlyAmount!, r.currency) }),
                         r.subscriptionMonths ? t("memberContracts.monthlyDuration", { months: r.subscriptionMonths }) : "",
                         t("memberContracts.paymentProgress", {
                           paid: stagesPaid,
                           total: stagesTotal,
-                          paidAmount: fmtMoney(paidAmount, r.currency),
-                          totalAmount: fmtMoney(r.totalAmount, r.currency),
+                          paidAmount: money(paidAmount, r.currency),
+                          totalAmount: money(r.totalAmount, r.currency),
                         }),
                       ].filter(Boolean).join(" · ")
                     : t("memberContracts.paymentProgress", {
                         paid: stagesPaid,
                         total: stagesTotal,
-                        paidAmount: fmtMoney(paidAmount, r.currency),
-                        totalAmount: fmtMoney(r.totalAmount, r.currency),
+                        paidAmount: money(paidAmount, r.currency),
+                        totalAmount: money(r.totalAmount, r.currency),
                       }),
                   tags: [
                     ...(monthly ? [{ label: t("memberContracts.monthlyBadge"), color: "blue" }] : []),
@@ -318,7 +310,7 @@ export function MemberContractsPage() {
             />
           )}
         </Card>
-      </Space>
+      </div>
     </UserContentLayout>
   );
 }

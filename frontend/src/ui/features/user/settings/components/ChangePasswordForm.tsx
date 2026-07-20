@@ -52,7 +52,7 @@ export function ChangePasswordForm() {
       style={{
         maxWidth: 400,
         width: "100%",
-        boxShadow: "0 2px 12px rgba(15,23,42,0.06)",
+        boxShadow: "var(--ds-shadow-card)",
         border: `1px solid ${token.colorBorderSecondary}`,
         borderRadius: Math.max(12, token.borderRadiusLG * 1.25),
       }}

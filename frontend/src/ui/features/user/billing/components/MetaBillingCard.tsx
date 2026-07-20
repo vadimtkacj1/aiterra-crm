@@ -57,7 +57,7 @@ export function MetaBillingCard({ metaBilling, metaLoading, appLocale }: Props) 
                 precision={2}
                 suffix={metaBilling.currency}
                 prefix={<DollarOutlined />}
-                valueStyle={{ color: "#cf1322" }}
+                valueStyle={{ color: "var(--ds-color-error)" }}
               />
             </Col>
             <Col xs={12} sm={8} lg={4}>
@@ -67,7 +67,7 @@ export function MetaBillingCard({ metaBilling, metaLoading, appLocale }: Props) 
                 precision={2}
                 suffix={metaBilling.currency}
                 prefix={<WalletOutlined />}
-                valueStyle={{ color: "#3f8600" }}
+                valueStyle={{ color: "var(--ds-color-success)" }}
               />
             </Col>
             {metaBilling.spendCap > 0 && (
@@ -84,7 +84,7 @@ export function MetaBillingCard({ metaBilling, metaLoading, appLocale }: Props) 
               <Descriptions size="small" column={1} style={{ marginTop: 4 }}>
                 <Descriptions.Item label={t("billing.metaAccount")}>{metaBilling.accountName}</Descriptions.Item>
                 <Descriptions.Item label={t("billing.metaFunding")}>
-                  <CheckCircleOutlined style={{ color: "#52c41a", marginRight: 4 }} />
+                  <CheckCircleOutlined style={{ color: "var(--ds-color-success)", marginRight: 4 }} />
                   {metaBilling.fundingSource}
                 </Descriptions.Item>
               </Descriptions>

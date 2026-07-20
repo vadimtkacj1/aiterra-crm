@@ -154,19 +154,19 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
           background: "#fff",
           overflow: "hidden",
           marginBottom: 16,
-          boxShadow: "0 1px 8px rgba(15,23,42,.05)",
+          boxShadow: "var(--ds-shadow-sm)",
         }}
       >
         <div
           style={{
             padding: "10px 14px",
             borderBottom: "1px solid rgba(15,23,42,.06)",
-            background: "#f8fafc",
+            background: "var(--ds-surface-1)",
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: "#64748b",
+            color: "var(--ds-text-secondary)",
           }}
         >
           {t("billing.contract.pdfPreviewLabel")}
@@ -178,7 +178,7 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
             style={{ width: "100%", height: 320, border: "none", display: "block" }}
           />
         ) : (
-          <div style={{ height: 320, background: "#f1f5f9" }} />
+          <div style={{ height: 320, background: "var(--ds-surface-2)" }} />
         )}
       </div>
 
@@ -215,7 +215,7 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
         style={{
           borderRadius: 10,
           border: "2px dashed rgba(15,23,42,.2)",
-          background: "#fafafa",
+          background: "var(--ds-surface-1)",
           marginBottom: 10,
           width: "100%",
         }}

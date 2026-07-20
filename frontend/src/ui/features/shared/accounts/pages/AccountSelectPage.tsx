@@ -1,10 +1,10 @@
-﻿import { App, Alert, Flex, Typography } from "antd";
+﻿import { App, Flex, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
 import type { Account } from "@/services/accounts/IAccountService";
-import { accountPath, defaultAccountSection, Paths } from "@/ui/navigation/paths";
+import { accountPath, defaultAccountSection } from "@/ui/navigation/paths";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { AccountList } from "../components/AccountList";
 
@@ -57,17 +57,6 @@ export function AccountSelectPage() {
             {t("accounts.subtitle")}
           </Typography.Paragraph>
         </div>
-
-        <Alert
-          type="info"
-          showIcon
-          message={
-            <span>
-              {t("onboarding.accountsAlert")}{" "}
-              <Link to={Paths.help}>{t("help.menuTitle")}</Link>
-            </span>
-          }
-        />
 
         <AccountList accounts={accounts} loading={loading} />
       </Flex>

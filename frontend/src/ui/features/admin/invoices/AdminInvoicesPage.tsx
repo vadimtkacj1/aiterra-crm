@@ -1,6 +1,5 @@
 import {
   DeleteOutlined,
-  DollarOutlined,
   DownloadOutlined,
   PlusOutlined,
   RollbackOutlined,
@@ -9,6 +8,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 import {
   App,
   Button,
+  Card,
   Col,
   Flex,
   Form,
@@ -29,7 +29,6 @@ import type { Key } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../../../../app/AppProviders";
 import type { BillingHistoryWithAccountRow } from "../../../../services/admin/AdminService";
-import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
 import { downloadInvoicePdf } from "../../../shared/utils/invoicePdf";
@@ -68,6 +67,7 @@ export function AdminInvoicesPage() {
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+  const [showDescription, setShowDescription] = useState(false);
   const [form] = Form.useForm<CreateFormValues>();
 
   const reload = () => {
@@ -104,6 +104,7 @@ export function AdminInvoicesPage() {
       void message.success(t("admin.invoices.createModal.success"));
       setCreateOpen(false);
       form.resetFields();
+      setShowDescription(false);
       reload();
     } catch (e) {
       void message.error(e instanceof Error ? e.message : t("admin.invoices.createModal.error"));
@@ -242,8 +243,7 @@ export function AdminInvoicesPage() {
     {
       title: t("admin.invoices.table.actions"),
       key: "actions",
-      width: 200,
-      fixed: "right",
+      width: 150,
       render: (_, r) => (
         <Space size={4}>
           <Button
@@ -289,17 +289,17 @@ export function AdminInvoicesPage() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("admin.invoices.title")} subtitle={t("admin.invoices.subtitle")} />
-
-      <ListCard
-        icon={<DollarOutlined />}
+      <PageHeader
         title={t("admin.invoices.title")}
-        extra={
+        subtitle={t("admin.invoices.subtitle")}
+        actions={
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {!isMobile && t("admin.invoices.createButton")}
           </Button>
         }
-      >
+      />
+
+      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
         {isMobile ? (
           <ResponsiveCardView
             items={invoices.map((r) => ({
@@ -420,7 +420,7 @@ export function AdminInvoicesPage() {
           />
           </>
         )}
-      </ListCard>
+      </Card>
 
       {/* Create Modal */}
       <Modal
@@ -429,9 +429,11 @@ export function AdminInvoicesPage() {
         onCancel={() => {
           setCreateOpen(false);
           form.resetFields();
+          setShowDescription(false);
         }}
         footer={null}
         width={520}
+        centered
       >
         <Form
           form={form}
@@ -445,7 +447,6 @@ export function AdminInvoicesPage() {
             rules={[{ required: true }]}
           >
             <Select
-              size="large"
               showSearch
               placeholder={t("admin.invoices.createModal.selectUserPlaceholder")}
               filterOption={(input, opt) => {
@@ -462,50 +463,76 @@ export function AdminInvoicesPage() {
             />
           </Form.Item>
 
-          <Form.Item
-            name="chargeType"
-            label={t("admin.invoices.createModal.chargeType")}
-            rules={[{ required: true }]}
-          >
-            <Select size="large">
-              <Select.Option value="one_time">{t("admin.invoices.createModal.chargeTypeOneTime")}</Select.Option>
-              <Select.Option value="monthly">{t("admin.invoices.createModal.chargeTypeMonthly")}</Select.Option>
-            </Select>
-          </Form.Item>
+          <div style={{ borderTop: "1px solid var(--ds-border-subtle)", paddingTop: 16, marginTop: 4 }}>
+            <Form.Item
+              name="chargeType"
+              label={t("admin.invoices.createModal.chargeType")}
+              rules={[{ required: true }]}
+            >
+              <Select>
+                <Select.Option value="one_time">{t("admin.invoices.createModal.chargeTypeOneTime")}</Select.Option>
+                <Select.Option value="monthly">{t("admin.invoices.createModal.chargeTypeMonthly")}</Select.Option>
+              </Select>
+            </Form.Item>
 
-          <Row gutter={12}>
-            <Col flex="auto">
-              <Form.Item
-                name="amount"
-                label={t("admin.invoices.createModal.amount")}
-                rules={[{ required: true, type: "number", min: 0.01 }]}
-              >
-                <InputNumber size="large" min={0.01} style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-            </Col>
-            <Col>
-              <Form.Item name="currency" label={t("admin.invoices.createModal.currency")}>
-                <Select size="large" style={{ width: 100 }}>
-                  <Select.Option value="ILS">ILS</Select.Option>
-                  <Select.Option value="USD">USD</Select.Option>
-                  <Select.Option value="EUR">EUR</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={12} style={{ marginBottom: 0 }}>
+              <Col flex="auto">
+                <Form.Item
+                  name="amount"
+                  label={t("admin.invoices.createModal.amount")}
+                  rules={[{ required: true, type: "number", min: 0.01 }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <InputNumber
+                    min={0.01}
+                    style={{ width: "100%", fontVariantNumeric: "tabular-nums" }}
+                    placeholder="0.00"
+                  />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="currency"
+                  label={t("admin.invoices.createModal.currency")}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select style={{ width: 100 }}>
+                    <Select.Option value="ILS">ILS</Select.Option>
+                    <Select.Option value="USD">USD</Select.Option>
+                    <Select.Option value="EUR">EUR</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+          </div>
 
-          <Form.Item name="description" label={t("admin.invoices.createModal.description")}>
-            <Input.TextArea
-              rows={3}
-              placeholder={t("admin.invoices.createModal.descriptionPlaceholder")}
-            />
-          </Form.Item>
+          {showDescription ? (
+            <Form.Item
+              name="description"
+              label={t("admin.invoices.createModal.description")}
+              style={{ marginTop: 16 }}
+            >
+              <Input.TextArea
+                rows={3}
+                placeholder={t("admin.invoices.createModal.descriptionPlaceholder")}
+              />
+            </Form.Item>
+          ) : (
+            <Button
+              type="link"
+              onClick={() => setShowDescription(true)}
+              style={{ paddingInline: 0, marginTop: 8 }}
+            >
+              {t("admin.invoices.createModal.addDescription")}
+            </Button>
+          )}
 
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: "100%", justifyContent: "flex-end" }}>
               <Button onClick={() => {
                 setCreateOpen(false);
                 form.resetFields();
+                setShowDescription(false);
               }}>
                 {t("admin.invoices.createModal.cancel")}
               </Button>

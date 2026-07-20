@@ -47,6 +47,7 @@
     "portalLoadError": "לא ניתן לפתוח את קישור התשלום. בדקו את הגדרות התשלום בשרת ושהקישור עדיין תקף.",
     "subTrialing": "ניסיון",
     "subUnpaid": "לא שולם",
-    "checkoutPayNote": "ההסכמה נרשמה בשלב הקודם. השלימו את התשלום למטה."
+    "checkoutPayNote": "ההסכמה נרשמה בשלב הקודם. השלימו את התשלום למטה.",
+    "installmentPlanSubtitle": "{{perMonth}} לחודש · {{total}} על פני {{months}} תשלומים"
   }
 }

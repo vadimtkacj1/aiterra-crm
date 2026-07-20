@@ -6,7 +6,7 @@ import {
   StopOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons";
-import { Button, Col, Grid, InputNumber, Modal, Row, Space, Spin, Tag, Typography } from "antd";
+import { App, Button, Col, Grid, InputNumber, Row, Space, Spin, Tag, Typography } from "antd";
 import { useState } from "react";
 import { AppModal } from "@/ui/shared/components/AppModal";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ interface Props {
 
 export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   const { t } = useTranslation();
+  const { modal } = App.useApp();
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
   const {
@@ -64,20 +65,20 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   };
 
   const handleCancel = () => {
-    Modal.confirm({
-      title: "Cancel subscription?",
-      content: "This will stop all future charges. This action cannot be undone.",
+    modal.confirm({
+      title: t("admin.contracts.subscription.cancelConfirmTitle"),
+      content: t("admin.contracts.subscription.cancelConfirmContent"),
       okType: "danger",
-      okText: "Yes, cancel",
+      okText: t("admin.contracts.subscription.cancelConfirmOk"),
+      cancelText: t("common.cancel"),
       onOk: () => void cancelSubscription(),
     });
   };
 
+  // Flat sections separated by a hairline divider — no nested boxes.
   const sectionStyle = {
-    padding: isMobile ? "12px" : "14px 16px",
-    background: "var(--ds-surface-1, #f8fafc)",
-    border: "1px solid var(--ds-border-subtle, #e2e8f0)",
-    borderRadius: 8,
+    paddingTop: 16,
+    borderTop: "1px solid var(--ds-border-subtle)",
   };
 
   return (
@@ -119,7 +120,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                   controls
                 />
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  day of month
+                  {t("admin.contracts.subscription.dayOfMonthSuffix")}
                 </Typography.Text>
                 <Button
                   type="primary"
@@ -134,32 +135,27 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                 </Button>
               </Space>
               <Typography.Text type="secondary" style={{ display: "block", marginTop: 6, fontSize: 12 }}>
-                Leave blank to charge on the signup date.
+                {t("admin.contracts.subscription.billingBlankHint")}
               </Typography.Text>
             </div>
 
             {/* ── Test mode (only when activated) ── */}
             {!isPending && !isCancelled && (
-              <div
-                style={{
-                  ...sectionStyle,
-                  background: "var(--ds-color-warning-surface, #fffbe6)",
-                  border: "1px solid var(--ds-color-warning-border, #ffe58f)",
-                }}
-              >
+              <div style={sectionStyle}>
                 <Space style={{ marginBottom: 10 }}>
-                  <ThunderboltOutlined style={{ color: "#faad14" }} />
+                  <ThunderboltOutlined style={{ color: "var(--ds-color-warning)" }} />
                   <Typography.Text strong style={{ fontSize: 13 }}>
-                    Test mode
+                    {t("admin.contracts.subscription.testMode")}
                   </Typography.Text>
                   {hasTestInterval && (
-                    <Tag color="orange">Every {status.test_interval_minutes} min</Tag>
+                    <Tag color="warning">
+                      {t("admin.contracts.subscription.testEvery", { minutes: status.test_interval_minutes })}
+                    </Tag>
                   )}
                 </Space>
 
                 <Typography.Text type="secondary" style={{ display: "block", marginBottom: 10, fontSize: 12 }}>
-                  Charge this subscription automatically every N minutes instead of monthly. Requires{" "}
-                  <code>SUBSCRIPTION_BILLING_TEST_ENABLED=true</code> in backend env.
+                  {t("admin.contracts.subscription.testModeDesc")}
                 </Typography.Text>
 
                 {hasTestInterval ? (
@@ -171,7 +167,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                       disabled={status.payments_remaining === 0}
                       size="small"
                     >
-                      Simulate now
+                      {t("admin.contracts.subscription.simulateNow")}
                     </Button>
                     <Button
                       danger
@@ -180,7 +176,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                       onClick={handleStopTest}
                       size="small"
                     >
-                      Stop test
+                      {t("admin.contracts.subscription.stopTest")}
                     </Button>
                   </Space>
                 ) : (
@@ -192,7 +188,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                         value={testMinutes ?? undefined}
                         onChange={(v) => setTestMinutes(v ?? null)}
                         placeholder="10"
-                        addonAfter="min"
+                        addonAfter={t("admin.contracts.subscription.minUnit")}
                         style={{ width: 130 }}
                       />
                     </Col>
@@ -204,7 +200,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                         onClick={handleStartTest}
                         size="small"
                       >
-                        Start test
+                        {t("admin.contracts.subscription.startTest")}
                       </Button>
                     </Col>
                     <Col>
@@ -214,7 +210,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                         disabled={status.payments_remaining === 0}
                         size="small"
                       >
-                        One-time simulate
+                        {t("admin.contracts.subscription.oneTimeSimulate")}
                       </Button>
                     </Col>
                   </Row>
@@ -226,7 +222,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
             {!isPending && (
               <div style={sectionStyle}>
                 <Typography.Text strong style={{ display: "block", marginBottom: 10, fontSize: 13 }}>
-                  Subscription controls
+                  {t("admin.contracts.subscription.controls")}
                 </Typography.Text>
                 <Space wrap>
                   {isActive && (
@@ -235,7 +231,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                       loading={pausingOrResuming}
                       onClick={() => void pauseSubscription()}
                     >
-                      Pause
+                      {t("admin.contracts.subscription.pause")}
                     </Button>
                   )}
                   {isPaused && (
@@ -245,7 +241,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                       loading={pausingOrResuming}
                       onClick={() => void resumeSubscription()}
                     >
-                      Resume
+                      {t("admin.contracts.subscription.resume")}
                     </Button>
                   )}
                   {!isCancelled && (
@@ -255,12 +251,12 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                       loading={cancelling}
                       onClick={handleCancel}
                     >
-                      Cancel subscription
+                      {t("admin.contracts.subscription.cancel")}
                     </Button>
                   )}
                   {isCancelled && (
                     <Tag color="red" style={{ fontSize: 13, padding: "4px 10px" }}>
-                      Subscription cancelled
+                      {t("admin.contracts.subscription.cancelled")}
                     </Tag>
                   )}
                 </Space>

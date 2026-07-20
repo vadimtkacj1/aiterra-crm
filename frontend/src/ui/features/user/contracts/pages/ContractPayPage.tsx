@@ -40,7 +40,7 @@ async function createContractCheckout(
 }
 
 const pageBg =
-  "linear-gradient(165deg, #eef2f7 0%, #e2e8f0 38%, #f1f5f9 70%, #f8fafc 100%)";
+  "linear-gradient(165deg, #eef2f7 0%, #e2e8f0 38%, var(--ds-surface-2) 70%, var(--ds-surface-1) 100%)";
 const cardShadow =
   "0 8px 30px -8px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.06)";
 
@@ -121,7 +121,7 @@ export function ContractPayPage() {
   if (pending.length === 0) {
     return centeredCard(
       <>
-        <CheckCircleOutlined style={{ fontSize: 48, color: "#16a34a", marginBottom: 16 }} />
+        <CheckCircleOutlined style={{ fontSize: 48, color: "var(--ds-color-success)", marginBottom: 16 }} />
         <Typography.Title level={4} style={{ marginBottom: 8 }}>{contract.title}</Typography.Title>
         <Typography.Text type="secondary">
           {isSubscription && subscriptionActive
@@ -147,7 +147,7 @@ export function ContractPayPage() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         flexWrap: "wrap", gap: 12,
       }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "#475569", fontWeight: 500 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--ds-text-secondary)", fontWeight: 500 }}>
           <span style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             width: 36, height: 36, borderRadius: 10,
@@ -157,7 +157,7 @@ export function ContractPayPage() {
           </span>
           {t("contracts.sign.secureLabel")}
         </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ds-text-tertiary)" }}>
           <LockOutlined />
           {t("contracts.sign.encryptionNote")}
         </span>
@@ -172,11 +172,11 @@ export function ContractPayPage() {
           {/* Contract title */}
           <Typography.Text style={{
             fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
-            textTransform: "uppercase", color: "#64748b", display: "block", marginBottom: 6,
+            textTransform: "uppercase", color: "var(--ds-text-secondary)", display: "block", marginBottom: 6,
           }}>
             {t("contracts.sign.contractLabel")}
           </Typography.Text>
-          <Typography.Title level={3} style={{ margin: "0 0 24px", fontWeight: 700, color: "#0f172a" }}>
+          <Typography.Title level={3} style={{ margin: "0 0 24px", fontWeight: 700, color: "var(--ds-text-primary)" }}>
             {contract.title}
           </Typography.Title>
 
@@ -214,10 +214,10 @@ export function ContractPayPage() {
               <Divider style={{ margin: "12px 0 10px", borderColor: "rgba(37,99,235,0.2)" }} />
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography.Text strong style={{ fontSize: 14, color: "#0f172a" }}>
+                <Typography.Text strong style={{ fontSize: 14, color: "var(--ds-text-primary)" }}>
                   {t("contracts.pay.total")}
                 </Typography.Text>
-                <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "#0f172a" }}>
+                <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ds-text-primary)" }}>
                   {fmtMoney(totalAmount, currency)}
                 </Typography.Title>
               </div>
@@ -232,7 +232,7 @@ export function ContractPayPage() {
               <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
                 {t("contracts.pay.amountDue")}
               </Typography.Text>
-              <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "#0f172a" }}>
+              <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ds-text-primary)" }}>
                 {fmtMoney(pending[0].amount, currency)}
               </Typography.Title>
               {pending[0].description && (
@@ -268,7 +268,7 @@ export function ContractPayPage() {
             </Typography.Text>
           )}
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "#94a3b8" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "var(--ds-text-tertiary)" }}>
             <LockOutlined />
             {t("contracts.pay.redirectNote")}
           </div>

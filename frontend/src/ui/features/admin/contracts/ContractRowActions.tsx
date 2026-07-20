@@ -1,15 +1,16 @@
 import {
   CalendarOutlined,
-  CheckCircleOutlined,
   CopyOutlined,
   CreditCardOutlined,
   DeleteOutlined,
   EyeOutlined,
   MinusCircleOutlined,
+  MoreOutlined,
   SendOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons";
-import { Space, theme } from "antd";
+import { Button, Dropdown, Space } from "antd";
+import type { MenuProps } from "antd";
 import { useTranslation } from "react-i18next";
 import type { Contract } from "../../../../domain/Contract";
 import { TableActionButton } from "../../../shared/components/TableActionButton";
@@ -27,6 +28,10 @@ interface Props {
   onDelete: (c: Contract) => void;
 }
 
+/**
+ * One direct action (View) plus an overflow menu for the rest — keeps the table
+ * row to two controls instead of up to eight competing icons.
+ */
 export function ContractRowActions({
   contract: c,
   copiedId,
@@ -40,8 +45,66 @@ export function ContractRowActions({
   onDelete,
 }: Props) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
   const wasCopied = copiedId === c.id;
+  const isMonthly = Boolean(c.monthlyAmount && c.monthlyAmount > 0);
+
+  const items: MenuProps["items"] = [];
+
+  if (c.status === "draft" || c.status === "pending_signature") {
+    items.push({
+      key: "copyLink",
+      icon: <CopyOutlined />,
+      label: wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyLink"),
+      onClick: () => onCopyLink(c),
+    });
+  }
+  if (c.status === "signed") {
+    items.push({
+      key: "copyPaymentLink",
+      icon: <CreditCardOutlined />,
+      label: wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyPaymentLink"),
+      onClick: () => onCopyPaymentLink(c),
+    });
+  }
+  if (c.status === "signed" && isMonthly) {
+    items.push({
+      key: "subscription",
+      icon: <CalendarOutlined />,
+      label: t("admin.contracts.subscription.viewStatus"),
+      onClick: () => onSubscription(c.id),
+    });
+    items.push({
+      key: "quickTest",
+      icon: <ThunderboltOutlined />,
+      label: t("admin.contracts.subscription.quickTest"),
+      onClick: () => onQuickTest(c.id),
+    });
+  }
+  if (c.status === "draft") {
+    items.push({
+      key: "send",
+      icon: <SendOutlined />,
+      label: t("admin.contracts.send"),
+      onClick: () => onSend(c),
+    });
+  }
+  if (c.status !== "voided" && c.status !== "signed") {
+    items.push({
+      key: "void",
+      icon: <MinusCircleOutlined />,
+      label: t("admin.contracts.void"),
+      danger: true,
+      onClick: () => onVoid(c),
+    });
+  }
+  if (items.length > 0) items.push({ type: "divider" });
+  items.push({
+    key: "delete",
+    icon: <DeleteOutlined />,
+    label: t("admin.contracts.delete"),
+    danger: true,
+    onClick: () => onDelete(c),
+  });
 
   return (
     <Space size={4}>
@@ -50,62 +113,9 @@ export function ContractRowActions({
         icon={<EyeOutlined />}
         onClick={() => onView(c)}
       />
-
-      {(c.status === "draft" || c.status === "pending_signature") && (
-        <TableActionButton
-          tooltip={wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyLink")}
-          icon={wasCopied ? <CheckCircleOutlined style={{ color: token.colorSuccess }} /> : <CopyOutlined />}
-          onClick={() => onCopyLink(c)}
-        />
-      )}
-
-      {c.status === "signed" && (
-        <TableActionButton
-          tooltip={wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyPaymentLink")}
-          icon={wasCopied ? <CheckCircleOutlined style={{ color: token.colorSuccess }} /> : <CreditCardOutlined />}
-          onClick={() => onCopyPaymentLink(c)}
-        />
-      )}
-
-      {c.status === "signed" && c.monthlyAmount && c.monthlyAmount > 0 && (
-        <TableActionButton
-          tooltip={t("admin.contracts.subscription.viewStatus")}
-          icon={<CalendarOutlined />}
-          onClick={() => onSubscription(c.id)}
-        />
-      )}
-
-      {c.status === "signed" && c.monthlyAmount && c.monthlyAmount > 0 && (
-        <TableActionButton
-          tooltip={t("admin.contracts.subscription.quickTest")}
-          icon={<ThunderboltOutlined />}
-          onClick={() => onQuickTest(c.id)}
-        />
-      )}
-
-      {c.status === "draft" && (
-        <TableActionButton
-          tooltip={t("admin.contracts.send")}
-          icon={<SendOutlined />}
-          onClick={() => onSend(c)}
-        />
-      )}
-
-      {c.status !== "voided" && c.status !== "signed" && (
-        <TableActionButton
-          tooltip={t("admin.contracts.void")}
-          icon={<MinusCircleOutlined />}
-          danger
-          onClick={() => onVoid(c)}
-        />
-      )}
-
-      <TableActionButton
-        tooltip={t("admin.contracts.delete")}
-        icon={<DeleteOutlined />}
-        danger
-        onClick={() => onDelete(c)}
-      />
+      <Dropdown menu={{ items }} trigger={["click"]} placement="bottomRight">
+        <Button type="text" size="small" icon={<MoreOutlined />} aria-label={t("common.actions")} />
+      </Dropdown>
     </Space>
   );
 }

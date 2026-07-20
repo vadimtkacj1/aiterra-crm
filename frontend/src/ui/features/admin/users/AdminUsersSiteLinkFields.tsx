@@ -1,4 +1,4 @@
-import { Form, Input, Radio, Switch } from "antd";
+import { Form, Input, Radio, Space, Switch } from "antd";
 import { LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
@@ -56,16 +56,18 @@ export function AdminUsersSiteLinkFields({ t, userId, siteInfo, onTokenRegenerat
                 initialValue="whatsapp"
               >
                 <Radio.Group>
-                  <Radio value="whatsapp">
-                    <WhatsAppOutlined style={{ color: "#25d366", marginRight: 4 }} />
-                    WhatsApp
-                  </Radio>
-                  <Radio value="email">
-                    <MailOutlined style={{ marginRight: 4 }} />
-                    {t("site.notify.channelEmail")}
-                  </Radio>
-                  <Radio value="both">{t("site.notify.channelBoth")}</Radio>
-                  <Radio value="none">{t("site.notify.channelNone")}</Radio>
+                  <Space direction="vertical" size={10}>
+                    <Radio value="whatsapp">
+                      <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 4 }} />
+                      WhatsApp
+                    </Radio>
+                    <Radio value="email">
+                      <MailOutlined style={{ marginInlineEnd: 4 }} />
+                      {t("site.notify.channelEmail")}
+                    </Radio>
+                    <Radio value="both">{t("site.notify.channelBoth")}</Radio>
+                    <Radio value="none">{t("site.notify.channelNone")}</Radio>
+                  </Space>
                 </Radio.Group>
               </Form.Item>
 
@@ -73,7 +75,7 @@ export function AdminUsersSiteLinkFields({ t, userId, siteInfo, onTokenRegenerat
               {userId && (
                 <Form.Item label={
                   <span>
-                    <WhatsAppOutlined style={{ color: "#25d366", marginRight: 6 }} />
+                    <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 6 }} />
                     {t("admin.whatsapp.phones.title")}
                   </span>
                 }>

@@ -41,7 +41,7 @@ export function SiteFooter() {
             href={`tel:${BUSINESS_CONTACTS.phone}`}
             style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText, textDecoration: "none" }}
           >
-            <span>{BUSINESS_CONTACTS.phone}</span>
+            <span dir="ltr">{BUSINESS_CONTACTS.phone}</span>
             <PhoneOutlined />
           </a>
 

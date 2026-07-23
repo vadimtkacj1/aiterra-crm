@@ -1,4 +1,4 @@
-import { Form, Input, Radio, Space } from "antd";
+import { Form, Input, Switch } from "antd";
 import type { TFunction } from "i18next";
 
 type Props = {
@@ -14,18 +14,19 @@ export function AdminUsersGoogleLinkFields({ t, mode, editGoogleHasCredentials }
 
   return (
     <>
+      {/* Toggle row — same pattern as the Site module switch. Stored value
+          stays "with"/"without" so payloads and edit prefill are unchanged. */}
       <Form.Item
         name="linkGoogle"
         label={t("admin.form.linkGoogle")}
         extra={showExtra ? t("admin.form.linkGoogleExtra") : undefined}
-        rules={[{ required: true }]}
+        getValueProps={(value) => ({ checked: value === "with" })}
+        normalize={(checked) => (checked === true || checked === "with" ? "with" : "without")}
       >
-        <Radio.Group>
-          <Space direction="vertical" size={10}>
-            <Radio value="without">{t("admin.form.linkGoogleWithout")}</Radio>
-            <Radio value="with">{t("admin.form.linkGoogleWith")}</Radio>
-          </Space>
-        </Radio.Group>
+        <Switch
+          checkedChildren={t("admin.form.linkGoogleWith")}
+          unCheckedChildren={t("admin.form.linkGoogleWithout")}
+        />
       </Form.Item>
       <Form.Item noStyle shouldUpdate={(prev, cur) => prev.linkGoogle !== cur.linkGoogle}>
         {({ getFieldValue }) =>

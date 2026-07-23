@@ -1,4 +1,4 @@
-import { Form, Radio, Select, Space } from "antd";
+import { Form, Select, Switch } from "antd";
 import type { TFunction } from "i18next";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
 
@@ -12,18 +12,20 @@ type Props = {
 export function AdminUsersMetaLinkFields({ t, metaCampaigns, metaCampaignsLoading, showLinkMetaExtra }: Props) {
   return (
     <>
+      {/* Toggle row — same pattern as the Site module switch. The stored form
+          value stays the legacy "with"/"without" string so submit payloads and
+          the edit-modal prefill are unchanged. */}
       <Form.Item
         name="linkMeta"
         label={t("admin.form.linkMeta")}
         extra={showLinkMetaExtra ? t("admin.form.linkMetaExtra") : undefined}
-        rules={[{ required: true }]}
+        getValueProps={(value) => ({ checked: value === "with" })}
+        normalize={(checked) => (checked === true || checked === "with" ? "with" : "without")}
       >
-        <Radio.Group>
-          <Space direction="vertical" size={10}>
-            <Radio value="without">{t("admin.form.linkMetaWithout")}</Radio>
-            <Radio value="with">{t("admin.form.linkMetaWith")}</Radio>
-          </Space>
-        </Radio.Group>
+        <Switch
+          checkedChildren={t("admin.form.linkMetaWith")}
+          unCheckedChildren={t("admin.form.linkMetaWithout")}
+        />
       </Form.Item>
       <Form.Item noStyle shouldUpdate={(prev, cur) => prev.linkMeta !== cur.linkMeta}>
         {({ getFieldValue }) =>

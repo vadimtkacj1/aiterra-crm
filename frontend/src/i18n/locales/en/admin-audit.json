@@ -5,6 +5,11 @@
       "title": "Admin audit log",
       "subtitle": "Who changed billing, users, and exports (newest first).",
       "loadError": "Could not load audit log.",
+      "searchPlaceholder": "Search by admin, action, or resource",
+      "searchEmpty": "No entries match your search.",
+      "clearSearch": "Clear search",
+      "emptyTitle": "No audit entries yet",
+      "emptyDescription": "Admin actions like billing changes, user edits, and exports will appear here.",
       "columns": {
         "time": "Time",
         "admin": "Administrator",

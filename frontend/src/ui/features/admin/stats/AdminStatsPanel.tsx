@@ -13,14 +13,13 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import { Line, Pie } from "@ant-design/plots";
-import { App, Button, Card, Col, Dropdown, Row, Segmented, Space, Typography } from "antd";
+import { App, Button, Card, Col, Dropdown, Row, Segmented, Typography } from "antd";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
 import type { AdminPaymentStats, AdminStats } from "@/services/admin/AdminService";
 import { usePlotPalette } from "@/ui/features/user/analytics/chart/analyticsPlotTheme";
-import { tokens } from "@/styles/designSystem";
 import {
   buildCurrencyPieData,
   buildRevenueLineChartData,
@@ -30,6 +29,8 @@ import {
 } from "./adminStatsData";
 import { Paths } from "@/ui/navigation/paths";
 import { downloadBlob } from "@/ui/shared/utils/downloadBlob";
+import { PageContainer } from "@/ui/shared/components/PageContainer";
+import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { StatCard, type StatAccent } from "@/ui/shared/components/StatCard";
 
 type Period = AdminStatsPeriod;
@@ -98,11 +99,11 @@ export function AdminStatsPanel() {
     if (!stats || !paymentStats) return [];
     return [
       { title: t("admin.stats.users"), value: stats.usersTotal, icon: <UserOutlined />, accent: "primary" },
-      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <TeamOutlined />, accent: "violet" },
-      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <AppstoreOutlined />, accent: "blue" },
-      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <WalletOutlined />, accent: "cyan" },
-      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChartOutlined />, accent: "teal" },
-      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCardOutlined />, accent: "green" },
+      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <TeamOutlined />, accent: "primary" },
+      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <AppstoreOutlined />, accent: "primary" },
+      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <WalletOutlined />, accent: "primary" },
+      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChartOutlined />, accent: "primary" },
+      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCardOutlined />, accent: "primary" },
       { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, icon: <CheckCircleOutlined />, accent: "green" },
       { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, icon: <ClockCircleOutlined />, accent: "amber" },
     ];
@@ -158,84 +159,96 @@ export function AdminStatsPanel() {
     }
   };
 
-  const cardStyle = {
-    boxShadow: tokens.shadow.card,
-  } as const;
+  const chartCardHeader = (title: string, end?: ReactNode) => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: 12,
+        marginBottom: 16,
+      }}
+    >
+      <Typography.Title level={5} style={{ margin: 0 }}>
+        {title}
+      </Typography.Title>
+      {end}
+    </div>
+  );
+
+  const chartEmpty = (height: number) => (
+    <div style={{ height, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <Typography.Text type="secondary">{t("common.noData")}</Typography.Text>
+    </div>
+  );
 
   return (
-    <div style={{ background: "transparent", padding: 0 }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-        <Typography.Title level={4} style={{ margin: 0 }}>
-          {t("admin.stats.title")}
-        </Typography.Title>
-        <Space wrap size={[8, 8]}>
-          <Button size="small" icon={<FilePdfOutlined />} onClick={() => void onDownloadPdf()} loading={exporting === "pdf"} disabled={loading}>
-            {t("admin.stats.downloadExecutivePdf")}
-          </Button>
-          <Dropdown
-            trigger={["click"]}
-            menu={{
-              items: [
-                { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
-                { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
-              ],
-            }}
-          >
-            <Button size="small" icon={<DownloadOutlined />} loading={exporting === "users" || exporting === "billing"} disabled={loading}>
-              {t("common.export")}
+    <PageContainer>
+      <PageHeader
+        title={t("admin.stats.title")}
+        description={t("admin.stats.subtitle")}
+        actions={
+          <>
+            <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
+              {t("common.reload")}
             </Button>
-          </Dropdown>
-          <Button size="small" icon={<SafetyCertificateOutlined />} onClick={() => navigate(Paths.adminAudit)} disabled={loading}>
-            {t("admin.audit.title")}
-          </Button>
-          <Button size="small" icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
-            {t("common.reload")}
-          </Button>
-        </Space>
-      </div>
+            <Button icon={<SafetyCertificateOutlined />} onClick={() => navigate(Paths.adminAudit)} disabled={loading}>
+              {t("admin.audit.title")}
+            </Button>
+            <Dropdown
+              trigger={["click"]}
+              menu={{
+                items: [
+                  { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
+                  { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
+                ],
+              }}
+            >
+              <Button icon={<DownloadOutlined />} loading={exporting === "users" || exporting === "billing"} disabled={loading}>
+                {t("common.export")}
+              </Button>
+            </Dropdown>
+            <Button type="primary" icon={<FilePdfOutlined />} onClick={() => void onDownloadPdf()} loading={exporting === "pdf"} disabled={loading}>
+              {t("admin.stats.downloadExecutivePdf")}
+            </Button>
+          </>
+        }
+      />
 
       {loading ? (
         <>
-          <Row gutter={[12, 12]}>
+          <Row gutter={[16, 16]}>
             {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
-              <Col key={k} xs={12} sm={8} lg={6}>
+              <Col key={k} xs={24} sm={12} lg={6}>
                 <StatCard title="" value="" loading />
               </Col>
             ))}
           </Row>
-          <div style={{ marginTop: 16 }}>
-            <Card bordered={false} style={cardStyle} loading />
-          </div>
+          <Card style={{ marginTop: 24 }} loading />
         </>
       ) : (
         <>
-          {/* KPI cards */}
-          <Row gutter={[12, 12]}>
+          {/* KPI tiles */}
+          <Row gutter={[16, 16]}>
             {metricCards.map((m) => (
-              <Col key={m.title} xs={12} sm={8} lg={6}>
+              <Col key={m.title} xs={24} sm={12} lg={6}>
                 <StatCard title={m.title} value={m.value} icon={m.icon} accent={m.accent} />
               </Col>
             ))}
           </Row>
 
           {/* Revenue line chart */}
-          <Card
-            bordered={false}
-            style={{ marginTop: 16, ...cardStyle }}
-            bodyStyle={{ padding: "20px 24px" }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <Typography.Title level={5} style={{ margin: 0 }}>
-                {t("admin.stats.paymentsChart")}
-              </Typography.Title>
+          <Card style={{ marginTop: 24 }} styles={{ body: { padding: 20 } }}>
+            {chartCardHeader(
+              t("admin.stats.paymentsChart"),
               <Segmented
                 size="small"
                 value={period}
                 onChange={(v) => setPeriod(v as Period)}
                 options={periodButtons.map((b) => ({ label: b.label, value: b.key }))}
-              />
-            </div>
+              />,
+            )}
 
             {revenueLineData.length ? (
               <Line
@@ -257,49 +270,33 @@ export function AdminStatsPanel() {
                 tooltip={{ formatter: lineSeriesTooltipFormatter }}
               />
             ) : (
-              <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography.Text type="secondary">-</Typography.Text>
-              </div>
+              chartEmpty(240)
             )}
           </Card>
 
-          {/* Bottom row: currency pie */}
-          <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            <Col xs={24}>
-              <Card
-                bordered={false}
-                style={cardStyle}
-                bodyStyle={{ padding: "20px 24px" }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <Typography.Title level={5} style={{ margin: 0 }}>
-                    {t("admin.stats.categoryProportion")}
-                  </Typography.Title>
-                </div>
-                {pieData.length ? (
-                  <Pie
-                    data={pieData}
-                    angleField="value"
-                    colorField="type"
-                    autoFit
-                    height={220}
-                    radius={0.8}
-                    innerRadius={0.5}
-                    legend={{ position: "right" }}
-                    label={{ type: "inner", offset: "-30%", content: "{percentage}" }}
-                    scale={{ color: { range: palette } }}
-                    tooltip={{ formatter: pieSliceTooltipFormatter }}
-                  />
-                ) : (
-                  <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Typography.Text type="secondary">-</Typography.Text>
-                  </div>
-                )}
-              </Card>
-            </Col>
-          </Row>
+          {/* Currency breakdown pie */}
+          <Card style={{ marginTop: 24 }} styles={{ body: { padding: 20 } }}>
+            {chartCardHeader(t("admin.stats.categoryProportion"))}
+            {pieData.length ? (
+              <Pie
+                data={pieData}
+                angleField="value"
+                colorField="type"
+                autoFit
+                height={220}
+                radius={0.8}
+                innerRadius={0.5}
+                legend={{ position: "right" }}
+                label={{ type: "inner", offset: "-30%", content: "{percentage}" }}
+                scale={{ color: { range: palette } }}
+                tooltip={{ formatter: pieSliceTooltipFormatter }}
+              />
+            ) : (
+              chartEmpty(220)
+            )}
+          </Card>
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -104,7 +104,8 @@ export function ContractRowActions({
         icon={<EyeOutlined />}
         onClick={() => onView(c)}
       />
-      <Dropdown menu={{ items }} trigger={["click"]} placement="bottomRight">
+      {/* No explicit placement — antd picks the direction-aware default, keeping RTL correct */}
+      <Dropdown menu={{ items }} trigger={["click"]}>
         <Button type="text" size="small" icon={<MoreOutlined />} aria-label={t("common.actions")} />
       </Dropdown>
     </Space>

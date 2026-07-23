@@ -2,6 +2,9 @@
   "admin": {
     "topup": {
       "title": "תקציב Meta Ads",
+      "subtitle": "כל טעינות תקציב הפרסום ב-Meta, בכל חשבונות הלקוחות.",
+      "emptyTitle": "אין טעינות עדיין",
+      "emptyDescription": "טעינות יופיעו כאן לאחר חיוב כרטיס הלקוח ושליחת התקציב ל-Meta.",
       "selectAccount": "חשבון לקוח",
       "selectAccountPlaceholder": "בחר חשבון",
       "savedCard": "כרטיס שמור",

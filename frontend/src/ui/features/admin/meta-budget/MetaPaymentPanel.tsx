@@ -1,9 +1,10 @@
-import { HistoryOutlined, ReloadOutlined } from "@ant-design/icons";
-import { App, Button, Card, Grid, Table, Tag } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+import { App, Button, Card, Flex, Grid, Table, Tag } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminAccountRow, MetaTopupRecord } from "@/services/admin/AdminService";
 import { useApp } from "../../../../app/AppProviders";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import { ResponsiveCardView } from "../../../shared/components/ResponsiveCardView";
 
 export function MetaPaymentPanel() {
@@ -53,83 +54,81 @@ export function MetaPaymentPanel() {
     status === "sent_to_meta" ? "success" : status === "failed" ? "error" : "processing";
 
   return (
-    <div style={{ maxWidth: 960 }}>
-      <Card
-        title={
-          <span>
-            <HistoryOutlined style={{ marginInlineEnd: 8 }} />
-            {t("admin.topup.history")}
-          </span>
-        }
-        size="small"
-        styles={{ body: { padding: 0 } }}
-        extra={
-          <Button size="small" icon={<ReloadOutlined />} loading={loading} onClick={() => void load()}>
-            {!isMobile && t("common.reload")}
-          </Button>
-        }
-      >
-        {isMobile ? (
-          <ResponsiveCardView
-            items={topups.map((r) => ({
-              id: r.id,
-              title: accountName(r.accountId),
-              subtitle: r.createdAt ? r.createdAt.slice(0, 19).replace("T", " ") : "-",
-              description: r.metaError || undefined,
-              tags: [
-                { label: `${r.amount} ${r.currency}` },
-                { label: getStatusLabel(r.status), color: getStatusColor(r.status) },
-              ],
-            }))}
-            loading={loading}
-            emptyText={t("common.noData")}
-          />
-        ) : (
-          <Table
-            size="small"
-            rowKey="id"
-            loading={loading}
-            locale={{ emptyText: t("common.noData") }}
-            pagination={{ pageSize: 15, showSizeChanger: false }}
-            dataSource={topups}
-            columns={[
-              {
-                title: t("admin.topup.colDate"),
-                dataIndex: "createdAt",
-                key: "createdAt",
-                width: 180,
-                render: (s: string) => (s ? s.slice(0, 19).replace("T", " ") : "-"),
-              },
-              {
-                title: t("admin.topup.colAccount"),
-                dataIndex: "accountId",
-                key: "account",
-                render: (id: number) => accountName(id),
-              },
-              {
-                title: t("admin.topup.colAmount"),
-                key: "amt",
-                width: 120,
-                render: (_: unknown, r: MetaTopupRecord) => `${r.amount} ${r.currency}`,
-              },
-              {
-                title: t("admin.topup.colStatus"),
-                dataIndex: "status",
-                key: "status",
-                width: 120,
-                render: (s: string) => <Tag color={getStatusColor(s)}>{getStatusLabel(s)}</Tag>,
-              },
-              {
-                title: t("admin.topup.colError"),
-                dataIndex: "metaError",
-                key: "err",
-                ellipsis: true,
-                render: (e: string | null) => e || "-",
-              },
-            ]}
-          />
-        )}
-      </Card>
-    </div>
+    <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
+      <Flex align="center" justify="flex-end" style={{ marginBottom: 16 }}>
+        <Button icon={<ReloadOutlined />} loading={loading} onClick={() => void load()}>
+          {!isMobile && t("common.reload")}
+        </Button>
+      </Flex>
+      {isMobile ? (
+        <ResponsiveCardView
+          items={topups.map((r) => ({
+            id: r.id,
+            title: accountName(r.accountId),
+            subtitle: r.createdAt ? r.createdAt.slice(0, 19).replace("T", " ") : "-",
+            description: r.metaError || undefined,
+            tags: [
+              { label: `${r.amount} ${r.currency}` },
+              { label: getStatusLabel(r.status), color: getStatusColor(r.status) },
+            ],
+          }))}
+          loading={loading}
+          emptyText={t("admin.topup.emptyTitle")}
+        />
+      ) : (
+        <Table
+          size="middle"
+          rowKey="id"
+          loading={loading}
+          locale={{
+            emptyText: (
+              <EmptyState
+                title={t("admin.topup.emptyTitle")}
+                description={t("admin.topup.emptyDescription")}
+              />
+            ),
+          }}
+          pagination={{ pageSize: 15, showSizeChanger: false }}
+          dataSource={topups}
+          columns={[
+            {
+              title: t("admin.topup.colDate"),
+              dataIndex: "createdAt",
+              key: "createdAt",
+              width: 180,
+              onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
+              render: (s: string) => (s ? s.slice(0, 19).replace("T", " ") : "-"),
+            },
+            {
+              title: t("admin.topup.colAccount"),
+              dataIndex: "accountId",
+              key: "account",
+              render: (id: number) => accountName(id),
+            },
+            {
+              title: t("admin.topup.colAmount"),
+              key: "amt",
+              width: 120,
+              onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
+              render: (_: unknown, r: MetaTopupRecord) => `${r.amount} ${r.currency}`,
+            },
+            {
+              title: t("admin.topup.colStatus"),
+              dataIndex: "status",
+              key: "status",
+              width: 120,
+              render: (s: string) => <Tag color={getStatusColor(s)}>{getStatusLabel(s)}</Tag>,
+            },
+            {
+              title: t("admin.topup.colError"),
+              dataIndex: "metaError",
+              key: "err",
+              ellipsis: true,
+              render: (e: string | null) => e || "-",
+            },
+          ]}
+        />
+      )}
+    </Card>
   );
 }

@@ -1,18 +1,20 @@
 import {
   CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, DisconnectOutlined,
-  PlusOutlined, ReloadOutlined, WhatsAppOutlined, CrownOutlined,
+  PlusOutlined, ReloadOutlined, SearchOutlined, WhatsAppOutlined,
 } from "@ant-design/icons";
-import { App, Button, Divider, Input, Popconfirm, Tag, Typography } from "antd";
+import { App, Button, Flex, Input, Popconfirm, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminWaPhone, WaConnectionRow } from "@/services/admin/AdminService";
 import { useApp } from "@/app/AppProviders";
 import { AppTable } from "../../../shared/components/AppTable";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
+import { PageHeader } from "../../../shared/components/PageHeader";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 function AdminPhonesSection() {
   const { t } = useTranslation();
@@ -68,24 +70,54 @@ function AdminPhonesSection() {
   }
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <CrownOutlined style={{ color: "#faad14" }} />
-        <Title level={5} style={{ margin: 0 }}>{t("admin.whatsapp.admin.title")}</Title>
-        <Text type="secondary" style={{ fontSize: 13 }}>{t("admin.whatsapp.admin.hint")}</Text>
-      </div>
+    <ListCard
+      title={t("admin.whatsapp.admin.title")}
+      loading={loading && phones.length === 0}
+      extra={
+        !showForm ? (
+          <Button icon={<PlusOutlined />} onClick={() => setShowForm(true)}>
+            {t("admin.whatsapp.admin.addBtn")}
+          </Button>
+        ) : undefined
+      }
+    >
+      <Text type="secondary" style={{ fontSize: 13, display: "block", marginBottom: 16 }}>
+        {t("admin.whatsapp.admin.hint")}
+      </Text>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+      <Flex wrap="wrap" gap={8}>
         {!loading && phones.length === 0 && (
           <Text type="secondary" style={{ fontSize: 13 }}>{t("admin.whatsapp.admin.empty")}</Text>
         )}
         {phones.map((p) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <Tag style={{ padding: "4px 8px", fontSize: 13, margin: 0 }} color="gold">
-              <WhatsAppOutlined style={{ marginRight: 4, color: "#25d366" }} />
-              <Text strong style={{ fontFamily: "monospace" }}>{p.phone}</Text>
-              {p.label && <Text type="secondary" style={{ marginLeft: 6, fontSize: 12 }}>({p.label})</Text>}
-            </Tag>
+          <span
+            key={p.id}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              paddingBlock: 4,
+              paddingInline: "10px 4px",
+              background: "var(--ds-surface-1)",
+              border: "1px solid var(--ds-border-default)",
+              borderRadius: "var(--ds-radius-lg)",
+            }}
+          >
+            <WhatsAppOutlined style={{ color: "var(--ds-text-tertiary)", fontSize: 14 }} />
+            <span
+              dir="ltr"
+              style={{
+                fontFamily: "var(--ds-font-family-mono)",
+                fontSize: 13,
+                fontVariantNumeric: "tabular-nums",
+                color: "var(--ds-text-primary)",
+              }}
+            >
+              {p.phone}
+            </span>
+            {p.label && (
+              <Text type="secondary" style={{ fontSize: 12 }}>{p.label}</Text>
+            )}
             <Popconfirm
               title={t("admin.whatsapp.admin.deleteConfirm")}
               onConfirm={() => void handleDelete(p.id)}
@@ -101,42 +133,36 @@ function AdminPhonesSection() {
                 loading={deletingId === p.id}
               />
             </Popconfirm>
-          </div>
+          </span>
         ))}
-      </div>
+      </Flex>
 
-      {showForm ? (
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+      {showForm && (
+        <Flex gap={8} wrap="wrap" align="center" style={{ marginTop: 16 }}>
           <Input
-            size="small"
-            prefix={<WhatsAppOutlined style={{ color: "#25d366" }} />}
+            prefix={<WhatsAppOutlined style={{ color: "var(--ds-text-tertiary)" }} />}
             placeholder="+972501234567"
             value={newPhone}
             onChange={(e) => setNewPhone(e.target.value)}
-            style={{ width: 160 }}
+            style={{ width: 200 }}
             onPressEnter={() => void handleAdd()}
           />
           <Input
-            size="small"
             placeholder={t("admin.whatsapp.admin.labelPlaceholder")}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            style={{ width: 130 }}
+            style={{ width: 160 }}
             onPressEnter={() => void handleAdd()}
           />
-          <Button size="small" type="primary" loading={adding} onClick={() => void handleAdd()}>
+          <Button type="primary" loading={adding} onClick={() => void handleAdd()}>
             {t("admin.whatsapp.admin.addConfirm")}
           </Button>
-          <Button size="small" onClick={() => { setShowForm(false); setNewPhone(""); setNewLabel(""); }}>
+          <Button onClick={() => { setShowForm(false); setNewPhone(""); setNewLabel(""); }}>
             {t("common.cancel")}
           </Button>
-        </div>
-      ) : (
-        <Button size="small" icon={<PlusOutlined />} onClick={() => setShowForm(true)}>
-          {t("admin.whatsapp.admin.addBtn")}
-        </Button>
+        </Flex>
       )}
-    </div>
+    </ListCard>
   );
 }
 
@@ -147,6 +173,7 @@ export function AdminWhatsAppPage() {
 
   const [rows, setRows] = useState<WaConnectionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [disconnectingId, setDisconnectingId] = useState<number | null>(null);
 
@@ -190,6 +217,18 @@ export function AdminWhatsAppPage() {
     }
   }
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) =>
+      r.accountName.toLowerCase().includes(q) ||
+      (r.ownerEmail ?? "").toLowerCase().includes(q) ||
+      (r.phone ?? "").toLowerCase().includes(q) ||
+      (r.label ?? "").toLowerCase().includes(q) ||
+      r.connectCode.toLowerCase().includes(q),
+    );
+  }, [rows, search]);
+
   const columns: ColumnsType<WaConnectionRow> = [
     {
       title: t("admin.whatsapp.colAccount"),
@@ -227,7 +266,11 @@ export function AdminWhatsAppPage() {
       key: "phone",
       width: 160,
       render: (_, r) => r.phone
-        ? <Text copyable style={{ fontFamily: "monospace" }}>{r.phone}</Text>
+        ? (
+          <Text copyable={{ text: r.phone }} style={{ fontFamily: "var(--ds-font-family-mono)", fontVariantNumeric: "tabular-nums" }}>
+            <span dir="ltr">{r.phone}</span>
+          </Text>
+        )
         : <Text type="secondary">—</Text>,
     },
     {
@@ -236,7 +279,7 @@ export function AdminWhatsAppPage() {
       key: "connectCode",
       width: 140,
       render: (v: string) => (
-        <Tag style={{ fontFamily: "monospace", letterSpacing: 1 }}>{v}</Tag>
+        <Tag style={{ fontFamily: "var(--ds-font-family-mono)", letterSpacing: 1 }}>{v}</Tag>
       ),
     },
     {
@@ -244,7 +287,7 @@ export function AdminWhatsAppPage() {
       key: "actions",
       width: 110,
       render: (_, r) => (
-        <div style={{ display: "flex", gap: 6 }}>
+        <Flex gap={6}>
           {r.verified && (
             <Popconfirm
               title={t("admin.whatsapp.disconnectConfirm")}
@@ -271,7 +314,7 @@ export function AdminWhatsAppPage() {
           >
             <Button danger size="small" icon={<DeleteOutlined />} loading={deletingId === r.phoneId} />
           </Popconfirm>
-        </div>
+        </Flex>
       ),
     },
   ];
@@ -280,33 +323,53 @@ export function AdminWhatsAppPage() {
 
   return (
     <PageContainer>
-      <ListCard
-        icon={<WhatsAppOutlined style={{ color: "#25d366" }} />}
-        title={
-          <span>
-            {t("admin.whatsapp.title")}
-            <Text type="secondary" style={{ fontWeight: 400, marginLeft: 8 }}>
-              ({connected} {t("admin.whatsapp.connectedCount")})
-            </Text>
-          </span>
-        }
-        extra={
+      <PageHeader
+        title={t("admin.whatsapp.title")}
+        subtitle={t("admin.whatsapp.subtitle")}
+        actions={
           <Button icon={<ReloadOutlined />} loading={loading} onClick={() => void load()}>
             {t("common.reload")}
           </Button>
         }
-      >
-        <AdminPhonesSection />
-        <Divider style={{ margin: "8px 0 16px" }} />
+      />
 
-        <AppTable<WaConnectionRow>
-          loading={loading}
-          dataSource={rows}
-          rowKey="phoneId"
-          columns={columns}
-          locale={{ emptyText: t("admin.whatsapp.empty") }}
-        />
-      </ListCard>
+      <Flex vertical gap={24}>
+        <AdminPhonesSection />
+
+        <ListCard>
+          <Flex align="center" justify="space-between" gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder={t("common.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              allowClear
+              style={{ width: 260, maxWidth: "100%" }}
+            />
+            <Text type="secondary" style={{ fontSize: 13, fontVariantNumeric: "tabular-nums" }}>
+              {connected}/{rows.length} {t("admin.whatsapp.connectedCount")}
+            </Text>
+          </Flex>
+
+          <AppTable<WaConnectionRow>
+            loading={loading}
+            dataSource={filtered}
+            rowKey="phoneId"
+            columns={columns}
+            locale={{
+              emptyText: search ? (
+                <EmptyState title={t("admin.whatsapp.searchEmpty")} />
+              ) : (
+                <EmptyState
+                  title={t("admin.whatsapp.empty")}
+                  description={t("admin.whatsapp.emptyDesc")}
+                  action={{ label: t("common.reload"), onClick: () => void load() }}
+                />
+              ),
+            }}
+          />
+        </ListCard>
+      </Flex>
     </PageContainer>
   );
 }

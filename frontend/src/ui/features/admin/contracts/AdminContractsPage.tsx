@@ -1,11 +1,11 @@
 import {
   CheckCircleOutlined,
-  ContainerOutlined,
   CopyOutlined,
   CreditCardOutlined,
   FilePdfOutlined,
   MinusCircleOutlined,
   PlusOutlined,
+  SearchOutlined,
   SyncOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
@@ -13,6 +13,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 import {
   App,
   Button,
+  Card,
   Col,
   Descriptions,
   Flex,
@@ -32,15 +33,15 @@ import {
   Upload,
 } from "antd";
 import { AppModal } from "../../../shared/components/AppModal";
-import { ListCard } from "../../../shared/components/ListCard";
 import type { ColumnsType } from "antd/es/table";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Contract } from "../../../../domain/Contract";
 import { useApp } from "../../../../app/AppProviders";
 import { renderContractBody } from "../../user/contracts/components/contractBodyRenderer";
 import { PdfViewer } from "../../user/contracts/components/PdfViewer";
 import { PageContainer } from "../../../shared/components/PageContainer";
+import { PageHeader } from "../../../shared/components/PageHeader";
 import { SubscriptionStatusModal } from "./SubscriptionStatusModal";
 import { ContractRowActions } from "./ContractRowActions";
 import { SubscriptionPaymentHistory } from "../../user/subscriptions/components/SubscriptionPaymentHistory";
@@ -150,7 +151,21 @@ export function AdminContractsPage() {
   const [splitParts, setSplitParts] = useState<number>(2);
   /** Equal-split helper is an advanced utility — hidden until requested. */
   const [splitOpen, setSplitOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [form] = Form.useForm<FormValues>();
+
+  const filteredContracts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return contracts;
+    return contracts.filter((c) => {
+      const u = users.find((x) => x.accountId === c.accountId);
+      return (
+        (c.title ?? "").toLowerCase().includes(q) ||
+        (u?.displayName ?? "").toLowerCase().includes(q) ||
+        (u?.email ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [contracts, users, search]);
 
   const reload = () => {
     setLoading(true);
@@ -416,6 +431,7 @@ export function AdminContractsPage() {
       title: t("admin.contracts.columns.total"),
       key: "total",
       align: "right" as const,
+      onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
       render: (_, r) => {
         const paidCount = getPaidCount(r);
         const total = r.stages.length;
@@ -491,18 +507,34 @@ export function AdminContractsPage() {
 
   return (
     <PageContainer>
-      <ListCard
-        icon={<ContainerOutlined />}
+      <PageHeader
         title={t("admin.contracts.title")}
-        extra={
+        subtitle={t("admin.contracts.subtitle")}
+      />
+
+      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
+        <Flex
+          align="center"
+          justify="space-between"
+          gap={8}
+          wrap="wrap"
+          style={{ marginBottom: 16 }}
+        >
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder={t("common.search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            style={{ width: isMobile ? 160 : 280 }}
+          />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {!isMobile && t("admin.contracts.create")}
           </Button>
-        }
-      >
+        </Flex>
         {isMobile ? (
           <ResponsiveCardView
-            items={contracts.map((c) => {
+            items={filteredContracts.map((c) => {
               const u = users.find((x) => x.accountId === c.accountId);
               const [statusColor, statusKey] = statusCfg(c.status);
               const paidCount = getPaidCount(c);
@@ -558,11 +590,14 @@ export function AdminContractsPage() {
         ) : (
           <Table
             columns={columns}
-            dataSource={contracts}
+            dataSource={filteredContracts}
             rowKey="id"
             loading={loading}
+            size="middle"
             locale={{
-              emptyText: (
+              emptyText: search ? (
+                <EmptyState title={t("common.noData")} />
+              ) : (
                 <EmptyState
                   title={t("admin.contracts.empty.title")}
                   description={t("admin.contracts.empty.description")}
@@ -594,7 +629,7 @@ export function AdminContractsPage() {
             }}
           />
         )}
-      </ListCard>
+      </Card>
 
       {/* ── Create modal ──────────────────────────────────────── */}
       <AppModal

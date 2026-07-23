@@ -3,6 +3,7 @@ import {
   DownloadOutlined,
   PlusOutlined,
   RollbackOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import {
@@ -25,7 +26,7 @@ import {
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Key } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -59,7 +60,19 @@ export function AdminInvoicesPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [showDescription, setShowDescription] = useState(false);
+  const [search, setSearch] = useState("");
   const [form] = Form.useForm<CreateFormValues>();
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return invoices;
+    return invoices.filter(
+      (r) =>
+        (r.accountName ?? "").toLowerCase().includes(q) ||
+        (r.ownerEmail ?? "").toLowerCase().includes(q) ||
+        (r.description ?? "").toLowerCase().includes(q),
+    );
+  }, [invoices, search]);
 
   const reload = () => {
     setLoading(true);
@@ -153,6 +166,7 @@ export function AdminInvoicesPage() {
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
+      onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
       render: (v: string) => formatHistoryDateTime(v),
     },
     {
@@ -185,6 +199,7 @@ export function AdminInvoicesPage() {
       title: t("admin.invoices.table.amount"),
       key: "amount",
       width: 140,
+      onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
       render: (_, r) => {
         if (r.amount == null) return "-";
         const main = formatMoney(r.amount, r.currency || "ILS");
@@ -281,17 +296,31 @@ export function AdminInvoicesPage() {
       <PageHeader
         title={t("admin.invoices.title")}
         subtitle={t("admin.invoices.subtitle")}
-        actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {!isMobile && t("admin.invoices.createButton")}
-          </Button>
-        }
       />
 
       <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
+        <Flex
+          align="center"
+          justify="space-between"
+          gap={8}
+          wrap="wrap"
+          style={{ marginBottom: 16 }}
+        >
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder={t("common.search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            style={{ width: isMobile ? 160 : 280 }}
+          />
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+            {!isMobile && t("admin.invoices.createButton")}
+          </Button>
+        </Flex>
         {isMobile ? (
           <ResponsiveCardView
-            items={invoices.map((r) => ({
+            items={filtered.map((r) => ({
               id: `${r.accountId}-${r.id}`,
               title: r.accountName,
               subtitle: r.ownerEmail || "-",
@@ -383,9 +412,10 @@ export function AdminInvoicesPage() {
           )}
           <Table
             columns={columns}
-            dataSource={invoices}
+            dataSource={filtered}
             rowKey={(r) => `${r.accountId}-${r.id}`}
             loading={loading}
+            size="middle"
             pagination={{ pageSize: 20, showSizeChanger: true }}
             scroll={{ x: 1100 }}
             rowSelection={{
@@ -394,7 +424,9 @@ export function AdminInvoicesPage() {
               preserveSelectedRowKeys: true,
             }}
             locale={{
-              emptyText: (
+              emptyText: search ? (
+                <EmptyState title={t("common.noData")} />
+              ) : (
                 <EmptyState
                   title={t("admin.invoices.emptyTitle")}
                   description={t("admin.invoices.emptyDescription")}

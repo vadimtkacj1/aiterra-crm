@@ -28,7 +28,7 @@ export function EmptyState({
   image,
   style,
 }: EmptyStateProps) {
-  const defaultIcon = <InboxOutlined style={{ fontSize: 64, color: "rgba(0, 0, 0, 0.25)" }} />;
+  const defaultIcon = <InboxOutlined style={{ fontSize: 64, color: "var(--ds-text-disabled)" }} />;
 
   return (
     <Empty

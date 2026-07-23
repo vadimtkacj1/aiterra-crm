@@ -2,6 +2,7 @@
   "admin": {
     "contracts": {
       "title": "Contracts",
+      "subtitle": "Create, send and track client contracts and their payment schedules.",
       "create": "New Contract",
       "empty": {
         "title": "No contracts yet",

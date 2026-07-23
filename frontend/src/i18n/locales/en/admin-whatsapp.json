@@ -3,9 +3,12 @@
     "whatsapp": {
       "menuTitle": "WhatsApp connections",
       "title": "WhatsApp connections",
+      "subtitle": "Customer phone slots and their connection status, plus global admin numbers.",
       "connectedCount": "connected",
       "loadError": "Could not load connections.",
       "empty": "No WhatsApp phone slots found.",
+      "emptyDesc": "Phone slots are created from the Users page and will appear here.",
+      "searchEmpty": "No connections match your search.",
       "colAccount": "Account",
       "colEmail": "Owner email",
       "colLabel": "Label",

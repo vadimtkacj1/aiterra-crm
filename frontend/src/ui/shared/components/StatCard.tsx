@@ -4,15 +4,15 @@ import { palette, tokens } from "@/styles/designSystem";
 
 export type StatAccent = "primary" | "green" | "amber" | "red" | "cyan" | "blue" | "teal" | "violet";
 
-const ACCENTS: Record<StatAccent, { fg: string; bg: string }> = {
-  primary: { fg: tokens.colors.primary, bg: tokens.colors.primarySurface },
-  green: { fg: palette.green.main, bg: palette.green.surface },
-  amber: { fg: palette.amber.main, bg: palette.amber.surface },
-  red: { fg: palette.red.main, bg: palette.red.surface },
-  cyan: { fg: palette.cyan.main, bg: palette.cyan.surface },
-  blue: { fg: palette.blue.main, bg: palette.blue.surface },
-  teal: { fg: palette.teal.main, bg: palette.teal.surface },
-  violet: { fg: palette.violet2.main, bg: palette.violet2.surface },
+/**
+ * Only truly semantic statuses tint the icon (quietly). Everything else stays
+ * muted — violet/brand color is reserved for interactive states, not ambient
+ * tile decoration.
+ */
+const SEMANTIC_ICON_COLOR: Partial<Record<StatAccent, string>> = {
+  green: palette.green.main,
+  amber: palette.amber.main,
+  red: palette.red.main,
 };
 
 interface StatCardProps {
@@ -28,13 +28,13 @@ interface StatCardProps {
 }
 
 /**
- * Engineered "control-panel" KPI tile: accent icon square, large tabular number,
- * compact caps label. Layered card surface with a hairline ring; lifts on hover
- * when interactive. RTL-safe — uses logical flow only.
+ * KPI tile: caps-XS muted label, large tabular number, optional context line,
+ * and a subtle muted icon at the tile's end. White surface, hairline border,
+ * card shadow. RTL-safe — uses logical flow only.
  */
 export function StatCard({ title, value, icon, accent = "primary", hint, loading, onClick }: StatCardProps) {
   const { token } = theme.useToken();
-  const a = ACCENTS[accent];
+  const iconColor = SEMANTIC_ICON_COLOR[accent] ?? tokens.colors.textTertiary;
 
   return (
     <div
@@ -47,33 +47,16 @@ export function StatCard({ title, value, icon, accent = "primary", hint, loading
         background: token.colorBgContainer,
         borderRadius: tokens.radius.xl,
         boxShadow: tokens.shadow.card,
+        border: `1px solid ${tokens.colors.borderSubtle}`,
         padding: "16px 18px",
-        minHeight: 92,
+        minHeight: 96,
+        height: "100%",
         display: "flex",
-        alignItems: "center",
-        gap: 14,
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 12,
       }}
     >
-      {icon ? (
-        <div
-          aria-hidden
-          style={{
-            flexShrink: 0,
-            width: 44,
-            height: 44,
-            borderRadius: tokens.radius.lg,
-            background: a.bg,
-            color: a.fg,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 20,
-          }}
-        >
-          {icon}
-        </div>
-      ) : null}
-
       <div style={{ minWidth: 0, flex: 1 }}>
         <div
           style={{
@@ -92,17 +75,17 @@ export function StatCard({ title, value, icon, accent = "primary", hint, loading
         </div>
 
         {loading ? (
-          <Skeleton.Button active size="small" style={{ width: 72, height: 26, marginTop: 6 }} />
+          <Skeleton.Button active size="small" style={{ width: 72, height: 28, marginTop: 8 }} />
         ) : (
           <div
             style={{
-              fontSize: 27,
+              fontSize: 30,
               fontWeight: tokens.fontWeight.bold,
               lineHeight: 1.15,
               color: tokens.colors.textPrimary,
               fontVariantNumeric: "tabular-nums",
               letterSpacing: "-0.02em",
-              marginTop: 2,
+              marginTop: 6,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -113,9 +96,24 @@ export function StatCard({ title, value, icon, accent = "primary", hint, loading
         )}
 
         {hint && !loading ? (
-          <div style={{ fontSize: tokens.fontSize.xs, color: tokens.colors.textTertiary, marginTop: 2 }}>{hint}</div>
+          <div style={{ fontSize: tokens.fontSize.xs, color: tokens.colors.textTertiary, marginTop: 4 }}>{hint}</div>
         ) : null}
       </div>
+
+      {icon ? (
+        <div
+          aria-hidden
+          style={{
+            flexShrink: 0,
+            fontSize: 18,
+            lineHeight: 1,
+            color: iconColor,
+            marginBlockStart: 2,
+          }}
+        >
+          {icon}
+        </div>
+      ) : null}
     </div>
   );
 }

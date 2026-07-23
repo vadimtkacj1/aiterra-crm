@@ -1,5 +1,5 @@
-import { ReloadOutlined, TeamOutlined } from "@ant-design/icons";
-import { App, Button, Grid, Select, Space, Tooltip, Typography } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+import { App, Button, Card, Flex, Grid, Select, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,8 +7,9 @@ import type { AdminAccountRow } from "@/services/admin/AdminService";
 import type { SiteLeadAdmin } from "@/domain/Site";
 import { useApp } from "@/app/AppProviders";
 import { AppTable } from "../../../shared/components/AppTable";
-import { ListCard } from "../../../shared/components/ListCard";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import { PageContainer } from "../../../shared/components/PageContainer";
+import { PageHeader } from "../../../shared/components/PageHeader";
 import { ResponsiveCardView } from "../../../shared/components/ResponsiveCardView";
 
 const { Link, Text } = Typography;
@@ -159,22 +160,31 @@ export function AdminLeadsPage() {
     },
   ];
 
+  const emptyState = (
+    <EmptyState
+      title={t("admin.leads.empty")}
+      description={t("admin.leads.emptyDesc")}
+      action={
+        filterAccountId != null
+          ? { label: t("admin.leads.clearFilter"), onClick: () => onAccountFilter(undefined), type: "default" }
+          : undefined
+      }
+    />
+  );
+
   return (
     <PageContainer>
-      <ListCard
-        icon={<TeamOutlined />}
-        title={
-          <Space>
-            {t("admin.leads.title")}
-            <Text type="secondary" style={{ fontWeight: 400 }}>({leads.length})</Text>
-          </Space>
-        }
-        extra={
-          <Space>
+      <PageHeader
+        title={t("admin.leads.title")}
+        subtitle={t("admin.leads.subtitle")}
+      />
+      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
+        <Flex vertical gap={16}>
+          <Flex align="center" justify="space-between" gap={8} wrap>
             <Select
               allowClear
               placeholder={t("admin.leads.filterAccount")}
-              style={{ width: 200 }}
+              style={{ width: isMobile ? 180 : 240 }}
               value={filterAccountId}
               onChange={(v) => onAccountFilter(v as number | undefined)}
               options={accounts.map((a) => ({ value: a.id, label: a.name }))}
@@ -184,41 +194,41 @@ export function AdminLeadsPage() {
               loading={loading}
               onClick={() => void load(filterAccountId)}
             >
-              {t("common.reload")}
+              {!isMobile && t("common.reload")}
             </Button>
-          </Space>
-        }
-      >
-        {isMobile ? (
-          <ResponsiveCardView
-            items={leads.map((lead) => ({
-              id: lead.id,
-              title: lead.name,
-              subtitle: lead.accountName,
-              description: lead.message || undefined,
-              tags: [
-                ...(lead.phone ? [{ label: lead.phone }] : []),
-                ...(lead.email ? [{ label: lead.email }] : []),
-              ],
-              extra: (
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {new Date(lead.createdAt).toLocaleDateString()}
-                </Typography.Text>
-              ),
-            }))}
-            loading={loading}
-            emptyText={t("admin.leads.empty")}
-          />
-        ) : (
-          <AppTable<SiteLeadAdmin>
-            loading={loading}
-            dataSource={leads}
-            columns={columns}
-            rowKey="id"
-            locale={{ emptyText: t("admin.leads.empty") }}
-          />
-        )}
-      </ListCard>
+          </Flex>
+          {isMobile ? (
+            <ResponsiveCardView
+              items={leads.map((lead) => ({
+                id: lead.id,
+                title: lead.name,
+                subtitle: lead.accountName,
+                description: lead.message || undefined,
+                tags: [
+                  ...(lead.phone ? [{ label: lead.phone }] : []),
+                  ...(lead.email ? [{ label: lead.email }] : []),
+                ],
+                extra: (
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    {new Date(lead.createdAt).toLocaleDateString()}
+                  </Typography.Text>
+                ),
+              }))}
+              loading={loading}
+              emptyText={t("admin.leads.empty")}
+            />
+          ) : (
+            <AppTable<SiteLeadAdmin>
+              size="middle"
+              loading={loading}
+              dataSource={leads}
+              columns={columns}
+              rowKey="id"
+              locale={{ emptyText: emptyState }}
+            />
+          )}
+        </Flex>
+      </Card>
     </PageContainer>
   );
 }

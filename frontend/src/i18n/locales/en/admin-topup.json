@@ -2,6 +2,9 @@
   "admin": {
     "topup": {
       "title": "Meta Ad Budget",
+      "subtitle": "Every Meta ad-budget top-up, across all client accounts.",
+      "emptyTitle": "No top-ups yet",
+      "emptyDescription": "Top-ups appear here after a client's card is charged and the budget is sent to Meta.",
       "selectAccount": "Client account",
       "selectAccountPlaceholder": "Select account",
       "savedCard": "Saved card",

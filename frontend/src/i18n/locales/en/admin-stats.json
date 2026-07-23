@@ -2,6 +2,7 @@
   "admin": {
     "stats": {
       "title": "System Statistics",
+      "subtitle": "Users, businesses, and revenue across the whole system.",
       "users": "Total users",
       "admins": "Administrators",
       "regularUsers": "Regular users",

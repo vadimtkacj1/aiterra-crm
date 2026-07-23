@@ -1,3 +1,4 @@
+import { GoogleOutlined } from "@ant-design/icons";
 import { Form, Input, Switch } from "antd";
 import type { TFunction } from "i18next";
 
@@ -18,7 +19,12 @@ export function AdminUsersGoogleLinkFields({ t, mode, editGoogleHasCredentials }
           stays "with"/"without" so payloads and edit prefill are unchanged. */}
       <Form.Item
         name="linkGoogle"
-        label={t("admin.form.linkGoogle")}
+        label={
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <GoogleOutlined style={{ color: "#4285f4" }} />
+            {t("admin.form.linkGoogle")}
+          </span>
+        }
         extra={showExtra ? t("admin.form.linkGoogleExtra") : undefined}
         getValueProps={(value) => ({ checked: value === "with" })}
         normalize={(checked) => (checked === true || checked === "with" ? "with" : "without")}

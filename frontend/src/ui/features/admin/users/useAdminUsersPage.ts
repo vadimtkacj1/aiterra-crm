@@ -24,6 +24,9 @@ export function useAdminUsersPage() {
   const [metaCampaigns, setMetaCampaigns] = useState<MetaCampaignOption[]>([]);
   const [metaCampaignsLoading, setMetaCampaignsLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  /** Shown once after a successful create so the admin can hand the sign-in
+      details to the client — the password is not retrievable afterwards. */
+  const [createdCredentials, setCreatedCredentials] = useState<{ name: string; email: string; password: string } | null>(null);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [editMetaLoading, setEditMetaLoading] = useState(false);
   const [editMetaInfo, setEditMetaInfo] = useState<UserBusinessMeta | null>(null);
@@ -154,6 +157,7 @@ export function useAdminUsersPage() {
       await createUser(payload);
       message.success(t("admin.createSuccess"));
       setCreateOpen(false);
+      setCreatedCredentials({ name: values.displayName, email: values.email, password: values.password });
       form.resetFields();
       form.setFieldsValue({ role: "user", linkMeta: "without", linkGoogle: "without", linkSite: false, siteUrl: undefined });
       await loadMetaCampaigns();
@@ -245,6 +249,25 @@ export function useAdminUsersPage() {
     }
   };
 
+  /** Close the create modal; if the form has touched fields, confirm first. */
+  const closeCreateGuarded = () => {
+    if (!form.isFieldsTouched()) {
+      setCreateOpen(false);
+      return;
+    }
+    modal.confirm({
+      title: t("admin.form.discardTitle"),
+      content: t("admin.form.discardContent"),
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
+      okButtonProps: { danger: true },
+      onOk: () => {
+        setCreateOpen(false);
+        form.resetFields();
+      },
+    });
+  };
+
   return {
     t,
     services,
@@ -256,7 +279,9 @@ export function useAdminUsersPage() {
     loading,
     createOpen,
     openCreate: () => setCreateOpen(true),
-    closeCreate: () => setCreateOpen(false),
+    closeCreate: closeCreateGuarded,
+    createdCredentials,
+    closeCreatedCredentials: () => setCreatedCredentials(null),
     handleCreateFinish,
     openEditUser,
     closeEditUser,

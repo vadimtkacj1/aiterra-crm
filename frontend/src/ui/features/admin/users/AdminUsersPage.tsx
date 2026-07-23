@@ -1,5 +1,6 @@
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
+import { AdminUserCredentialsModal } from "./AdminUserCredentialsModal";
 import { AdminUserEditModal } from "./AdminUserEditModal";
 import { AdminUserResetPasswordModal } from "./AdminUserResetPasswordModal";
 import { AdminUsersCreateModal } from "./AdminUsersCreateModal";
@@ -32,8 +33,15 @@ export function AdminUsersPage() {
         form={p.form}
         metaCampaigns={p.metaCampaigns}
         metaCampaignsLoading={p.metaCampaignsLoading}
+        existingEmails={p.users.map((u) => u.email)}
         onFinish={p.handleCreateFinish}
         onCancel={p.closeCreate}
+      />
+
+      <AdminUserCredentialsModal
+        t={p.t}
+        credentials={p.createdCredentials}
+        onClose={p.closeCreatedCredentials}
       />
 
       <AdminUserEditModal

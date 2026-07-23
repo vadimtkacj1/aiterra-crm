@@ -45,7 +45,9 @@
     "newPassword": "סיסמה חדשה",
     "roles": {
       "admin": "מנהל מערכת",
-      "user": "משתמש"
+      "user": "משתמש",
+      "userDesc": "גישה לעסקים שלו בלבד",
+      "adminDesc": "גישה מלאה לכל המערכת"
     },
     "form": {
       "createTitle": "יצירת חשבון",
@@ -100,9 +102,20 @@
       "billingDescription": "תיאור (אופציונלי)",
       "billingDescriptionPlaceholder": "יוצג בחשבון הלקוח",
       "integrationsSection": "אינטגרציות",
-      "integrationsSectionHint": "אופציונלי"
+      "integrationsSectionHint": "אופציונלי",
+      "passwordHint": "לפחות 8 תווים",
+      "generatePassword": "צור סיסמה",
+      "emailTaken": "אימייל זה כבר קיים במערכת",
+      "discardTitle": "לבטל את השינויים?",
+      "discardContent": "הנתונים שהוזנו יימחקו."
     },
     "loadError": "לא ניתן לטעון משתמשים",
-    "createSuccess": "החשבון נוצר"
+    "createSuccess": "החשבון נוצר",
+    "credentials": {
+      "title": "פרטי התחברות לחשבון",
+      "note": "שמרו את הפרטים — הסיסמה לא תוצג שוב.",
+      "copyAll": "העתק הכל",
+      "copied": "הועתק"
+    }
   }
 }

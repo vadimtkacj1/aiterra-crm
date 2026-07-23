@@ -45,7 +45,9 @@
     "newPassword": "New password",
     "roles": {
       "admin": "Administrator",
-      "user": "User"
+      "user": "User",
+      "userDesc": "Access to their own businesses only",
+      "adminDesc": "Full access to the entire system"
     },
     "form": {
       "createTitle": "Create account",
@@ -100,9 +102,20 @@
       "billingDescription": "Description (optional)",
       "billingDescriptionPlaceholder": "Shown on the customer’s bill",
       "integrationsSection": "Integrations",
-      "integrationsSectionHint": "optional"
+      "integrationsSectionHint": "optional",
+      "passwordHint": "At least 8 characters",
+      "generatePassword": "Generate",
+      "emailTaken": "This email is already in use",
+      "discardTitle": "Discard changes?",
+      "discardContent": "The entered details will be lost."
     },
     "loadError": "Failed to load users",
-    "createSuccess": "Account created"
+    "createSuccess": "Account created",
+    "credentials": {
+      "title": "Account sign-in details",
+      "note": "Save these details — the password will not be shown again.",
+      "copyAll": "Copy all",
+      "copied": "Copied"
+    }
   }
 }

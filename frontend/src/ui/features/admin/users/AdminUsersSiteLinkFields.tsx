@@ -1,5 +1,5 @@
 import { Form, Input, Radio, Space, Switch } from "antd";
-import { LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
+import { GlobalOutlined, LinkOutlined, MailOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import type { UserBusinessSite } from "@/services/admin/AdminService";
@@ -23,7 +23,12 @@ export function AdminUsersSiteLinkFields({ t, userId, siteInfo, onTokenRegenerat
     <>
       <Form.Item
         name="linkSite"
-        label={t("admin.form.linkSite")}
+        label={
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <GlobalOutlined style={{ color: "var(--ds-color-primary)" }} />
+            {t("admin.form.linkSite")}
+          </span>
+        }
         valuePropName="checked"
       >
         <Switch

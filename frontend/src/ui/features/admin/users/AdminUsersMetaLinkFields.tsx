@@ -1,3 +1,4 @@
+import { FacebookOutlined } from "@ant-design/icons";
 import { Form, Select, Switch } from "antd";
 import type { TFunction } from "i18next";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
@@ -17,7 +18,12 @@ export function AdminUsersMetaLinkFields({ t, metaCampaigns, metaCampaignsLoadin
           the edit-modal prefill are unchanged. */}
       <Form.Item
         name="linkMeta"
-        label={t("admin.form.linkMeta")}
+        label={
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <FacebookOutlined style={{ color: "#1877f2" }} />
+            {t("admin.form.linkMeta")}
+          </span>
+        }
         extra={showLinkMetaExtra ? t("admin.form.linkMetaExtra") : undefined}
         getValueProps={(value) => ({ checked: value === "with" })}
         normalize={(checked) => (checked === true || checked === "with" ? "with" : "without")}

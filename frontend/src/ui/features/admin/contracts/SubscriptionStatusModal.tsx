@@ -1,15 +1,13 @@
-import {
-  CalendarOutlined,
-  PauseCircleOutlined,
-  PlayCircleOutlined,
-  SaveOutlined,
-  StopOutlined,
-  ThunderboltOutlined,
-} from "@ant-design/icons";
-import { App, Button, Col, Grid, InputNumber, Row, Space, Spin, Tag, Typography } from "antd";
+import { Ban, Calendar, PauseCircle, PlayCircle, Save, Zap } from "lucide-react";
 import { useState } from "react";
-import { AppModal } from "@/ui/shared/components/AppModal";
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { InputNumber } from "@/components/ui/input-number";
+import { Spinner } from "@/components/ui/spinner";
+import { confirm } from "@/lib/confirm";
+import { AppModal } from "@/ui/shared/components/AppModal";
+import { useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 import { SubscriptionOverview } from "../../user/subscriptions/components/SubscriptionOverview";
 import { useSubscriptionStatus } from "../../user/subscriptions/hooks/useSubscriptionStatus";
 
@@ -20,9 +18,7 @@ interface Props {
 
 export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   const { t } = useTranslation();
-  const { modal } = App.useApp();
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
+  const isMobile = useMobileView();
   const {
     status,
     loading,
@@ -67,10 +63,10 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   };
 
   const handleCancel = () => {
-    modal.confirm({
+    confirm({
       title: t("admin.contracts.subscription.cancelConfirmTitle"),
       content: t("admin.contracts.subscription.cancelConfirmContent"),
-      okType: "danger",
+      danger: true,
       okText: t("admin.contracts.subscription.cancelConfirmOk"),
       cancelText: t("admin.contracts.subscription.cancelConfirmKeep"),
       onOk: () => void cancelSubscription(),
@@ -78,10 +74,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
   };
 
   // Flat sections separated by a hairline divider — no nested boxes.
-  const sectionStyle = {
-    paddingTop: 16,
-    borderTop: "1px solid var(--ds-border-subtle)",
-  };
+  const sectionClass = "border-t border-(--ds-border-subtle) pt-4";
 
   return (
     <AppModal
@@ -90,180 +83,210 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
       width={isMobile ? "100%" : 800}
       styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       title={
-        <Space>
-          <CalendarOutlined />
+        <span className="flex items-center gap-2">
+          <Calendar aria-hidden="true" className="size-4" />
           {t("admin.contracts.subscription.title")}
-        </Space>
+        </span>
       }
       footer={[
-        <Button key="close" onClick={onClose}>
+        <Button key="close" variant="outline" onClick={onClose}>
           {t("common.close")}
         </Button>,
       ]}
     >
-      <Spin spinning={loading}>
+      <div className="relative">
+        {loading && (
+          <div className="absolute inset-0 z-10 flex min-h-24 items-center justify-center bg-background/60">
+            <Spinner />
+          </div>
+        )}
         {status && (
-          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+          <div className="flex w-full flex-col gap-4">
             <SubscriptionOverview status={status} t={t} />
 
             {/* ── Charge day ── */}
-            <div style={sectionStyle}>
-              <Typography.Text strong style={{ display: "block", marginBottom: 10, fontSize: 13 }}>
+            <div className={sectionClass}>
+              <span className="mb-2.5 block text-[13px] font-semibold">
                 {t("admin.contracts.form.billingDay")}
-              </Typography.Text>
-              <Space align="center" wrap style={{ width: isMobile ? "100%" : "auto" }}>
+              </span>
+              <div className={`flex flex-wrap items-center gap-2 ${isMobile ? "w-full" : ""}`}>
                 <InputNumber
                   min={1}
                   max={28}
-                  value={currentDay ?? undefined}
+                  precision={0}
+                  value={currentDay}
                   onChange={(v) => setPendingDay(v ?? null)}
                   placeholder="1–28"
-                  style={{ width: 100 }}
-                  controls
+                  className="w-24"
                 />
                 <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  loading={updatingBillingDay}
-                  disabled={!dayChanged}
+                  size="sm"
+                  disabled={!dayChanged || updatingBillingDay}
                   onClick={handleSaveBillingDay}
-                  size="small"
-                  block={isMobile}
+                  className={isMobile ? "w-full" : undefined}
                 >
+                  {updatingBillingDay ? (
+                    <Spinner size="sm" className="text-current" aria-hidden="true" />
+                  ) : (
+                    <Save aria-hidden="true" />
+                  )}
                   {t("common.save")}
                 </Button>
-              </Space>
-              <Typography.Text type="secondary" style={{ display: "block", marginTop: 6, fontSize: 12 }}>
+              </div>
+              <span className="mt-1.5 block text-xs text-muted-foreground">
                 {t("admin.contracts.subscription.billingBlankHint")}
-              </Typography.Text>
+              </span>
             </div>
 
             {/* ── Test mode (only when activated) ── */}
             {!isPending && !isCancelled && (
-              <div style={sectionStyle}>
-                <Space style={{ marginBottom: 10 }}>
-                  <ThunderboltOutlined style={{ color: "var(--ds-color-warning)" }} />
-                  <Typography.Text strong style={{ fontSize: 13 }}>
+              <div className={sectionClass}>
+                <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                  <Zap aria-hidden="true" className="size-4 text-(--ds-color-warning)" />
+                  <span className="text-[13px] font-semibold">
                     {t("admin.contracts.subscription.testMode")}
-                  </Typography.Text>
+                  </span>
                   {hasTestInterval && (
-                    <Tag color="warning">
+                    <Badge variant="warning">
                       {t("admin.contracts.subscription.testEvery", { minutes: status.test_interval_minutes })}
-                    </Tag>
+                    </Badge>
                   )}
-                </Space>
+                </div>
 
-                <Typography.Text type="secondary" style={{ display: "block", marginBottom: 10, fontSize: 12 }}>
+                <span className="mb-2.5 block text-xs text-muted-foreground">
                   {t("admin.contracts.subscription.testModeDesc")}
-                </Typography.Text>
+                </span>
 
                 {hasTestInterval ? (
-                  <Space wrap>
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
-                      icon={<PlayCircleOutlined />}
-                      loading={simulating}
+                      variant="outline"
+                      size="sm"
+                      disabled={simulating || status.payments_remaining === 0}
                       onClick={() => void simulatePayment()}
-                      disabled={status.payments_remaining === 0}
-                      size="small"
                     >
+                      {simulating ? (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      ) : (
+                        <PlayCircle aria-hidden="true" />
+                      )}
                       {t("admin.contracts.subscription.simulateNow")}
                     </Button>
                     <Button
-                      danger
-                      icon={<StopOutlined />}
-                      loading={settingTestInterval}
+                      variant="outline"
+                      size="sm"
+                      className="border-destructive/40 text-destructive hover:text-destructive"
+                      disabled={settingTestInterval}
                       onClick={handleStopTest}
-                      size="small"
                     >
+                      {settingTestInterval ? (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      ) : (
+                        <Ban aria-hidden="true" />
+                      )}
                       {t("admin.contracts.subscription.stopTest")}
                     </Button>
-                  </Space>
+                  </div>
                 ) : (
-                  <Row gutter={8} align="middle">
-                    <Col>
-                      <InputNumber
-                        min={1}
-                        max={1440}
-                        value={testMinutes ?? undefined}
-                        onChange={(v) => setTestMinutes(v ?? null)}
-                        placeholder="10"
-                        addonAfter={t("admin.contracts.subscription.minUnit")}
-                        style={{ width: 130 }}
-                      />
-                    </Col>
-                    <Col>
-                      <Button
-                        type="primary"
-                        icon={<ThunderboltOutlined />}
-                        loading={settingTestInterval}
-                        onClick={handleStartTest}
-                        size="small"
-                      >
-                        {t("admin.contracts.subscription.startTest")}
-                      </Button>
-                    </Col>
-                    <Col>
-                      <Button
-                        loading={simulating}
-                        onClick={() => void simulatePayment()}
-                        disabled={status.payments_remaining === 0}
-                        size="small"
-                      >
-                        {t("admin.contracts.subscription.oneTimeSimulate")}
-                      </Button>
-                    </Col>
-                  </Row>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <InputNumber
+                      min={1}
+                      max={1440}
+                      precision={0}
+                      value={testMinutes}
+                      onChange={(v) => setTestMinutes(v ?? null)}
+                      placeholder="10"
+                      suffix={t("admin.contracts.subscription.minUnit")}
+                      className="w-32"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={settingTestInterval}
+                      onClick={handleStartTest}
+                    >
+                      {settingTestInterval ? (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      ) : (
+                        <Zap aria-hidden="true" />
+                      )}
+                      {t("admin.contracts.subscription.startTest")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={simulating || status.payments_remaining === 0}
+                      onClick={() => void simulatePayment()}
+                    >
+                      {simulating && (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      )}
+                      {t("admin.contracts.subscription.oneTimeSimulate")}
+                    </Button>
+                  </div>
                 )}
               </div>
             )}
 
             {/* ── Subscription controls ── */}
             {!isPending && (
-              <div style={sectionStyle}>
-                <Typography.Text strong style={{ display: "block", marginBottom: 10, fontSize: 13 }}>
+              <div className={sectionClass}>
+                <span className="mb-2.5 block text-[13px] font-semibold">
                   {t("admin.contracts.subscription.controls")}
-                </Typography.Text>
-                <Space wrap>
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
                   {isActive && (
                     <Button
-                      icon={<PauseCircleOutlined />}
-                      loading={pausingOrResuming}
+                      variant="outline"
+                      disabled={pausingOrResuming}
                       onClick={() => void pauseSubscription()}
                     >
+                      {pausingOrResuming ? (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      ) : (
+                        <PauseCircle aria-hidden="true" />
+                      )}
                       {t("admin.contracts.subscription.pause")}
                     </Button>
                   )}
                   {isPaused && (
                     <Button
-                      type="primary"
-                      icon={<PlayCircleOutlined />}
-                      loading={pausingOrResuming}
+                      disabled={pausingOrResuming}
                       onClick={() => void resumeSubscription()}
                     >
+                      {pausingOrResuming ? (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      ) : (
+                        <PlayCircle aria-hidden="true" />
+                      )}
                       {t("admin.contracts.subscription.resume")}
                     </Button>
                   )}
                   {!isCancelled && (
                     <Button
-                      danger
-                      icon={<StopOutlined />}
-                      loading={cancelling}
+                      variant="outline"
+                      className="border-destructive/40 text-destructive hover:text-destructive"
+                      disabled={cancelling}
                       onClick={handleCancel}
                     >
+                      {cancelling ? (
+                        <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      ) : (
+                        <Ban aria-hidden="true" />
+                      )}
                       {t("admin.contracts.subscription.cancel")}
                     </Button>
                   )}
                   {isCancelled && (
-                    <Tag color="red" style={{ fontSize: 13, padding: "4px 10px" }}>
+                    <Badge variant="error" className="px-2.5 py-1 text-[13px]">
                       {t("admin.contracts.subscription.cancelled")}
-                    </Tag>
+                    </Badge>
                   )}
-                </Space>
+                </div>
               </div>
             )}
-          </Space>
+          </div>
         )}
-      </Spin>
+      </div>
     </AppModal>
   );
 }

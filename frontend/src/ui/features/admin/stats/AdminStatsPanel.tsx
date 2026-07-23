@@ -1,19 +1,25 @@
 import {
-  AppstoreOutlined,
-  BarChartOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  CreditCardOutlined,
-  DownloadOutlined,
-  FilePdfOutlined,
-  TeamOutlined,
-  UserOutlined,
-  WalletOutlined,
-} from "@ant-design/icons";
+  BarChart3,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Download,
+  FileText,
+  LayoutGrid,
+  User,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { Line, Pie } from "@ant-design/plots";
-import { App, Button, Card, Col, Dropdown, Row, Segmented, Typography } from "antd";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { MenuDropdown } from "@/components/ui/menu-compat";
+import { Segmented } from "@/components/ui/segmented";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
 import { useApp } from "@/app/AppProviders";
 import type { AdminPaymentStats, AdminStats } from "@/services/admin/AdminService";
 import { usePlotPalette } from "@/ui/features/user/analytics/chart/analyticsPlotTheme";
@@ -47,7 +53,6 @@ function pieSliceTooltipFormatter(d: PieSliceTooltipDatum): { name: string; valu
 
 export function AdminStatsPanel() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const { services } = useApp();
   const palette = usePlotPalette();
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -93,14 +98,14 @@ export function AdminStatsPanel() {
   const metricCards = useMemo((): { title: string; value: string | number; icon: ReactNode; accent: StatAccent }[] => {
     if (!stats || !paymentStats) return [];
     return [
-      { title: t("admin.stats.users"), value: stats.usersTotal, icon: <UserOutlined />, accent: "primary" },
-      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <TeamOutlined />, accent: "primary" },
-      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <AppstoreOutlined />, accent: "primary" },
-      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <WalletOutlined />, accent: "primary" },
-      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChartOutlined />, accent: "primary" },
-      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCardOutlined />, accent: "primary" },
-      { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, icon: <CheckCircleOutlined />, accent: "green" },
-      { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, icon: <ClockCircleOutlined />, accent: "amber" },
+      { title: t("admin.stats.users"), value: stats.usersTotal, icon: <User />, accent: "primary" },
+      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <Users />, accent: "primary" },
+      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <LayoutGrid />, accent: "primary" },
+      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <Wallet />, accent: "primary" },
+      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChart3 />, accent: "primary" },
+      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCard />, accent: "primary" },
+      { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, icon: <CheckCircle2 />, accent: "green" },
+      { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, icon: <Clock />, accent: "amber" },
     ];
   }, [stats, paymentStats, revenueText, t]);
 
@@ -155,26 +160,15 @@ export function AdminStatsPanel() {
   };
 
   const chartCardHeader = (title: string, end?: ReactNode) => (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 12,
-        marginBottom: 16,
-      }}
-    >
-      <Typography.Title level={5} style={{ margin: 0 }}>
-        {title}
-      </Typography.Title>
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h3 className="m-0 text-base font-semibold text-foreground">{title}</h3>
       {end}
     </div>
   );
 
   const chartEmpty = (height: number) => (
-    <div style={{ height, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Typography.Text type="secondary">{t("common.noData")}</Typography.Text>
+    <div className="flex items-center justify-center" style={{ height }}>
+      <span className="text-sm text-muted-foreground">{t("common.noData")}</span>
     </div>
   );
 
@@ -184,57 +178,59 @@ export function AdminStatsPanel() {
         title={t("admin.stats.title")}
         description={t("admin.stats.subtitle")}
         actions={
-          <Dropdown
-            trigger={["click"]}
-            menu={{
-              items: [
-                { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
-                { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
-                { type: "divider" },
-                {
-                  key: "pdf",
-                  icon: <FilePdfOutlined />,
-                  label: t("admin.stats.downloadExecutivePdf"),
-                  onClick: () => void onDownloadPdf(),
-                },
-              ],
-            }}
+          <MenuDropdown
+            align="end"
+            items={[
+              { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
+              { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
+              { type: "divider" },
+              {
+                key: "pdf",
+                icon: <FileText className="size-4" />,
+                label: t("admin.stats.downloadExecutivePdf"),
+                onClick: () => void onDownloadPdf(),
+              },
+            ]}
           >
-            <Button icon={<DownloadOutlined />} loading={exporting !== null} disabled={loading}>
+            <Button variant="outline" aria-label={t("common.export")} disabled={loading || exporting !== null}>
+              {exporting !== null ? (
+                <Spinner size="sm" className="text-current" aria-hidden="true" />
+              ) : (
+                <Download aria-hidden="true" />
+              )}
               {t("common.export")}
             </Button>
-          </Dropdown>
+          </MenuDropdown>
         }
       />
 
       {loading ? (
         <>
-          <Row gutter={[16, 16]}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
-              <Col key={k} xs={24} sm={12} lg={6}>
-                <StatCard title="" value="" loading />
-              </Col>
+              <StatCard key={k} title="" value="" loading />
             ))}
-          </Row>
-          <Card style={{ marginTop: 24 }} loading />
+          </div>
+          <Card className="mt-6 p-5">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="mt-4 h-48 w-full" />
+          </Card>
         </>
       ) : (
         <>
           {/* KPI tiles */}
-          <Row gutter={[16, 16]}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {metricCards.map((m) => (
-              <Col key={m.title} xs={24} sm={12} lg={6}>
-                <StatCard title={m.title} value={m.value} icon={m.icon} accent={m.accent} />
-              </Col>
+              <StatCard key={m.title} title={m.title} value={m.value} icon={m.icon} accent={m.accent} />
             ))}
-          </Row>
+          </div>
 
           {/* Revenue line chart */}
-          <Card style={{ marginTop: 24 }} styles={{ body: { padding: 20 } }}>
+          <Card className="mt-6 p-5">
             {chartCardHeader(
               t("admin.stats.paymentsChart"),
               <Segmented
-                size="small"
+                size="sm"
                 value={period}
                 onChange={(v) => setPeriod(v as Period)}
                 options={periodButtons.map((b) => ({ label: b.label, value: b.key }))}
@@ -266,7 +262,7 @@ export function AdminStatsPanel() {
           </Card>
 
           {/* Currency breakdown pie */}
-          <Card style={{ marginTop: 24 }} styles={{ body: { padding: 20 } }}>
+          <Card className="mt-6 p-5">
             {chartCardHeader(t("admin.stats.categoryProportion"))}
             {pieData.length ? (
               <Pie

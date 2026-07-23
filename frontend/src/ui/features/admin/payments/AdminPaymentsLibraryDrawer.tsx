@@ -1,4 +1,11 @@
-import { Drawer, Grid, Typography } from "antd";
+import { useEffect, useRef } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import type { AdminPaymentsLibraryDrawerModel } from "./adminPaymentsLibraryTypes";
 import { AdminPaymentsTemplatesPanel } from "./AdminPaymentsTemplatesPanel";
 
@@ -7,35 +14,48 @@ type Props = {
 };
 
 export function AdminPaymentsLibraryDrawer({ model }: Props) {
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
+  // antd Drawer `afterOpenChange` compat: notify on every open/close transition.
+  const prevOpen = useRef(model.open);
+  const afterOpenChange = model.afterOpenChange;
+  useEffect(() => {
+    if (prevOpen.current !== model.open) {
+      prevOpen.current = model.open;
+      afterOpenChange(model.open);
+    }
+  }, [model.open, afterOpenChange]);
 
   return (
-    <Drawer
-      title={model.t("admin.payments.libraryDrawerTitle")}
-      placement="right"
-      width={isMobile ? "100%" : 720}
+    <Sheet
       open={model.open}
-      onClose={model.onClose}
-      afterOpenChange={model.afterOpenChange}
-      styles={{ body: { paddingTop: 8, paddingBottom: 24 } }}
+      onOpenChange={(open) => {
+        if (!open) model.onClose();
+      }}
     >
-      <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0, marginBottom: 10 }}>
-        {model.t("admin.payments.templatesHint")}
-      </Typography.Paragraph>
+      <SheetContent
+        side="end"
+        closeLabel={model.t("common.close")}
+        className="w-full max-w-full gap-3 sm:w-180 sm:max-w-[calc(100vw-2rem)]"
+      >
+        <SheetHeader>
+          <SheetTitle>{model.t("admin.payments.libraryDrawerTitle")}</SheetTitle>
+          <SheetDescription className="text-xs">
+            {model.t("admin.payments.templatesHint")}
+          </SheetDescription>
+        </SheetHeader>
 
-      <AdminPaymentsTemplatesPanel
-        t={model.t}
-        admin={model.admin}
-        message={model.message}
-        userMeta={model.userMeta}
-        templates={model.invoiceTemplates}
-        templatesLoading={model.templatesLoading}
-        billBlockedForAdmin={model.billBlockedForAdmin}
-        loadTemplateIntoForm={model.loadTemplateIntoForm}
-        applyTemplateToSelectedClient={model.applyTemplateToSelectedClient}
-        loadInvoiceTemplates={model.loadInvoiceTemplates}
-      />
-    </Drawer>
+        <AdminPaymentsTemplatesPanel
+          t={model.t}
+          admin={model.admin}
+          message={model.message}
+          userMeta={model.userMeta}
+          templates={model.invoiceTemplates}
+          templatesLoading={model.templatesLoading}
+          billBlockedForAdmin={model.billBlockedForAdmin}
+          loadTemplateIntoForm={model.loadTemplateIntoForm}
+          applyTemplateToSelectedClient={model.applyTemplateToSelectedClient}
+          loadInvoiceTemplates={model.loadInvoiceTemplates}
+        />
+      </SheetContent>
+    </Sheet>
   );
 }

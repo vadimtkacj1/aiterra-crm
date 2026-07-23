@@ -1,10 +1,20 @@
-import { App, Card, Grid, Table, Tag, Tooltip } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { message } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import type { AdminAccountRow, MetaTopupRecord } from "@/services/admin/AdminService";
 import { useApp } from "../../../../app/AppProviders";
 import { EmptyState } from "../../../shared/components/EmptyState";
-import { ResponsiveCardView } from "../../../shared/components/ResponsiveCardView";
+import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
 
 interface MetaPaymentPanelProps {
   /** Bump to trigger a reload from outside (e.g. the page-header reload button). */
@@ -15,11 +25,7 @@ interface MetaPaymentPanelProps {
 export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaymentPanelProps) {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message } = App.useApp();
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
-  const messageRef = useRef(message);
-  messageRef.current = message;
+  const isMobile = useMobileView();
   const tRef = useRef(t);
   tRef.current = t;
   const onLoadingChangeRef = useRef(onLoadingChange);
@@ -37,7 +43,7 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
       setTopups(tu);
       setAccounts(acc);
     } catch (e) {
-      void messageRef.current.error(e instanceof Error ? e.message : tRef.current("admin.loadError"));
+      void message.error(e instanceof Error ? e.message : tRef.current("admin.loadError"));
       setTopups([]);
       setAccounts([]);
     } finally {
@@ -63,7 +69,7 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
     status === "sent_to_meta" ? "success" : status === "failed" ? "error" : "processing";
 
   return (
-    <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
+    <Card className={cn(isMobile ? "p-3" : "p-4")}>
       {isMobile ? (
         <ResponsiveCardView
           items={topups.map((r) => ({
@@ -80,7 +86,7 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
           emptyText={t("admin.topup.emptyTitle")}
         />
       ) : (
-        <Table
+        <DataTable<MetaTopupRecord>
           size="middle"
           rowKey="id"
           loading={loading}
@@ -92,7 +98,7 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
               />
             ),
           }}
-          pagination={{ pageSize: 15, showSizeChanger: false }}
+          pagination={{ pageSize: 15 }}
           dataSource={topups}
           columns={[
             {
@@ -100,32 +106,46 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
               dataIndex: "createdAt",
               key: "createdAt",
               width: 180,
-              onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
-              render: (s: string) => (s ? s.slice(0, 19).replace("T", " ") : "-"),
+              render: (s) => (
+                <span className="whitespace-nowrap tabular-nums">
+                  {s ? String(s).slice(0, 19).replace("T", " ") : "-"}
+                </span>
+              ),
             },
             {
               title: t("admin.topup.colAccount"),
               dataIndex: "accountId",
               key: "account",
-              render: (id: number) => accountName(id),
+              render: (id) => accountName(id as number),
             },
             {
               title: t("admin.topup.colAmount"),
               key: "amt",
               width: 120,
-              onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
-              render: (_: unknown, r: MetaTopupRecord) => `${r.amount} ${r.currency}`,
+              render: (_, r) => (
+                <span className="tabular-nums">{`${r.amount} ${r.currency}`}</span>
+              ),
             },
             {
               title: t("admin.topup.colStatus"),
               dataIndex: "status",
               key: "status",
               width: 120,
-              render: (s: string, r: MetaTopupRecord) => {
-                const tag = <Tag color={getStatusColor(s)}>{getStatusLabel(s)}</Tag>;
-                return s === "failed" && r.metaError
-                  ? <Tooltip title={r.metaError}>{tag}</Tooltip>
-                  : tag;
+              render: (s, r) => {
+                const status = s as string;
+                const badge = (
+                  <Badge variant={getStatusColor(status)}>{getStatusLabel(status)}</Badge>
+                );
+                return status === "failed" && r.metaError
+                  ? (
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+                        <TooltipContent>{r.metaError}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )
+                  : badge;
               },
             },
           ]}

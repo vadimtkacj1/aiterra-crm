@@ -1,7 +1,8 @@
 import { type Locator, type Page } from '@playwright/test';
 
 export class AdminStatsPage {
-  // Period toggle is an Ant Segmented control — items are labels, not buttons.
+  // Period toggle is the shadcn Segmented control — a role=radiogroup whose
+  // items are buttons with role=radio.
   readonly thisWeekButton: Locator;
   readonly thisMonthButton: Locator;
   readonly thisYearButton: Locator;
@@ -13,11 +14,13 @@ export class AdminStatsPage {
   readonly exportPdfMenuItem: Locator;
 
   constructor(private readonly page: Page) {
-    this.thisWeekButton = page.locator('.ant-segmented-item').filter({ hasText: 'This Week' });
-    this.thisMonthButton = page.locator('.ant-segmented-item').filter({ hasText: 'This Month' });
-    this.thisYearButton = page.locator('.ant-segmented-item').filter({ hasText: 'This Year' });
-    // The Export dropdown trigger is the only button with a download icon.
-    this.exportMenuButton = page.locator('button:has(.anticon-download)');
+    const periodGroup = page.getByRole('radiogroup');
+    this.thisWeekButton = periodGroup.getByRole('radio', { name: 'This Week' });
+    this.thisMonthButton = periodGroup.getByRole('radio', { name: 'This Month' });
+    this.thisYearButton = periodGroup.getByRole('radio', { name: 'This Year' });
+    // The Export dropdown trigger carries a stable aria-label (t("common.export")).
+    this.exportMenuButton = page.getByRole('button', { name: 'Export', exact: true });
+    // Menu items are Radix dropdown-menu items (role=menuitem).
     this.exportUsersCsvButton = page.getByRole('menuitem', { name: /Export users/i });
     this.exportBillingCsvButton = page.getByRole('menuitem', { name: /Export billing/i });
     this.exportPdfMenuItem = page.getByRole('menuitem', { name: /Executive PDF/i });

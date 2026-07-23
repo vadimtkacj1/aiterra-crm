@@ -1,28 +1,52 @@
 import {
-  CheckCircleFilled, DeleteOutlined, DisconnectOutlined,
-  MoreOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, WhatsAppOutlined,
-} from "@ant-design/icons";
-import { App, Button, Dropdown, Flex, Input, Popconfirm, Tooltip, Typography } from "antd";
-import type { MenuProps } from "antd";
-import type { ColumnsType } from "antd/es/table";
+  Copy, MessageCircle, MoreHorizontal, Plus, RefreshCw, Search, Trash2, Unlink, X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
+import { MenuDropdown, type MenuCompatItemType } from "@/components/ui/menu-compat";
+import { Spinner } from "@/components/ui/spinner";
+import { confirm } from "@/lib/confirm";
+import { message } from "@/lib/toast";
 import { Paths } from "../../../navigation/paths";
 import type { AdminWaPhone, WaConnectionRow } from "@/services/admin/AdminService";
 import { useApp } from "@/app/AppProviders";
-import { AppTable } from "../../../shared/components/AppTable";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ListCard } from "../../../shared/components/ListCard";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
 
-const { Text } = Typography;
+function CopyCodeButton({ text, copiedMsg, failedMsg, label }: {
+  text: string;
+  copiedMsg: string;
+  failedMsg: string;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={() => {
+        navigator.clipboard.writeText(text).then(
+          () => message.success(copiedMsg),
+          () => message.error(failedMsg),
+        );
+      }}
+      className="flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+    >
+      <Copy className="size-3.5" />
+    </button>
+  );
+}
 
 function AdminPhonesSection() {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message } = App.useApp();
 
   const [phones, setPhones] = useState<AdminWaPhone[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +65,7 @@ function AdminPhonesSection() {
     } finally {
       setLoading(false);
     }
-  }, [services.admin, message, t]);
+  }, [services.admin, t]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -78,92 +102,91 @@ function AdminPhonesSection() {
       loading={loading && phones.length === 0}
       extra={
         !showForm ? (
-          <Button icon={<PlusOutlined />} onClick={() => setShowForm(true)}>
+          <Button variant="outline" onClick={() => setShowForm(true)}>
+            <Plus aria-hidden="true" />
             {t("admin.whatsapp.admin.addBtn")}
           </Button>
         ) : undefined
       }
     >
-      <Text type="secondary" style={{ fontSize: 13, display: "block", marginBottom: 16 }}>
+      <p className="mb-4 mt-0 text-[13px] text-muted-foreground">
         {t("admin.whatsapp.admin.hint")}
-      </Text>
+      </p>
 
-      <Flex wrap="wrap" gap={8}>
+      <div className="flex flex-wrap gap-2">
         {!loading && phones.length === 0 && (
-          <Text type="secondary" style={{ fontSize: 13 }}>{t("admin.whatsapp.admin.empty")}</Text>
+          <span className="text-[13px] text-muted-foreground">{t("admin.whatsapp.admin.empty")}</span>
         )}
         {phones.map((p) => (
           <span
             key={p.id}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              paddingBlock: 4,
-              paddingInline: "10px 4px",
-              background: "var(--ds-surface-1)",
-              border: "1px solid var(--ds-border-default)",
-              borderRadius: "var(--ds-radius-lg)",
-            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-(--ds-surface-1) py-1 ps-2.5 pe-1"
           >
-            <WhatsAppOutlined style={{ color: "var(--ds-text-tertiary)", fontSize: 14 }} />
+            <MessageCircle aria-hidden="true" className="size-3.5 text-(--ds-text-tertiary)" />
             <span
               dir="ltr"
-              style={{
-                fontFamily: "var(--ds-font-family-mono)",
-                fontSize: 13,
-                fontVariantNumeric: "tabular-nums",
-                color: "var(--ds-text-primary)",
-              }}
+              className="font-mono text-[13px] tabular-nums text-foreground"
+              style={{ fontFamily: "var(--ds-font-family-mono)" }}
             >
               {p.phone}
             </span>
             {p.label && (
-              <Text type="secondary" style={{ fontSize: 12 }}>{p.label}</Text>
+              <span className="text-xs text-muted-foreground">{p.label}</span>
             )}
-            <Popconfirm
-              title={t("admin.whatsapp.admin.deleteConfirm")}
-              onConfirm={() => void handleDelete(p.id)}
-              okText={t("common.confirm")}
-              cancelText={t("common.cancel")}
-              okButtonProps={{ danger: true }}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-destructive hover:text-destructive"
+              aria-label={t("admin.whatsapp.deleteBtn")}
+              disabled={deletingId === p.id}
+              onClick={() =>
+                confirm({
+                  title: t("admin.whatsapp.admin.deleteConfirm"),
+                  okText: t("common.confirm"),
+                  cancelText: t("common.cancel"),
+                  danger: true,
+                  onOk: () => handleDelete(p.id),
+                })
+              }
             >
-              <Button
-                size="small"
-                danger
-                type="text"
-                icon={<DeleteOutlined />}
-                loading={deletingId === p.id}
-              />
-            </Popconfirm>
+              {deletingId === p.id
+                ? <Spinner size="sm" className="text-current" aria-hidden="true" />
+                : <Trash2 aria-hidden="true" />}
+            </Button>
           </span>
         ))}
-      </Flex>
+      </div>
 
       {showForm && (
-        <Flex gap={8} wrap="wrap" align="center" style={{ marginTop: 16 }}>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="relative w-[200px]">
+            <MessageCircle
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-(--ds-text-tertiary)"
+            />
+            <Input
+              className="ps-9"
+              placeholder="+972501234567"
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
+            />
+          </div>
           <Input
-            prefix={<WhatsAppOutlined style={{ color: "var(--ds-text-tertiary)" }} />}
-            placeholder="+972501234567"
-            value={newPhone}
-            onChange={(e) => setNewPhone(e.target.value)}
-            style={{ width: 200 }}
-            onPressEnter={() => void handleAdd()}
-          />
-          <Input
+            className="w-[160px]"
             placeholder={t("admin.whatsapp.admin.labelPlaceholder")}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            style={{ width: 160 }}
-            onPressEnter={() => void handleAdd()}
+            onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
           />
-          <Button type="primary" loading={adding} onClick={() => void handleAdd()}>
+          <Button disabled={adding} onClick={() => void handleAdd()}>
+            {adding && <Spinner size="sm" className="text-current" aria-hidden="true" />}
             {t("admin.whatsapp.admin.addConfirm")}
           </Button>
-          <Button onClick={() => { setShowForm(false); setNewPhone(""); setNewLabel(""); }}>
+          <Button variant="outline" onClick={() => { setShowForm(false); setNewPhone(""); setNewLabel(""); }}>
             {t("common.cancel")}
           </Button>
-        </Flex>
+        </div>
       )}
     </ListCard>
   );
@@ -172,7 +195,6 @@ function AdminPhonesSection() {
 export function AdminWhatsAppPage() {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message, modal } = App.useApp();
   const navigate = useNavigate();
 
   const [rows, setRows] = useState<WaConnectionRow[]>([]);
@@ -191,7 +213,7 @@ export function AdminWhatsAppPage() {
     } finally {
       setLoading(false);
     }
-  }, [services.admin, message, t]);
+  }, [services.admin, t]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -234,39 +256,38 @@ export function AdminWhatsAppPage() {
   }, [rows, search]);
 
   function confirmDisconnect(r: WaConnectionRow) {
-    modal.confirm({
+    confirm({
       title: t("admin.whatsapp.disconnectConfirm"),
       okText: t("admin.whatsapp.disconnectOk"),
       cancelText: t("common.cancel"),
-      okButtonProps: { danger: true },
+      danger: true,
       onOk: () => handleDisconnect(r.phoneId),
     });
   }
 
   function confirmDelete(r: WaConnectionRow) {
-    modal.confirm({
+    confirm({
       title: t("admin.whatsapp.deleteConfirm"),
       okText: t("common.confirm"),
       cancelText: t("common.cancel"),
-      okButtonProps: { danger: true },
+      danger: true,
       onOk: () => handleDelete(r.phoneId),
     });
   }
 
-  const columns: ColumnsType<WaConnectionRow> = [
+  const columns: DataTableColumn<WaConnectionRow>[] = [
     {
       title: t("admin.whatsapp.colAccount"),
       key: "account",
-      ellipsis: true,
       render: (_, r) => (
-        <Flex vertical gap={0}>
-          <Text strong>{r.accountName}</Text>
+        <div className="flex min-w-0 flex-col">
+          <span className="font-semibold text-foreground">{r.accountName}</span>
           {(r.ownerEmail || r.label) && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <span className="text-xs text-muted-foreground">
               {[r.ownerEmail, r.label].filter(Boolean).join(" · ")}
-            </Text>
+            </span>
           )}
-        </Flex>
+        </div>
       ),
     },
     {
@@ -275,22 +296,43 @@ export function AdminWhatsAppPage() {
       width: 220,
       render: (_, r) => r.verified && r.phone
         ? (
-          <Flex align="center" gap={8}>
-            <Tooltip title={t("admin.whatsapp.statusConnected")}>
-              <CheckCircleFilled style={{ color: "var(--ds-color-success)", fontSize: 10 }} />
-            </Tooltip>
-            <Text copyable={{ text: r.phone }} style={{ fontFamily: "var(--ds-font-family-mono)", fontVariantNumeric: "tabular-nums" }}>
-              <span dir="ltr">{r.phone}</span>
-            </Text>
-          </Flex>
+          <div className="flex flex-col items-start gap-1">
+            <span className="flex items-center gap-1">
+              <span
+                dir="ltr"
+                className="font-mono tabular-nums"
+                style={{ fontFamily: "var(--ds-font-family-mono)" }}
+              >
+                {r.phone}
+              </span>
+              <CopyCodeButton
+                text={r.phone}
+                label={t("common.copyToClipboard")}
+                copiedMsg={t("common.copied")}
+                failedMsg={t("common.copyFailed")}
+              />
+            </span>
+            <Badge variant="success">{t("admin.whatsapp.statusConnected")}</Badge>
+          </div>
         )
         : (
-          <Flex vertical gap={0}>
-            <Text copyable={{ text: r.connectCode }} style={{ fontFamily: "var(--ds-font-family-mono)", letterSpacing: 1 }}>
-              {r.connectCode}
-            </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>{t("admin.whatsapp.statusNone")}</Text>
-          </Flex>
+          <div className="flex flex-col items-start gap-1">
+            <span className="flex items-center gap-1">
+              <span
+                className="font-mono tracking-wider"
+                style={{ fontFamily: "var(--ds-font-family-mono)" }}
+              >
+                {r.connectCode}
+              </span>
+              <CopyCodeButton
+                text={r.connectCode}
+                label={t("common.copyToClipboard")}
+                copiedMsg={t("common.copied")}
+                failedMsg={t("common.copyFailed")}
+              />
+            </span>
+            <Badge variant="default">{t("admin.whatsapp.statusNone")}</Badge>
+          </div>
         ),
     },
     {
@@ -298,30 +340,34 @@ export function AdminWhatsAppPage() {
       key: "actions",
       width: 48,
       render: (_, r) => {
-        const items: MenuProps["items"] = [
+        const busy = disconnectingId === r.phoneId || deletingId === r.phoneId;
+        const items: MenuCompatItemType[] = [
           ...(r.verified
-            ? [{ key: "unlink", icon: <DisconnectOutlined />, label: t("admin.whatsapp.disconnectBtn") }]
+            ? [{ key: "unlink", icon: <Unlink className="size-4" aria-hidden="true" />, label: t("admin.whatsapp.disconnectBtn") }]
             : []),
-          { key: "delete", icon: <DeleteOutlined />, danger: true, label: t("admin.whatsapp.deleteBtn") },
+          { key: "delete", icon: <Trash2 className="size-4" aria-hidden="true" />, danger: true, label: t("admin.whatsapp.deleteBtn") },
         ];
         return (
-          <Dropdown
-            trigger={["click"]}
-            menu={{
-              items,
-              onClick: ({ key }) => {
-                if (key === "unlink") confirmDisconnect(r);
-                if (key === "delete") confirmDelete(r);
-              },
+          <MenuDropdown
+            align="end"
+            items={items}
+            onClick={({ key }) => {
+              if (key === "unlink") confirmDisconnect(r);
+              if (key === "delete") confirmDelete(r);
             }}
           >
             <Button
-              type="text"
-              size="small"
-              icon={<MoreOutlined />}
-              loading={disconnectingId === r.phoneId || deletingId === r.phoneId}
-            />
-          </Dropdown>
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              aria-label={t("common.actions")}
+              disabled={busy}
+            >
+              {busy
+                ? <Spinner size="sm" className="text-current" aria-hidden="true" />
+                : <MoreHorizontal aria-hidden="true" />}
+            </Button>
+          </MenuDropdown>
         );
       },
     },
@@ -335,35 +381,58 @@ export function AdminWhatsAppPage() {
         title={t("admin.whatsapp.title")}
         subtitle={t("admin.whatsapp.subtitle")}
         actions={
-          <Button icon={<ReloadOutlined />} loading={loading} onClick={() => void load()}>
+          <Button variant="outline" disabled={loading} onClick={() => void load()}>
+            {loading
+              ? <Spinner size="sm" className="text-current" aria-hidden="true" />
+              : <RefreshCw aria-hidden="true" />}
             {t("common.reload")}
           </Button>
         }
       />
 
-      <Flex vertical gap={24}>
+      <div className="flex flex-col gap-6">
         <AdminPhonesSection />
 
         <ListCard>
-          <Flex align="center" justify="space-between" gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder={t("common.search")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              allowClear
-              style={{ width: 260, maxWidth: "100%" }}
-            />
-            <Text type="secondary" style={{ fontSize: 13, fontVariantNumeric: "tabular-nums" }}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="relative w-[260px] max-w-full">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground"
+              />
+              <Input
+                className="ps-9 pe-8"
+                placeholder={t("common.search")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  aria-label={t("common.cancel")}
+                  onClick={() => setSearch("")}
+                  className="absolute inset-y-0 end-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
+            <span className="text-[13px] tabular-nums text-muted-foreground">
               {connected}/{rows.length} {t("admin.whatsapp.connectedCount")}
-            </Text>
-          </Flex>
+            </span>
+          </div>
 
-          <AppTable<WaConnectionRow>
+          <DataTable<WaConnectionRow>
             loading={loading}
             dataSource={filtered}
             rowKey="phoneId"
+            size="small"
             columns={columns}
+            scroll={{ x: "max-content" }}
+            pagination={{
+              pageSize: 10,
+              showTotal: (total, range) => `${range[0]}-${range[1]} / ${total}`,
+            }}
             locale={{
               emptyText: search ? (
                 <EmptyState title={t("admin.whatsapp.searchEmpty")} />
@@ -377,7 +446,7 @@ export function AdminWhatsAppPage() {
             }}
           />
         </ListCard>
-      </Flex>
+      </div>
     </PageContainer>
   );
 }

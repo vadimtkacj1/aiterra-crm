@@ -1,39 +1,27 @@
-import {
-  DeleteOutlined,
-  DownloadOutlined,
-  PlusOutlined,
-  RollbackOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
-import { EmptyState } from "../../../shared/components/EmptyState";
-import {
-  App,
-  Button,
-  Card,
-  Flex,
-  Input,
-  Popconfirm,
-  Space,
-  Table,
-  Tag,
-  Tooltip,
-  Typography,
-} from "antd";
-import type { ColumnsType } from "antd/es/table";
+import { Download, Plus, Search, Trash2, Undo2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { confirm } from "@/lib/confirm";
+import { message } from "@/lib/toast";
 import { useApp } from "../../../../app/AppProviders";
 import type { BillingHistoryWithAccountRow } from "../../../../services/admin/AdminService";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
-import { downloadInvoicePdf } from "../../../shared/utils/invoicePdf";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
-import { formatHistoryDateTime, formatMoney, paymentStatusTag } from "../payments/billingUi";
+import { TableActionButton } from "../../../shared/components/TableActionButton";
+import { downloadInvoicePdf } from "../../../shared/utils/invoicePdf";
+import { formatHistoryDateTime, formatMoney, paymentStatusBadge } from "../payments/billingUi";
 
 export function AdminInvoicesPage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const { services } = useApp();
   const isMobile = useMobileView();
   const navigate = useNavigate();
@@ -95,6 +83,25 @@ export function AdminInvoicesPage() {
     }
   };
 
+  const confirmRevoke = (row: BillingHistoryWithAccountRow) =>
+    confirm({
+      title: t("admin.invoices.revokeConfirm"),
+      content: t("admin.invoices.revokeConfirmDesc"),
+      okText: t("admin.invoices.revokeOk"),
+      cancelText: t("common.cancel"),
+      danger: true,
+      onOk: () => handleRevoke(row),
+    });
+
+  const confirmDelete = (row: BillingHistoryWithAccountRow) =>
+    confirm({
+      title: t("admin.invoices.deleteConfirm"),
+      okText: t("common.ok"),
+      cancelText: t("common.cancel"),
+      danger: true,
+      onOk: () => handleDelete(row),
+    });
+
   const downloadPdf = (row: BillingHistoryWithAccountRow) => {
     downloadInvoicePdf({
       invoiceId: `inv_${row.accountId}_${row.id}`,
@@ -112,24 +119,23 @@ export function AdminInvoicesPage() {
     });
   };
 
-  const columns: ColumnsType<BillingHistoryWithAccountRow> = [
+  const columns: DataTableColumn<BillingHistoryWithAccountRow>[] = [
     {
       title: t("admin.invoices.table.created"),
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
-      onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
-      render: (v: string) => formatHistoryDateTime(v),
+      onCell: () => ({ className: "tabular-nums" }),
+      render: (v) => formatHistoryDateTime(v as string),
     },
     {
       title: t("admin.invoices.table.business"),
       key: "accountName",
-      ellipsis: true,
       render: (_, r) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>{r.accountName}</div>
+        <div className="min-w-0">
+          <div className="truncate font-semibold">{r.accountName}</div>
           {r.ownerEmail && (
-            <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{r.ownerEmail}</div>
+            <div className="truncate text-xs text-(--ds-text-tertiary)">{r.ownerEmail}</div>
           )}
         </div>
       ),
@@ -139,18 +145,18 @@ export function AdminInvoicesPage() {
       dataIndex: "chargeType",
       key: "chargeType",
       width: 110,
-      render: (ct: string) =>
-        ct === "monthly" ? (
-          <Tag color="purple">{t("admin.invoices.typeMonthly")}</Tag>
+      render: (ct) =>
+        (ct as string) === "monthly" ? (
+          <Badge variant="primary">{t("admin.invoices.typeMonthly")}</Badge>
         ) : (
-          <Tag color="blue">{t("admin.invoices.typeOneTime")}</Tag>
+          <Badge variant="processing">{t("admin.invoices.typeOneTime")}</Badge>
         ),
     },
     {
       title: t("admin.invoices.table.amount"),
       key: "amount",
       width: 140,
-      onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
+      onCell: () => ({ className: "tabular-nums" }),
       render: (_, r) => {
         if (r.amount == null) return "-";
         const main = formatMoney(r.amount, r.currency || "ILS");
@@ -162,13 +168,13 @@ export function AdminInvoicesPage() {
         ) {
           return (
             <div>
-              <Typography.Text strong>{main}</Typography.Text>
-              <Typography.Text type="secondary" style={{ display: "block", fontSize: 11 }}>
+              <span className="font-semibold">{main}</span>
+              <span className="block text-[11px] text-muted-foreground">
                 {t("admin.invoices.installmentNote", {
                   total: formatMoney(r.installmentTotalAmount, r.currency || "ILS"),
                   months: r.installmentMonths,
                 })}
-              </Typography.Text>
+              </span>
             </div>
           );
         }
@@ -180,15 +186,15 @@ export function AdminInvoicesPage() {
       key: "paymentStatus",
       width: 160,
       render: (_, r) => (
-        <Space size={4} wrap>
-          {paymentStatusTag(t, r.paymentStatus)}
+        <div className="flex flex-wrap items-center gap-1">
+          {paymentStatusBadge(t, r.paymentStatus)}
           {r.recordStatus === "revoked" && (
-            <Tag style={{ fontSize: 11 }}>{t("admin.invoices.statusRevoked")}</Tag>
+            <Badge className="text-[11px]">{t("admin.invoices.statusRevoked")}</Badge>
           )}
           {r.recordStatus !== "active" && r.recordStatus !== "revoked" && (
-            <Tag style={{ fontSize: 11 }}>{t("admin.invoices.statusSuperseded")}</Tag>
+            <Badge className="text-[11px]">{t("admin.invoices.statusSuperseded")}</Badge>
           )}
-        </Space>
+        </div>
       ),
     },
     {
@@ -196,46 +202,44 @@ export function AdminInvoicesPage() {
       key: "actions",
       width: 150,
       render: (_, r) => (
-        <Space size={4}>
-          <Tooltip title={t("admin.invoices.downloadPdf")}>
-            <Button
-              size="small"
-              icon={<DownloadOutlined />}
-              onClick={() => downloadPdf(r)}
-              disabled={r.amount == null || r.amount <= 0}
-            />
-          </Tooltip>
+        <div className="flex items-center gap-1">
+          <TableActionButton
+            tooltip={t("admin.invoices.downloadPdf")}
+            icon={<Download className="size-4" />}
+            onClick={() => downloadPdf(r)}
+            disabled={r.amount == null || r.amount <= 0}
+          />
           {r.recordStatus === "active" ? (
-            <Popconfirm
-              title={t("admin.invoices.revokeConfirm")}
-              description={t("admin.invoices.revokeConfirmDesc")}
-              onConfirm={() => void handleRevoke(r)}
-              okText={t("admin.invoices.revokeOk")}
-              okButtonProps={{ danger: true }}
-              cancelText={t("common.cancel")}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={revokingId === r.id}
+              onClick={() => confirmRevoke(r)}
             >
-              <Button
-                size="small"
-                icon={<RollbackOutlined />}
-                loading={revokingId === r.id}
-              >
-                {t("admin.invoices.revoke")}
-              </Button>
-            </Popconfirm>
+              {revokingId === r.id ? (
+                <Spinner size="sm" className="text-current" aria-hidden="true" />
+              ) : (
+                <Undo2 aria-hidden="true" />
+              )}
+              {t("admin.invoices.revoke")}
+            </Button>
           ) : (
-            <Popconfirm
-              title={t("admin.invoices.deleteConfirm")}
-              onConfirm={() => void handleDelete(r)}
-              okText={t("common.ok")}
-              cancelText={t("common.cancel")}
-              okButtonProps={{ danger: true }}
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-destructive/40 text-destructive hover:text-destructive"
+              disabled={deletingId === r.id}
+              onClick={() => confirmDelete(r)}
             >
-              <Button size="small" icon={<DeleteOutlined />} loading={deletingId === r.id}>
-                {t("admin.invoices.delete")}
-              </Button>
-            </Popconfirm>
+              {deletingId === r.id ? (
+                <Spinner size="sm" className="text-current" aria-hidden="true" />
+              ) : (
+                <Trash2 aria-hidden="true" />
+              )}
+              {t("admin.invoices.delete")}
+            </Button>
           )}
-        </Space>
+        </div>
       ),
     },
   ];
@@ -247,26 +251,25 @@ export function AdminInvoicesPage() {
         subtitle={t("admin.invoices.subtitle")}
       />
 
-      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
-        <Flex
-          align="center"
-          justify="space-between"
-          gap={8}
-          wrap="wrap"
-          style={{ marginBottom: 16 }}
-        >
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder={t("common.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: isMobile ? 160 : 280 }}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate("/admin/payments")}>
+      <Card className={isMobile ? "p-3" : "p-4"}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="relative" style={{ width: isMobile ? 160 : 280 }}>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              className="ps-9"
+              placeholder={t("common.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <Button onClick={() => navigate("/admin/payments")}>
+            <Plus aria-hidden="true" />
             {!isMobile && t("admin.invoices.createButton")}
           </Button>
-        </Flex>
+        </div>
         {isMobile ? (
           <ResponsiveCardView
             items={filtered.map((r) => ({
@@ -279,7 +282,7 @@ export function AdminInvoicesPage() {
                   label: r.chargeType === "monthly" ? t("admin.invoices.typeMonthly") : t("admin.invoices.typeOneTime"),
                   color: r.chargeType === "monthly" ? "purple" : "blue",
                 },
-                paymentStatusTag(t, r.paymentStatus),
+                paymentStatusBadge(t, r.paymentStatus),
                 ...(r.recordStatus !== "active"
                   ? [{
                       label: r.recordStatus === "revoked" ? t("admin.invoices.statusRevoked") : t("admin.invoices.statusSuperseded"),
@@ -288,17 +291,17 @@ export function AdminInvoicesPage() {
                   : []),
               ],
               extra: (
-                <div style={{ textAlign: "end" }}>
-                  <Typography.Text strong style={{ fontSize: 14 }}>
+                <div className="text-end">
+                  <span className="text-sm font-semibold tabular-nums">
                     {r.amount != null ? formatMoney(r.amount, r.currency || "ILS") : "-"}
-                  </Typography.Text>
+                  </span>
                   {r.chargeType === "monthly" && r.installmentMonths != null && r.installmentMonths >= 2 && r.installmentTotalAmount != null && (
-                    <Typography.Text type="secondary" style={{ display: "block", fontSize: 10 }}>
+                    <span className="block text-[10px] text-muted-foreground">
                       {t("admin.invoices.installmentNote", {
                         total: formatMoney(r.installmentTotalAmount, r.currency || "ILS"),
                         months: r.installmentMonths,
                       })}
-                    </Typography.Text>
+                    </span>
                   )}
                 </div>
               ),
@@ -306,17 +309,17 @@ export function AdminInvoicesPage() {
                 {
                   label: t("admin.invoices.downloadPdf"),
                   onClick: () => downloadPdf(r),
-                  icon: <DownloadOutlined />,
+                  icon: <Download className="size-4" />,
                   type: "default" as const,
                 },
                 ...(r.recordStatus === "active"
                   ? [{
                       label: t("admin.invoices.revoke"),
-                      onClick: () => void handleRevoke(r),
+                      onClick: () => confirmRevoke(r),
                     }]
                   : [{
                       label: t("admin.invoices.delete"),
-                      onClick: () => void handleDelete(r),
+                      onClick: () => confirmDelete(r),
                       danger: true,
                     }]),
               ],
@@ -325,13 +328,13 @@ export function AdminInvoicesPage() {
             emptyText={t("admin.invoices.emptyTitle")}
           />
         ) : (
-          <Table
+          <DataTable<BillingHistoryWithAccountRow>
             columns={columns}
             dataSource={filtered}
             rowKey={(r) => `${r.accountId}-${r.id}`}
             loading={loading}
             size="middle"
-            pagination={{ pageSize: 20, showSizeChanger: true }}
+            pagination={{ pageSize: 20 }}
             scroll={{ x: 900 }}
             locale={{
               emptyText: search ? (

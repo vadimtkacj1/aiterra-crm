@@ -1,7 +1,13 @@
-import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
-import { App, Button, Card, Flex, Input, Table } from "antd";
+import { RefreshCw, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import type { AdminAuditLogRow } from "@/services/admin/AdminService";
 import { useApp } from "@/app/AppProviders";
 import { PageContainer } from "../../../shared/components/PageContainer";
@@ -11,7 +17,6 @@ import { ResponsiveCardView, useMobileView } from "../../../shared/components/Re
 
 export function AdminAuditPage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const { services } = useApp();
   const isMobile = useMobileView();
   const [rows, setRows] = useState<AdminAuditLogRow[]>([]);
@@ -29,7 +34,7 @@ export function AdminAuditPage() {
     } finally {
       setLoading(false);
     }
-  }, [services.admin, message, t]);
+  }, [services.admin, t]);
 
   useEffect(() => {
     void load();
@@ -57,28 +62,82 @@ export function AdminAuditPage() {
     />
   );
 
+  const columns: DataTableColumn<AdminAuditLogRow>[] = [
+    {
+      title: t("admin.audit.columns.time"),
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 180,
+      render: (v) => (
+        <span className="whitespace-nowrap tabular-nums">
+          {new Date(String(v)).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      title: t("admin.audit.columns.admin"),
+      key: "admin",
+      width: 220,
+      render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-"),
+    },
+    { title: t("admin.audit.columns.action"), dataIndex: "action", key: "action", width: 200 },
+    {
+      title: t("admin.audit.columns.resource"),
+      key: "resource",
+      width: 180,
+      render: (_, r) => r.resourceType || "-",
+    },
+    {
+      title: t("admin.audit.columns.detail"),
+      dataIndex: "detail",
+      key: "detail",
+      render: (v) => (
+        <span className="block max-w-[360px] truncate">{(v as string) || ""}</span>
+      ),
+    },
+  ];
+
   return (
     <PageContainer>
       <PageHeader
         title={t("admin.audit.title")}
         description={t("admin.audit.subtitle")}
         actions={
-          <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
+          <Button variant="outline" onClick={() => void load()} disabled={loading}>
+            {loading ? (
+              <Spinner size="sm" className="text-current" aria-hidden="true" />
+            ) : (
+              <RefreshCw aria-hidden="true" />
+            )}
             {!isMobile && t("common.reload")}
           </Button>
         }
       />
-      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
-        <Flex align="center" gap={8} wrap="wrap" style={{ marginBottom: 12 }}>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder={t("admin.audit.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: isMobile ? "100%" : 280 }}
-          />
-        </Flex>
+      <Card className={cn(isMobile ? "p-3" : "p-4")}>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className={cn("relative", isMobile ? "w-full" : "w-[280px]")}>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground"
+            />
+            <Input
+              className="ps-9 pe-8"
+              placeholder={t("admin.audit.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                type="button"
+                aria-label={t("admin.audit.clearSearch")}
+                onClick={() => setSearch("")}
+                className="absolute inset-y-0 end-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
         {isMobile ? (
           <ResponsiveCardView
             items={filtered.map((r) => ({
@@ -88,7 +147,7 @@ export function AdminAuditPage() {
               description: new Date(r.createdAt).toLocaleString(),
               tags: r.resourceType ? [{ label: `${r.resourceType} ${r.resourceId || ""}`.trim(), color: "blue" }] : [],
               extra: r.detail ? (
-                <div style={{ fontSize: 12, color: "var(--ant-color-text-secondary)", marginTop: 4 }}>
+                <div className="mt-1 text-xs text-muted-foreground">
                   {r.detail}
                 </div>
               ) : undefined,
@@ -97,7 +156,7 @@ export function AdminAuditPage() {
             emptyText={t("common.noData")}
           />
         ) : (
-          <Table<AdminAuditLogRow>
+          <DataTable<AdminAuditLogRow>
             rowKey="id"
             loading={loading}
             size="middle"
@@ -105,32 +164,11 @@ export function AdminAuditPage() {
             dataSource={filtered}
             scroll={{ x: 900 }}
             locale={{ emptyText: emptyState }}
-            columns={[
-              {
-                title: t("admin.audit.columns.time"),
-                dataIndex: "createdAt",
-                key: "createdAt",
-                width: 180,
-                render: (v: string) => (
-                  <span style={{ fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                    {new Date(v).toLocaleString()}
-                  </span>
-                ),
-              },
-              { title: t("admin.audit.columns.admin"), key: "admin", width: 220, render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-") },
-              { title: t("admin.audit.columns.action"), dataIndex: "action", key: "action", width: 200 },
-              {
-                title: t("admin.audit.columns.resource"),
-                key: "resource",
-                width: 180,
-                render: (_, r) => r.resourceType || "-",
-              },
-              { title: t("admin.audit.columns.detail"), dataIndex: "detail", key: "detail", ellipsis: true },
-            ]}
+            columns={columns}
             expandable={{
               rowExpandable: (r) => Boolean(r.resourceId || r.detail),
               expandedRowRender: (r) => (
-                <Flex vertical gap={4}>
+                <div className="flex flex-col gap-1">
                   {r.resourceId ? (
                     <span>
                       <strong>{t("admin.audit.columns.resource")}:</strong>{" "}
@@ -138,11 +176,11 @@ export function AdminAuditPage() {
                     </span>
                   ) : null}
                   {r.detail ? (
-                    <span style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                    <span className="whitespace-pre-wrap [overflow-wrap:anywhere]">
                       <strong>{t("admin.audit.columns.detail")}:</strong> {r.detail}
                     </span>
                   ) : null}
-                </Flex>
+                </div>
               ),
             }}
           />

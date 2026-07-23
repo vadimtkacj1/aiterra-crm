@@ -1,19 +1,28 @@
 import { Tag, Typography } from "antd";
 import type { ReactNode } from "react";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 
+const PAYMENT_STATUS_MAP: Record<string, { color: string; labelKey: string }> = {
+  paid: { color: "success", labelKey: "admin.payments.payStatePaid" },
+  pending: { color: "warning", labelKey: "admin.payments.payStatePending" },
+  unpaid: { color: "warning", labelKey: "admin.payments.payStateUnpaid" },
+  voided: { color: "default", labelKey: "admin.payments.payStateVoided" },
+  cancelled: { color: "error", labelKey: "admin.payments.payStateCancelled" },
+  superseded: { color: "default", labelKey: "admin.payments.payStateSuperseded" },
+  ongoing: { color: "processing", labelKey: "admin.payments.payStateOngoing" },
+  unknown: { color: "default", labelKey: "admin.payments.payStateUnknown" },
+};
+
+/** @deprecated antd Tag version — kept only for wave-4 files; use `paymentStatusBadge`. */
 export function paymentStatusTag(t: (key: string) => string, status: string): ReactNode {
-  const map: Record<string, { color: string; labelKey: string }> = {
-    paid: { color: "success", labelKey: "admin.payments.payStatePaid" },
-    pending: { color: "warning", labelKey: "admin.payments.payStatePending" },
-    unpaid: { color: "warning", labelKey: "admin.payments.payStateUnpaid" },
-    voided: { color: "default", labelKey: "admin.payments.payStateVoided" },
-    cancelled: { color: "error", labelKey: "admin.payments.payStateCancelled" },
-    superseded: { color: "default", labelKey: "admin.payments.payStateSuperseded" },
-    ongoing: { color: "processing", labelKey: "admin.payments.payStateOngoing" },
-    unknown: { color: "default", labelKey: "admin.payments.payStateUnknown" },
-  };
-  const m = map[status] ?? map.unknown;
+  const m = PAYMENT_STATUS_MAP[status] ?? PAYMENT_STATUS_MAP.unknown;
   return <Tag color={m.color}>{t(m.labelKey)}</Tag>;
+}
+
+/** shadcn Badge version of `paymentStatusTag` — antd color names map 1:1 to Badge variants. */
+export function paymentStatusBadge(t: (key: string) => string, status: string): ReactNode {
+  const m = PAYMENT_STATUS_MAP[status] ?? PAYMENT_STATUS_MAP.unknown;
+  return <Badge variant={m.color as BadgeProps["variant"]}>{t(m.labelKey)}</Badge>;
 }
 
 export function formatHistoryDateTime(iso: string): string {

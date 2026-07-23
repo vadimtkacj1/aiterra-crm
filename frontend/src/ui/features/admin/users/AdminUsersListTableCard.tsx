@@ -1,12 +1,15 @@
-import { DeleteOutlined, MoreOutlined, SearchOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Button, Card, Dropdown, Flex, Input, Popconfirm, Typography } from "antd";
+import { Search, Trash2, UserPlus, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { Key } from "react";
-import { AppTable } from "@/ui/shared/components/AppTable";
 import type { TFunction } from "i18next";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
+import { MenuDropdown } from "@/components/ui/menu-compat";
+import { confirm } from "@/lib/confirm";
 import type { User, UserRole } from "@/domain/User";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
-import { UserRowActions, userOverflowMenu } from "./UserRowActions";
+import { UserRowActions, UserOverflowTrigger, userOverflowMenu } from "./UserRowActions";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 
 type Props = {
@@ -23,7 +26,7 @@ type Props = {
 export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPassword, onDelete, onDeleteBulk, onCreateUser }: Props) {
   const isMobile = useMobileView();
   const [search, setSearch] = useState("");
-  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -52,25 +55,39 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
   );
 
   return (
-    <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
-      <Flex vertical gap={16}>
-        <Flex align="center" justify="space-between" gap={8} wrap>
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder={t("common.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: isMobile ? 180 : 280 }}
-          />
-          <Button type={emptyCtaVisible ? "default" : "primary"} icon={<UserAddOutlined />} onClick={onCreateUser}>
+    <Card className={isMobile ? "p-3" : "p-4"}>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className={`relative ${isMobile ? "w-[180px]" : "w-[280px]"}`}>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              placeholder={t("common.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="ps-8 pe-8"
+            />
+            {search && (
+              <button
+                type="button"
+                aria-label={t("common.clear", { defaultValue: "Clear" })}
+                onClick={() => setSearch("")}
+                className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+              >
+                <X aria-hidden="true" className="size-3.5" />
+              </button>
+            )}
+          </div>
+          <Button variant={emptyCtaVisible ? "outline" : "default"} onClick={onCreateUser}>
+            <UserPlus className="size-4" />
             {!isMobile && t("admin.form.submit")}
           </Button>
-        </Flex>
+        </div>
         {selectedRowKeys.length > 0 && (
-          <Flex
-            align="center"
-            justify="space-between"
+          <div
+            className="flex items-center justify-between"
             style={{
               padding: "8px 12px",
               background: "var(--ds-color-primary-surface)",
@@ -78,32 +95,37 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
               borderRadius: "var(--ds-radius-md)",
             }}
           >
-            <Typography.Text style={{ fontSize: 13 }}>
+            <span className="text-[13px]">
               {t("table.selectedCount", { count: selectedRowKeys.length })}
-            </Typography.Text>
-            <Flex gap={8}>
-              <Button size="small" onClick={() => setSelectedRowKeys([])}>
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setSelectedRowKeys([])}>
                 {t("common.clearSelection")}
               </Button>
               {onDeleteBulk && (
-                <Popconfirm
-                  title={t("admin.users.bulkDeleteConfirmTitle")}
-                  description={t("admin.users.bulkDeleteConfirmContent", { count: selectedRowKeys.length })}
-                  okText={t("common.confirm")}
-                  cancelText={t("common.cancel")}
-                  okButtonProps={{ danger: true }}
-                  onConfirm={() => {
-                    onDeleteBulk(selectedRowKeys.map(Number));
-                    setSelectedRowKeys([]);
-                  }}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() =>
+                    confirm({
+                      title: t("admin.users.bulkDeleteConfirmTitle"),
+                      content: t("admin.users.bulkDeleteConfirmContent", { count: selectedRowKeys.length }),
+                      okText: t("common.confirm"),
+                      cancelText: t("common.cancel"),
+                      danger: true,
+                      onOk: () => {
+                        onDeleteBulk(selectedRowKeys.map(Number));
+                        setSelectedRowKeys([]);
+                      },
+                    })
+                  }
                 >
-                  <Button size="small" danger icon={<DeleteOutlined />}>
-                    {t("admin.users.bulkDelete", { count: selectedRowKeys.length })}
-                  </Button>
-                </Popconfirm>
+                  <Trash2 className="size-4" />
+                  {t("admin.users.bulkDelete", { count: selectedRowKeys.length })}
+                </Button>
               )}
-            </Flex>
-          </Flex>
+            </div>
+          </div>
         )}
         {isMobile ? (
           <ResponsiveCardView
@@ -116,16 +138,16 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
                 { label: t("admin.table.edit"), onClick: () => onEdit(u), type: "default" as const },
               ],
               extra: (
-                <Dropdown trigger={["click"]} menu={userOverflowMenu(u, t, onResetPassword, onDelete)}>
-                  <Button type="text" size="small" icon={<MoreOutlined />} />
-                </Dropdown>
+                <MenuDropdown items={userOverflowMenu(u, t, onResetPassword, onDelete)}>
+                  <UserOverflowTrigger t={t} />
+                </MenuDropdown>
               ),
             }))}
             loading={loading}
             emptyText={t("common.noData")}
           />
         ) : (
-          <AppTable
+          <DataTable<User>
             size="middle"
             loading={loading}
             rowKey="id"
@@ -134,23 +156,22 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
             rowSelection={{
               selectedRowKeys,
               onChange: setSelectedRowKeys,
-              preserveSelectedRowKeys: true,
             }}
             columns={[
-              { title: t("admin.table.email"), dataIndex: "email", key: "email", ellipsis: true },
-              { title: t("admin.table.displayName"), dataIndex: "displayName", key: "displayName", ellipsis: true },
+              { title: t("admin.table.email"), dataIndex: "email", key: "email" },
+              { title: t("admin.table.displayName"), dataIndex: "displayName", key: "displayName" },
               {
                 title: t("admin.table.role"),
                 dataIndex: "role",
                 key: "role",
                 width: 100,
-                render: (role: UserRole) => t(`admin.roles.${role}`),
+                render: (role) => t(`admin.roles.${role as UserRole}`),
               },
               {
                 title: t("admin.table.actions"),
                 key: "actions",
                 width: 100,
-                render: (_, u: User) => (
+                render: (_, u) => (
                   <UserRowActions
                     user={u}
                     t={t}
@@ -163,7 +184,7 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
             ]}
           />
         )}
-      </Flex>
+      </div>
     </Card>
   );
 }

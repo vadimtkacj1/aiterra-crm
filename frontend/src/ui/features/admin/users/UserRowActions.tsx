@@ -1,7 +1,8 @@
-import { DeleteOutlined, EditOutlined, LockOutlined, MoreOutlined } from "@ant-design/icons";
-import { Button, Dropdown, Space } from "antd";
-import type { MenuProps } from "antd";
+import type * as React from "react";
+import { EllipsisVertical, Lock, Pencil, Trash2 } from "lucide-react";
 import type { TFunction } from "i18next";
+import { Button } from "@/components/ui/button";
+import { MenuDropdown, type MenuCompatItemType } from "@/components/ui/menu-compat";
 import type { User } from "../../../../domain/User";
 import { TableActionButton } from "../../../shared/components/TableActionButton";
 
@@ -19,30 +20,54 @@ export function userOverflowMenu(
   t: TFunction,
   onResetPassword: (u: User) => void,
   onDelete: (u: User) => void,
-): MenuProps {
-  return {
-    items: [
-      { key: "reset", icon: <LockOutlined />, label: t("admin.resetPassword") },
-      { key: "delete", icon: <DeleteOutlined />, danger: true, label: t("admin.deleteUser") },
-    ],
-    onClick: ({ key }) => {
-      if (key === "reset") onResetPassword(user);
-      if (key === "delete") onDelete(user);
+): MenuCompatItemType[] {
+  return [
+    {
+      key: "reset",
+      icon: <Lock className="size-4" />,
+      label: t("admin.resetPassword"),
+      onClick: () => onResetPassword(user),
     },
-  };
+    {
+      key: "delete",
+      icon: <Trash2 className="size-4" />,
+      danger: true,
+      label: t("admin.deleteUser"),
+      onClick: () => onDelete(user),
+    },
+  ];
+}
+
+/** ghost ⋯ trigger button shared between the table row and the mobile card view.
+    Spreads incoming props/ref so it stays usable as a Radix `asChild` trigger. */
+export function UserOverflowTrigger({
+  t,
+  ...props
+}: { t: TFunction } & React.ComponentProps<typeof Button>) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="size-8 text-muted-foreground hover:text-foreground"
+      aria-label={t("admin.table.actions")}
+      {...props}
+    >
+      <EllipsisVertical className="size-4" />
+    </Button>
+  );
 }
 
 export function UserRowActions({ user, t, onEdit, onResetPassword, onDelete }: Props) {
   return (
-    <Space size={4}>
+    <div className="flex items-center gap-1">
       <TableActionButton
         tooltip={t("admin.editUser")}
-        icon={<EditOutlined />}
+        icon={<Pencil className="size-4" />}
         onClick={() => onEdit(user)}
       />
-      <Dropdown trigger={["click"]} menu={userOverflowMenu(user, t, onResetPassword, onDelete)}>
-        <Button type="text" size="small" icon={<MoreOutlined />} />
-      </Dropdown>
-    </Space>
+      <MenuDropdown items={userOverflowMenu(user, t, onResetPassword, onDelete)}>
+        <UserOverflowTrigger t={t} />
+      </MenuDropdown>
+    </div>
   );
 }

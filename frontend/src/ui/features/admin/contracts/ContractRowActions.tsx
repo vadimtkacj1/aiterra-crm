@@ -1,16 +1,16 @@
 import {
-  CalendarOutlined,
-  CopyOutlined,
-  CreditCardOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  MinusCircleOutlined,
-  MoreOutlined,
-  SendOutlined,
-} from "@ant-design/icons";
-import { Button, Dropdown, Space } from "antd";
-import type { MenuProps } from "antd";
+  Calendar,
+  Copy,
+  CreditCard,
+  EllipsisVertical,
+  Eye,
+  MinusCircle,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { MenuDropdown, type MenuCompatItemType } from "@/components/ui/menu-compat";
 import type { Contract } from "../../../../domain/Contract";
 import { TableActionButton } from "../../../shared/components/TableActionButton";
 
@@ -45,12 +45,12 @@ export function ContractRowActions({
   const wasCopied = copiedId === c.id;
   const isMonthly = Boolean(c.monthlyAmount && c.monthlyAmount > 0);
 
-  const items: MenuProps["items"] = [];
+  const items: MenuCompatItemType[] = [];
 
   if (c.status === "draft" || c.status === "pending_signature") {
     items.push({
       key: "copyLink",
-      icon: <CopyOutlined />,
+      icon: <Copy className="size-4" />,
       label: wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyLink"),
       onClick: () => onCopyLink(c),
     });
@@ -58,7 +58,7 @@ export function ContractRowActions({
   if (c.status === "signed") {
     items.push({
       key: "copyPaymentLink",
-      icon: <CreditCardOutlined />,
+      icon: <CreditCard className="size-4" />,
       label: wasCopied ? t("admin.contracts.linkCopied") : t("admin.contracts.copyPaymentLink"),
       onClick: () => onCopyPaymentLink(c),
     });
@@ -66,7 +66,7 @@ export function ContractRowActions({
   if (c.status === "signed" && isMonthly) {
     items.push({
       key: "subscription",
-      icon: <CalendarOutlined />,
+      icon: <Calendar className="size-4" />,
       label: t("admin.contracts.subscription.viewStatus"),
       onClick: () => onSubscription(c.id),
     });
@@ -74,7 +74,7 @@ export function ContractRowActions({
   if (c.status === "draft") {
     items.push({
       key: "send",
-      icon: <SendOutlined />,
+      icon: <Send className="size-4" />,
       label: t("admin.contracts.send"),
       onClick: () => onSend(c),
     });
@@ -83,7 +83,7 @@ export function ContractRowActions({
   if (c.status !== "voided" && c.status !== "signed") {
     items.push({
       key: "void",
-      icon: <MinusCircleOutlined />,
+      icon: <MinusCircle className="size-4" />,
       label: t("admin.contracts.void"),
       danger: true,
       onClick: () => onVoid(c),
@@ -91,23 +91,30 @@ export function ContractRowActions({
   }
   items.push({
     key: "delete",
-    icon: <DeleteOutlined />,
+    icon: <Trash2 className="size-4" />,
     label: t("admin.contracts.delete"),
     danger: true,
     onClick: () => onDelete(c),
   });
 
   return (
-    <Space size={4}>
+    <div className="flex items-center gap-1">
       <TableActionButton
         tooltip={t("admin.contracts.viewDetail")}
-        icon={<EyeOutlined />}
+        icon={<Eye className="size-4" />}
         onClick={() => onView(c)}
       />
-      {/* No explicit placement — antd picks the direction-aware default, keeping RTL correct */}
-      <Dropdown menu={{ items }} trigger={["click"]}>
-        <Button type="text" size="small" icon={<MoreOutlined />} aria-label={t("common.actions")} />
-      </Dropdown>
-    </Space>
+      {/* Logical alignment ("start") keeps the menu direction-aware in RTL. */}
+      <MenuDropdown items={items}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 text-muted-foreground hover:text-foreground"
+          aria-label={t("common.actions")}
+        >
+          <EllipsisVertical className="size-4" />
+        </Button>
+      </MenuDropdown>
+    </div>
   );
 }

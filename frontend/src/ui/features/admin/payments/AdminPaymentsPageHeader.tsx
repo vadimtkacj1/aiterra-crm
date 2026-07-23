@@ -1,11 +1,12 @@
-import { FolderOpenOutlined, ShoppingOutlined } from "@ant-design/icons";
-import { Button, Flex, Typography } from "antd";
-import type { GlobalToken } from "antd/es/theme/interface";
+import { FolderOpen, ShoppingBag } from "lucide-react";
 import type { TFunction } from "i18next";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import type { AdminPaymentsTokenLike } from "./adminPaymentsPageUi";
 
 type Props = {
   t: TFunction;
-  token: GlobalToken;
+  token: AdminPaymentsTokenLike;
   shellRadius: number;
   shellShadow: string;
   loadingUsers: boolean;
@@ -22,54 +23,48 @@ export function AdminPaymentsPageHeader({
 }: Props) {
   return (
     <div
+      className="bg-card"
       style={{
         borderRadius: shellRadius,
         padding: "18px 20px",
-        background: token.colorBgContainer,
         border: `1px solid ${token.colorBorderSecondary}`,
         boxShadow: shellShadow,
       }}
     >
-      <Flex gap={18} align="flex-start" wrap="wrap" justify="space-between">
-        <Flex gap={18} align="flex-start" wrap="wrap" style={{ flex: "1 1 280px", minWidth: 0 }}>
+      <div className="flex flex-wrap items-start justify-between gap-4.5">
+        <div className="flex min-w-0 flex-[1_1_280px] flex-wrap items-start gap-4.5">
           <div
+            className="flex size-11.5 shrink-0 items-center justify-center rounded-xl bg-card"
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 12,
-              background: token.colorBgContainer,
               border: `1px solid ${token.colorPrimaryBorder}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
               color: token.colorPrimary,
-              flexShrink: 0,
             }}
           >
-            <ShoppingOutlined style={{ fontSize: 22 }} />
+            <ShoppingBag aria-hidden="true" className="size-5.5" />
           </div>
-          <div style={{ minWidth: 0, flex: "1 1 240px" }}>
-            <Typography.Title level={3} style={{ margin: "0 0 6px", fontWeight: 700, letterSpacing: "-0.01em" }}>
+          <div className="min-w-0 flex-[1_1_240px]">
+            <h3 className="mb-1.5 mt-0 text-xl font-bold tracking-[-0.01em] text-foreground">
               {t("admin.payments.title")}
-            </Typography.Title>
-            <Typography.Paragraph
-              type="secondary"
-              style={{ marginBottom: 0, fontSize: 13, lineHeight: 1.5, maxWidth: 720 }}
-            >
+            </h3>
+            <p className="mb-0 max-w-180 text-[13px] leading-normal text-muted-foreground">
               {t("admin.payments.introShort")}
-            </Typography.Paragraph>
+            </p>
           </div>
-        </Flex>
+        </div>
         <Button
-          type="default"
-          icon={<FolderOpenOutlined />}
+          variant="outline"
           onClick={onOpenLibrary}
-          loading={loadingUsers}
-          style={{ flexShrink: 0, alignSelf: "flex-start", marginTop: 2 }}
+          disabled={loadingUsers}
+          className="mt-0.5 shrink-0 self-start"
         >
+          {loadingUsers ? (
+            <Spinner size="sm" className="text-current" aria-hidden="true" />
+          ) : (
+            <FolderOpen aria-hidden="true" />
+          )}
           {t("admin.payments.libraryDrawerTrigger")}
         </Button>
-      </Flex>
+      </div>
     </div>
   );
 }

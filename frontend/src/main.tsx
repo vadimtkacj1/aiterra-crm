@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "@/app/App";
 import { i18nReady } from "@/i18n";
 import "./styles/global.css";
+import "./styles/tailwind.css";
 
 void i18nReady.then(() => {
   createRoot(document.getElementById("root")!).render(

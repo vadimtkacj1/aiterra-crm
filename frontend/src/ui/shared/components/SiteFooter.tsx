@@ -1,11 +1,10 @@
-import { MailOutlined, PhoneOutlined } from "@ant-design/icons";
-import { theme } from "antd";
+import { Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const BUSINESS_CONTACTS = {
   phone: "+972 52-678-0739",
   email: "office@aiterra.co.il",
-  legalEntityNumber: "000000000",    // ← still a placeholder: replace with real ח.פ / עוסק מורשה
+  legalEntityNumber: "000000000", // ← still a placeholder: replace with real ח.פ / עוסק מורשה
 };
 
 const PAYMENT_METHODS = [
@@ -15,83 +14,37 @@ const PAYMENT_METHODS = [
 ];
 
 export function SiteFooter() {
-  const { token } = theme.useToken();
-
   return (
-    <footer
-      dir="rtl"
-      style={{
-        borderTop: "none",
-        background: "transparent",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          padding: "28px 24px",
-          display: "grid",
-          gap: 16,
-        }}
-      >
-        <div style={{ display: "grid", gap: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>פרטי התקשרות</h3>
+    <footer dir="rtl" className="bg-transparent">
+      <div className="mx-auto grid max-w-5xl gap-4 px-6 py-7">
+        <div className="grid gap-2">
+          <h3 className="m-0 text-base font-semibold">פרטי התקשרות</h3>
 
-          <a
-            href={`tel:${BUSINESS_CONTACTS.phone}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText, textDecoration: "none" }}
-          >
+          <a href={`tel:${BUSINESS_CONTACTS.phone}`} className="inline-flex items-center gap-2 text-foreground no-underline">
             <span dir="ltr">{BUSINESS_CONTACTS.phone}</span>
-            <PhoneOutlined />
+            <Phone className="size-4" />
           </a>
 
-          <a
-            href={`mailto:${BUSINESS_CONTACTS.email}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, color: token.colorText, textDecoration: "none" }}
-          >
+          <a href={`mailto:${BUSINESS_CONTACTS.email}`} className="inline-flex items-center gap-2 text-foreground no-underline">
             <span>{BUSINESS_CONTACTS.email}</span>
-            <MailOutlined />
+            <Mail className="size-4" />
           </a>
         </div>
 
-        <div style={{ display: "grid", gap: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>אמצעי תשלום</h3>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {PAYMENT_METHODS.map((method) => (
-              <img
-                key={method.src}
-                src={method.src}
-                alt={method.alt}
-                width={54}
-                height={34}
-                style={{ border: "none", borderRadius: 0, background: "transparent" }}
-              />
+        <div className="grid gap-2">
+          <h3 className="m-0 text-base font-semibold">אמצעי תשלום</h3>
+          <div className="flex flex-wrap gap-3">
+            {PAYMENT_METHODS.map((m) => (
+              <img key={m.src} src={m.src} alt={m.alt} width={54} height={34} />
             ))}
           </div>
         </div>
 
-        <div
-          style={{
-            borderTop: "none",
-            paddingTop: 12,
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 8,
-            justifyContent: "space-between",
-            color: token.colorTextSecondary,
-            fontSize: 13,
-          }}
-        >
+        <div className="flex flex-wrap justify-between gap-2 pt-3 text-[13px] text-muted-foreground">
           <span>ח.פ / עוסק מורשה: {BUSINESS_CONTACTS.legalEntityNumber}</span>
-          <Link to="/terms" style={{ color: token.colorText, textDecoration: "none" }}>
-            תקנון ותנאי שימוש
-          </Link>
-          <Link to="/cancel-policy" style={{ color: token.colorText, textDecoration: "none" }}>
-            מדיניות ביטולים
-          </Link>
-          <Link to="/privacy-policy" style={{ color: token.colorText, textDecoration: "none" }}>
-            מדיניות פרטיות
-          </Link>
+          <Link to="/terms" className="text-foreground no-underline hover:underline">תקנון ותנאי שימוש</Link>
+          <Link to="/cancel-policy" className="text-foreground no-underline hover:underline">מדיניות ביטולים</Link>
+          <Link to="/privacy-policy" className="text-foreground no-underline hover:underline">מדיניות פרטיות</Link>
         </div>
       </div>
     </footer>

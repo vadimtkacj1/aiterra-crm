@@ -4,6 +4,7 @@ import heIL from "antd/locale/he_IL";
 import { useEffect, type ReactNode } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 import { i18n } from "@/i18n";
 import { AppProviders } from "./AppProviders";
 import { AppRoutes } from "@/ui/routes/AppRoutes";
@@ -35,6 +36,9 @@ export function App() {
           <BrowserRouter>
             <AppProviders>
               <AppRoutes />
+              {/* shadcn toast host (used by migrated pages; antd message still
+                  serves un-migrated pages during the incremental migration) */}
+              <Toaster position="top-center" richColors closeButton />
             </AppProviders>
           </BrowserRouter>
         </AntdApp>

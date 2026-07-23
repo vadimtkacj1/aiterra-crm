@@ -24,7 +24,7 @@ import {
 import type { FormInstance } from "antd/es/form";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
-import { SectionStep, formatMoney } from "./billingUi";
+import { formatMoney } from "./billingUi";
 import type { AdminPaymentsFormValues, BillingSchedule } from "./types";
 import { BILLING_CURRENCIES } from "./types";
 
@@ -171,13 +171,7 @@ export function InvoiceComposerCard({
       }}
     >
       {/* Header */}
-      <Flex justify="space-between" align="flex-start" gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
-        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
-          <SectionStep
-            title={t("admin.payments.stepInvoiceTitle")}
-            hint={t("admin.payments.stepInvoiceHint")}
-          />
-        </div>
+      <Flex justify="flex-end" align="flex-start" gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
         <Tooltip title={canSaveTemplate ? undefined : t("admin.payments.templateNeedCharge")}>
           <Button
             type="default"

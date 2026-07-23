@@ -29,7 +29,12 @@ export function getSubscriptionStatusColor(status: string | null): string {
     case "past_due":
       return "warning";
     case "canceled":
+    case "cancelled":
       return "error";
+    case "paused":
+      return "warning";
+    case "pending":
+      return "processing";
     default:
       return "default";
   }

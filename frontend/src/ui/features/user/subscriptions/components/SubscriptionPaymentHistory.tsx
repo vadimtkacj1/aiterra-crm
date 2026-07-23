@@ -30,7 +30,7 @@ export function SubscriptionPaymentHistory({ payments, t }: Props) {
       key: "status",
       render: (status: string) => (
         <Tag color={getPaymentStatusColor(status)}>
-          {status.toUpperCase()}
+          {t(`admin.contracts.subscription.payState.${status}`, { defaultValue: status })}
         </Tag>
       ),
     },

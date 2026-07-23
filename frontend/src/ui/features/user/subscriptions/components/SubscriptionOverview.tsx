@@ -11,6 +11,8 @@ interface Props {
 
 export function SubscriptionOverview({ status, t }: Props) {
   const { token } = theme.useToken();
+  const rawState = status.subscription_status;
+  const subState = rawState === "canceled" ? "cancelled" : rawState;
 
   return (
     <Descriptions column={2} bordered size="small">
@@ -61,9 +63,9 @@ export function SubscriptionOverview({ status, t }: Props) {
         </Typography.Text>
       </Descriptions.Item>
       <Descriptions.Item label={t("admin.contracts.subscription.subscriptionStatus")}>
-        <Tag color={getSubscriptionStatusColor(status.subscription_status)}>
-          {status.subscription_status
-            ? t(`admin.contracts.subscription.state${status.subscription_status.charAt(0).toUpperCase()}${status.subscription_status.slice(1)}`, {
+        <Tag color={getSubscriptionStatusColor(subState)}>
+          {subState
+            ? t(`admin.contracts.subscription.state${subState.charAt(0).toUpperCase()}${subState.slice(1)}`, {
                 defaultValue: t("admin.contracts.subscription.stateUnknown"),
               })
             : t("admin.contracts.subscription.stateUnknown")}

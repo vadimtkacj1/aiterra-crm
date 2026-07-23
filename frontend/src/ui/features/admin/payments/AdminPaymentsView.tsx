@@ -1,5 +1,7 @@
-import { Button, Card, Empty, Flex, Form, Input, Spin, Steps, Typography } from "antd";
+import { Button, Card, Empty, Flex, Form, Input, Spin, Steps, Tag, Typography } from "antd";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Paths } from "@/ui/navigation/paths";
 import { AppModal } from "@/ui/shared/components/AppModal";
 import { AdminPaymentsHistoryTable } from "./AdminPaymentsHistoryTable";
 import { AdminPaymentsLibraryDrawer } from "./AdminPaymentsLibraryDrawer";
@@ -11,6 +13,7 @@ import { useAdminPaymentsPage } from "./useAdminPaymentsPage";
 /** Admin payments & invoices: layout only; logic lives in `useAdminPaymentsPage` and `adminPaymentsFormModel`. */
 export function AdminPaymentsPage() {
   const p = useAdminPaymentsPage();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -78,7 +81,7 @@ export function AdminPaymentsPage() {
               layout="vertical"
               initialValues={{
                 chargeType: "one_time",
-                currency: "USD",
+                currency: "ILS",
                 useBreakdown: true,
                 lineItems: [],
                 splitAcrossMonths: undefined,
@@ -161,7 +164,23 @@ export function AdminPaymentsPage() {
 
             {/* Payment History */}
             <Card
-              title={p.t("admin.payments.historyTitle")}
+              title={
+                p.userMeta?.accountId ? (
+                  <Flex align="center" gap={8} wrap="wrap">
+                    <span>{p.t("admin.payments.historyTitle")}</span>
+                    <Tag color="blue" style={{ marginInlineEnd: 0 }}>
+                      {p.t("admin.payments.historyFilteredForSelected")}
+                    </Tag>
+                  </Flex>
+                ) : (
+                  p.t("admin.payments.historyTitle")
+                )
+              }
+              extra={
+                <Button type="link" onClick={() => navigate(Paths.adminInvoices)} style={{ paddingInline: 0 }}>
+                  {p.t("admin.payments.historyAllInvoicesLink")}
+                </Button>
+              }
               size="small"
               style={{
                 marginTop: 24,

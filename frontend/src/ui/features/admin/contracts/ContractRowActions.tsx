@@ -7,7 +7,6 @@ import {
   MinusCircleOutlined,
   MoreOutlined,
   SendOutlined,
-  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Space } from "antd";
 import type { MenuProps } from "antd";
@@ -22,7 +21,6 @@ interface Props {
   onCopyLink: (c: Contract) => void;
   onCopyPaymentLink: (c: Contract) => void;
   onSubscription: (id: number) => void;
-  onQuickTest: (id: number) => void;
   onSend: (c: Contract) => void;
   onVoid: (c: Contract) => void;
   onDelete: (c: Contract) => void;
@@ -39,7 +37,6 @@ export function ContractRowActions({
   onCopyLink,
   onCopyPaymentLink,
   onSubscription,
-  onQuickTest,
   onSend,
   onVoid,
   onDelete,
@@ -73,12 +70,6 @@ export function ContractRowActions({
       label: t("admin.contracts.subscription.viewStatus"),
       onClick: () => onSubscription(c.id),
     });
-    items.push({
-      key: "quickTest",
-      icon: <ThunderboltOutlined />,
-      label: t("admin.contracts.subscription.quickTest"),
-      onClick: () => onQuickTest(c.id),
-    });
   }
   if (c.status === "draft") {
     items.push({
@@ -88,6 +79,7 @@ export function ContractRowActions({
       onClick: () => onSend(c),
     });
   }
+  if (items.length > 0) items.push({ type: "divider" });
   if (c.status !== "voided" && c.status !== "signed") {
     items.push({
       key: "void",
@@ -97,7 +89,6 @@ export function ContractRowActions({
       onClick: () => onVoid(c),
     });
   }
-  if (items.length > 0) items.push({ type: "divider" });
   items.push({
     key: "delete",
     icon: <DeleteOutlined />,

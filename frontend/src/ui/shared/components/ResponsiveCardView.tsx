@@ -1,14 +1,19 @@
 import { Card, Flex, Space, Typography, Button, Tag, Grid } from "antd";
+import { Fragment, isValidElement } from "react";
 import type { ReactNode } from "react";
 
 const { useBreakpoint } = Grid;
+
+function isTagDescriptor(tag: unknown): tag is { label: string; color?: string } {
+  return !!tag && typeof tag === "object" && !isValidElement(tag) && "label" in tag;
+}
 
 export interface CardViewItem {
   id: string | number;
   title: string;
   subtitle?: string;
   description?: string;
-  tags?: Array<{ label: string; color?: string }>;
+  tags?: Array<{ label: string; color?: string } | ReactNode>;
   actions?: Array<{
     label: string;
     onClick: () => void;
@@ -82,11 +87,15 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
 
             {item.tags && item.tags.length > 0 && (
               <Space wrap size={[4, 4]}>
-                {item.tags.map((tag, index) => (
-                  <Tag key={index} color={tag.color} style={{ margin: 0 }}>
-                    {tag.label}
-                  </Tag>
-                ))}
+                {item.tags.map((tag, index) =>
+                  isTagDescriptor(tag) ? (
+                    <Tag key={index} color={tag.color} style={{ margin: 0 }}>
+                      {tag.label}
+                    </Tag>
+                  ) : (
+                    <Fragment key={index}>{tag as ReactNode}</Fragment>
+                  ),
+                )}
               </Space>
             )}
 

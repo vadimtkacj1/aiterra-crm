@@ -49,10 +49,12 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
     void updateBillingDay(currentDay).then(() => setPendingDay(undefined));
   };
 
-  const isActive = status?.subscription_status === "active";
-  const isPaused = status?.subscription_status === "paused";
-  const isCancelled = status?.subscription_status === "cancelled";
-  const isPending = status?.subscription_status === "pending";
+  const rawState = status?.subscription_status;
+  const subState = rawState === "canceled" ? "cancelled" : rawState;
+  const isActive = subState === "active";
+  const isPaused = subState === "paused";
+  const isCancelled = subState === "cancelled";
+  const isPending = subState === "pending";
   const hasTestInterval = !!status?.test_interval_minutes;
 
   const handleStartTest = () => {
@@ -70,7 +72,7 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
       content: t("admin.contracts.subscription.cancelConfirmContent"),
       okType: "danger",
       okText: t("admin.contracts.subscription.cancelConfirmOk"),
-      cancelText: t("common.cancel"),
+      cancelText: t("admin.contracts.subscription.cancelConfirmKeep"),
       onOk: () => void cancelSubscription(),
     });
   };
@@ -119,9 +121,6 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
                   style={{ width: 100 }}
                   controls
                 />
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {t("admin.contracts.subscription.dayOfMonthSuffix")}
-                </Typography.Text>
                 <Button
                   type="primary"
                   icon={<SaveOutlined />}

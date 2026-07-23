@@ -46,19 +46,12 @@ import { ContractRowActions } from "./ContractRowActions";
 import { SubscriptionPaymentHistory } from "../../user/subscriptions/components/SubscriptionPaymentHistory";
 import type { SubscriptionStatus } from "../../../../services/admin/AdminService";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
+import { formatMoney } from "../payments/billingUi";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function fmtMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: (currency || "ILS").toUpperCase(),
-      minimumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
+  return formatMoney(amount, currency || "ILS");
 }
 
 function statusCfg(status: Contract["status"]) {
@@ -238,29 +231,13 @@ export function AdminContractsPage() {
     });
   };
 
-  const handleQuickTest = (contractId: number) => {
-    modal.confirm({
-      title: t("admin.contracts.subscription.quickTestConfirmTitle"),
-      content: t("admin.contracts.subscription.quickTestConfirmContent"),
-      okText: t("admin.contracts.subscription.quickTestConfirmOk"),
-      cancelText: t("common.cancel"),
-      onOk: async () => {
-        try {
-          await services.admin.setTestInterval(contractId, 10);
-          void message.success(t("admin.contracts.subscription.quickTestStarted"));
-        } catch (e: unknown) {
-          const detail =
-            (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-          void message.error(detail ?? (e instanceof Error ? e.message : t("errors.generic")));
-        }
-      },
-    });
-  };
-
   const handleDelete = (c: Contract) => {
     modal.confirm({
       title: t("admin.contracts.deleteConfirmTitle"),
-      content: t("admin.contracts.deleteConfirmContent"),
+      content:
+        c.status === "signed"
+          ? t("admin.contracts.deleteSignedConfirmContent")
+          : t("admin.contracts.deleteConfirmContent"),
       okType: "danger",
       okText: t("common.confirm"),
       cancelText: t("common.cancel"),
@@ -419,10 +396,14 @@ export function AdminContractsPage() {
           {r.monthlyAmount && r.monthlyAmount > 0 && (
             <div style={{ marginTop: 3 }}>
               <Tag color="blue" style={{ fontSize: 11 }}>
-                {t("admin.contracts.subscriptionTag", {
-                  amount: fmtMoney(r.monthlyAmount, r.currency),
-                  months: r.subscriptionMonths || "∞",
-                })}
+                {!r.subscriptionMonths
+                  ? t("admin.contracts.subscriptionTagOpenEnded", {
+                      amount: fmtMoney(r.monthlyAmount, r.currency),
+                    })
+                  : t("admin.contracts.subscriptionTag", {
+                      amount: fmtMoney(r.monthlyAmount, r.currency),
+                      months: r.subscriptionMonths,
+                    })}
               </Tag>
             </div>
           )}
@@ -481,7 +462,6 @@ export function AdminContractsPage() {
           onCopyLink={(c) => void copyLink(c)}
           onCopyPaymentLink={(c) => void copyPaymentLink(c)}
           onSubscription={setSubscriptionContractId}
-          onQuickTest={handleQuickTest}
           onSend={(c) => void handleSend(c)}
           onVoid={handleVoid}
           onDelete={handleDelete}
@@ -515,7 +495,6 @@ export function AdminContractsPage() {
         extra={
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {!isMobile && t("admin.contracts.create")}
-            {isMobile && <PlusOutlined />}
           </Button>
         }
       >
@@ -536,10 +515,14 @@ export function AdminContractsPage() {
                   { label: t(statusKey), color: statusColor },
                   ...(c.monthlyAmount && c.monthlyAmount > 0
                     ? [{
-                        label: t("admin.contracts.subscriptionTag", {
-                          amount: fmtMoney(c.monthlyAmount, c.currency),
-                          months: c.subscriptionMonths || "∞",
-                        }),
+                        label: !c.subscriptionMonths
+                          ? t("admin.contracts.subscriptionTagOpenEnded", {
+                              amount: fmtMoney(c.monthlyAmount, c.currency),
+                            })
+                          : t("admin.contracts.subscriptionTag", {
+                              amount: fmtMoney(c.monthlyAmount, c.currency),
+                              months: c.subscriptionMonths,
+                            }),
                         color: "blue",
                       }]
                     : []),
@@ -1223,7 +1206,6 @@ export function AdminContractsPage() {
               <Descriptions
                 size="small"
                 column={isMobile ? 1 : 2}
-                style={sectionStyle}
               >
                 <Descriptions.Item label={t("admin.contracts.columns.status")}>
                   <Tag color={statusColor}>{t(statusKey)}</Tag>

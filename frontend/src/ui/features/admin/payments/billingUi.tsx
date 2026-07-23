@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 export function paymentStatusTag(t: (key: string) => string, status: string): ReactNode {
   const map: Record<string, { color: string; labelKey: string }> = {
     paid: { color: "success", labelKey: "admin.payments.payStatePaid" },
+    pending: { color: "warning", labelKey: "admin.payments.payStatePending" },
     unpaid: { color: "warning", labelKey: "admin.payments.payStateUnpaid" },
     voided: { color: "default", labelKey: "admin.payments.payStateVoided" },
     cancelled: { color: "error", labelKey: "admin.payments.payStateCancelled" },

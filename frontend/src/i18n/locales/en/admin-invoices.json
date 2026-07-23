@@ -2,7 +2,7 @@
   "admin": {
     "invoices": {
       "title": "Invoices & Subscriptions",
-      "subtitle": "View and manage all invoices and recurring subscriptions across all businesses.",
+      "subtitle": "All client charges, across every business.",
       "createButton": "Create Invoice",
       "table": {
         "created": "Created",
@@ -18,19 +18,21 @@
       "typeMonthly": "Monthly",
       "statusActive": "Active",
       "statusRevoked": "Revoked",
-      "statusSuperseded": "Superseded",
+      "statusSuperseded": "Replaced",
       "paymentPaid": "Paid",
       "paymentUnpaid": "Unpaid",
       "paymentPending": "Pending",
-      "empty": "No invoices or subscriptions yet.",
       "emptyTitle": "No invoices yet",
       "emptyDescription": "Create the first invoice to start billing your clients.",
-      "bulkDownload": "Download {{count}} PDF(s)",
+      "bulkDownload_one": "Download 1 PDF",
+      "bulkDownload_other": "Download {{count}} PDFs",
       "loadError": "Failed to load invoices.",
       "createModal": {
         "title": "Create Invoice or Subscription",
-        "selectUser": "Select User",
-        "selectUserPlaceholder": "Choose a user/business",
+        "quickHint": "Quick charge — for line items, billing day or templates use",
+        "quickHintLink": "the full wizard",
+        "selectUser": "Client",
+        "selectUserPlaceholder": "Search by name or email",
         "chargeType": "Type",
         "chargeTypeOneTime": "One-time invoice",
         "chargeTypeMonthly": "Monthly subscription",
@@ -41,17 +43,19 @@
         "descriptionPlaceholder": "Optional description for the invoice",
         "submit": "Create",
         "cancel": "Cancel",
-        "success": "Invoice created successfully",
-        "error": "Failed to create invoice"
+        "success": "Created successfully.",
+        "error": "Creation failed."
       },
       "revoke": "Revoke",
-      "revokeConfirm": "Are you sure you want to revoke this invoice/subscription?",
-      "revokeSuccess": "Invoice revoked",
+      "revokeConfirm": "Revoke this charge?",
+      "revokeConfirmDesc": "This voids an open invoice and cancels the subscription if one exists. The client will no longer see this payment as pending.",
+      "revokeOk": "Revoke",
+      "revokeSuccess": "Charge revoked",
       "delete": "Delete",
       "deleteConfirm": "Delete this invoice record?",
       "deleteSuccess": "Invoice deleted",
       "downloadPdf": "Download PDF",
-      "installmentNote": "{{total}} split over {{months}} months"
+      "installmentNote": "{{total}} split over {{months}} payments"
     }
   }
 }

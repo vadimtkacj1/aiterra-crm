@@ -21,30 +21,21 @@ import {
   Space,
   Table,
   Tag,
+  Tooltip,
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import type { Key } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { useApp } from "../../../../app/AppProviders";
 import type { BillingHistoryWithAccountRow } from "../../../../services/admin/AdminService";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
 import { downloadInvoicePdf } from "../../../shared/utils/invoicePdf";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
-
-function fmtMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: (currency || "ILS").toUpperCase(),
-      minimumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
+import { formatHistoryDateTime, formatMoney, paymentStatusTag } from "../payments/billingUi";
 
 interface CreateFormValues {
   userId: string;
@@ -162,7 +153,7 @@ export function AdminInvoicesPage() {
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
-      render: (v: string) => new Date(v).toLocaleDateString(),
+      render: (v: string) => formatHistoryDateTime(v),
     },
     {
       title: t("admin.invoices.table.business"),
@@ -196,7 +187,7 @@ export function AdminInvoicesPage() {
       width: 140,
       render: (_, r) => {
         if (r.amount == null) return "-";
-        const main = fmtMoney(r.amount, r.currency);
+        const main = formatMoney(r.amount, r.currency || "ILS");
         if (
           r.chargeType === "monthly" &&
           r.installmentMonths != null &&
@@ -208,7 +199,7 @@ export function AdminInvoicesPage() {
               <Typography.Text strong>{main}</Typography.Text>
               <Typography.Text type="secondary" style={{ display: "block", fontSize: 11 }}>
                 {t("admin.invoices.installmentNote", {
-                  total: fmtMoney(r.installmentTotalAmount, r.currency),
+                  total: formatMoney(r.installmentTotalAmount, r.currency || "ILS"),
                   months: r.installmentMonths,
                 })}
               </Typography.Text>
@@ -223,11 +214,7 @@ export function AdminInvoicesPage() {
       dataIndex: "paymentStatus",
       key: "paymentStatus",
       width: 100,
-      render: (s: string) => {
-        if (s === "paid") return <Tag color="success">{t("admin.invoices.paymentPaid")}</Tag>;
-        if (s === "pending") return <Tag color="warning">{t("admin.invoices.paymentPending")}</Tag>;
-        return <Tag color="default">{t("admin.invoices.paymentUnpaid")}</Tag>;
-      },
+      render: (s: string) => paymentStatusTag(t, s),
     },
     {
       title: t("admin.invoices.table.recordStatus"),
@@ -235,7 +222,7 @@ export function AdminInvoicesPage() {
       key: "recordStatus",
       width: 100,
       render: (s: string) => {
-        if (s === "active") return <Tag color="success">{t("admin.invoices.statusActive")}</Tag>;
+        if (s === "active") return <Tag color="processing">{t("admin.invoices.statusActive")}</Tag>;
         if (s === "revoked") return <Tag color="error">{t("admin.invoices.statusRevoked")}</Tag>;
         return <Tag>{t("admin.invoices.statusSuperseded")}</Tag>;
       },
@@ -246,23 +233,25 @@ export function AdminInvoicesPage() {
       width: 150,
       render: (_, r) => (
         <Space size={4}>
-          <Button
-            size="small"
-            icon={<DownloadOutlined />}
-            onClick={() => downloadPdf(r)}
-            disabled={r.amount == null || r.amount <= 0}
-            title={t("admin.invoices.downloadPdf")}
-          />
+          <Tooltip title={t("admin.invoices.downloadPdf")}>
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={() => downloadPdf(r)}
+              disabled={r.amount == null || r.amount <= 0}
+            />
+          </Tooltip>
           {r.recordStatus === "active" ? (
             <Popconfirm
               title={t("admin.invoices.revokeConfirm")}
+              description={t("admin.invoices.revokeConfirmDesc")}
               onConfirm={() => void handleRevoke(r)}
-              okText={t("common.ok")}
+              okText={t("admin.invoices.revokeOk")}
+              okButtonProps={{ danger: true }}
               cancelText={t("common.cancel")}
             >
               <Button
                 size="small"
-                danger
                 icon={<RollbackOutlined />}
                 loading={revokingId === r.id}
               >
@@ -306,30 +295,27 @@ export function AdminInvoicesPage() {
               id: `${r.accountId}-${r.id}`,
               title: r.accountName,
               subtitle: r.ownerEmail || "-",
-              description: new Date(r.createdAt).toLocaleDateString(),
+              description: formatHistoryDateTime(r.createdAt),
               tags: [
                 {
                   label: r.chargeType === "monthly" ? t("admin.invoices.typeMonthly") : t("admin.invoices.typeOneTime"),
                   color: r.chargeType === "monthly" ? "purple" : "blue",
                 },
-                {
-                  label: r.paymentStatus === "paid" ? t("admin.invoices.paymentPaid") : t("admin.invoices.paymentUnpaid"),
-                  color: r.paymentStatus === "paid" ? "success" : "default",
-                },
+                paymentStatusTag(t, r.paymentStatus),
                 {
                   label: r.recordStatus === "active" ? t("admin.invoices.statusActive") : r.recordStatus === "revoked" ? t("admin.invoices.statusRevoked") : t("admin.invoices.statusSuperseded"),
-                  color: r.recordStatus === "active" ? "success" : r.recordStatus === "revoked" ? "error" : "default",
+                  color: r.recordStatus === "active" ? "processing" : r.recordStatus === "revoked" ? "error" : "default",
                 },
               ],
               extra: (
                 <div style={{ textAlign: "end" }}>
                   <Typography.Text strong style={{ fontSize: 14 }}>
-                    {r.amount != null ? fmtMoney(r.amount, r.currency) : "-"}
+                    {r.amount != null ? formatMoney(r.amount, r.currency || "ILS") : "-"}
                   </Typography.Text>
                   {r.chargeType === "monthly" && r.installmentMonths != null && r.installmentMonths >= 2 && r.installmentTotalAmount != null && (
                     <Typography.Text type="secondary" style={{ display: "block", fontSize: 10 }}>
                       {t("admin.invoices.installmentNote", {
-                        total: fmtMoney(r.installmentTotalAmount, r.currency),
+                        total: formatMoney(r.installmentTotalAmount, r.currency || "ILS"),
                         months: r.installmentMonths,
                       })}
                     </Typography.Text>
@@ -347,7 +333,6 @@ export function AdminInvoicesPage() {
                   ? [{
                       label: t("admin.invoices.revoke"),
                       onClick: () => void handleRevoke(r),
-                      danger: true,
                     }]
                   : [{
                       label: t("admin.invoices.delete"),
@@ -357,7 +342,7 @@ export function AdminInvoicesPage() {
               ],
             }))}
             loading={loading}
-            emptyText={t("admin.invoices.empty")}
+            emptyText={t("admin.invoices.emptyTitle")}
           />
         ) : (
           <>
@@ -435,6 +420,10 @@ export function AdminInvoicesPage() {
         width={520}
         centered
       >
+        <Typography.Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
+          {t("admin.invoices.createModal.quickHint")}{" "}
+          <Link to="/admin/payments">{t("admin.invoices.createModal.quickHintLink")}</Link>
+        </Typography.Text>
         <Form
           form={form}
           layout="vertical"

@@ -1,4 +1,4 @@
-import { UserOutlined, DollarOutlined } from "@ant-design/icons";
+import { DollarOutlined } from "@ant-design/icons";
 import { Alert, Button, Card, Descriptions, Form, Select, Space, Spin, Tag, Typography } from "antd";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
@@ -46,18 +46,7 @@ export function RecipientStepCard({
       }}
     >
       <Space direction="vertical" size={20} style={{ width: "100%" }}>
-        {/* Header */}
-        <div>
-          <Typography.Title level={4} style={{ margin: 0, marginBottom: 8 }}>
-            <UserOutlined style={{ marginInlineEnd: 8, color: token.colorPrimary }} />
-            {t("admin.payments.stepRecipientTitle")}
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            {t("admin.payments.stepRecipientHint")}
-          </Typography.Text>
-        </div>
-
-        {/* User Selection — label omitted: the card title + placeholder already name it */}
+        {/* User Selection — label omitted: the placeholder already names it */}
         <Form.Item name="userId" style={{ marginBottom: 0 }}>
           <Select
             size="large"

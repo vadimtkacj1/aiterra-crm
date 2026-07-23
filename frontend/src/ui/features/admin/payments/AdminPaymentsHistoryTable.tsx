@@ -110,7 +110,6 @@ export function AdminPaymentsHistoryTable({
                       setRevokingId(null);
                     }
                   },
-                  danger: true,
                 }]
               : [{
                   label: t("admin.payments.deleteRow"),
@@ -244,6 +243,7 @@ export function AdminPaymentsHistoryTable({
                     description={t("admin.payments.revokeConfirmDesc")}
                     okText={t("admin.payments.revokeOk")}
                     cancelText={t("common.cancel")}
+                    okButtonProps={{ danger: true }}
                     onConfirm={async () => {
                       setRevokingId(r.id);
                       try {
@@ -260,7 +260,7 @@ export function AdminPaymentsHistoryTable({
                       }
                     }}
                   >
-                    <Button size="small" danger icon={<RollbackOutlined />} loading={revokingId === r.id}>
+                    <Button size="small" icon={<RollbackOutlined />} loading={revokingId === r.id}>
                       {t("admin.payments.revoke")}
                     </Button>
                   </Popconfirm>

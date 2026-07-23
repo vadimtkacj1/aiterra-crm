@@ -2,7 +2,7 @@
   "admin": {
     "invoices": {
       "title": "חשבוניות ומנויים",
-      "subtitle": "צפייה וניהול של כל החשבוניות והמנויים החוזרים בכל העסקים.",
+      "subtitle": "כל חיובי הלקוחות, בכל העסקים.",
       "createButton": "צור חשבונית",
       "table": {
         "created": "נוצר",
@@ -22,15 +22,17 @@
       "paymentPaid": "שולם",
       "paymentUnpaid": "לא שולם",
       "paymentPending": "ממתין",
-      "empty": "אין חשבוניות או מנויים עדיין.",
       "emptyTitle": "אין חשבוניות עדיין",
       "emptyDescription": "צור חשבונית ראשונה כדי להתחיל לחייב לקוחות.",
-      "bulkDownload": "הורד {{count}} PDF",
+      "bulkDownload_one": "הורד PDF אחד",
+      "bulkDownload_other": "הורד {{count}} קובצי PDF",
       "loadError": "נכשל בטעינת חשבוניות.",
       "createModal": {
         "title": "צור חשבונית או מנוי",
-        "selectUser": "בחר משתמש",
-        "selectUserPlaceholder": "בחר משתמש/עסק",
+        "quickHint": "חיוב מהיר — לפירוט שורות, יום חיוב או תבניות השתמשו",
+        "quickHintLink": "באשף המלא",
+        "selectUser": "לקוח",
+        "selectUserPlaceholder": "חיפוש לפי שם או אימייל",
         "chargeType": "סוג",
         "chargeTypeOneTime": "חשבונית חד-פעמית",
         "chargeTypeMonthly": "מנוי חודשי",
@@ -41,17 +43,19 @@
         "descriptionPlaceholder": "תיאור אופציונלי לחשבונית",
         "submit": "צור",
         "cancel": "ביטול",
-        "success": "החשבונית נוצרה בהצלחה",
-        "error": "נכשל ביצירת חשבונית"
+        "success": "נוצר בהצלחה.",
+        "error": "היצירה נכשלה."
       },
-      "revoke": "בטל",
-      "revokeConfirm": "האם אתה בטוח שברצונך לבטל חשבונית/מנוי זה?",
-      "revokeSuccess": "החשבונית בוטלה",
+      "revoke": "ביטול",
+      "revokeConfirm": "לבטל חיוב זה?",
+      "revokeConfirmDesc": "פעולה זו מבטלת חשבונית פתוחה ומבטלת מנוי אם קיים. הלקוח לא יראה יותר תשלום ממתין.",
+      "revokeOk": "ביטול",
+      "revokeSuccess": "החיוב בוטל",
       "delete": "מחק",
       "deleteConfirm": "למחוק רשומת חשבונית זו?",
       "deleteSuccess": "החשבונית נמחקה",
       "downloadPdf": "הורד PDF",
-      "installmentNote": "{{total}} מחולק על {{months}} חודשים"
+      "installmentNote": "{{total}} מחולק על {{months}} תשלומים"
     }
   }
 }

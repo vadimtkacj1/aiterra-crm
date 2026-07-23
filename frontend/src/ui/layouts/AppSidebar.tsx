@@ -111,9 +111,11 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         zIndex: 20,
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 12px 16px" }}>
-          <SidebarLogo maxWidth={120} />
+      {/* height (not minHeight): the container must stay within the viewport so
+          the middle nav area scrolls instead of pushing the footer off-screen */}
+      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "16px 12px 10px" }}>
+          <SidebarLogo maxWidth={96} />
         </div>
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />

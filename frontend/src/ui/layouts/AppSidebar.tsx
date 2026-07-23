@@ -1,15 +1,16 @@
 import { CloseOutlined } from "@ant-design/icons";
-import { Button, ConfigProvider, Drawer, Layout, Menu, theme } from "antd";
+import { Button, Drawer, Layout, Menu } from "antd";
 import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
-import logoUrl from "@/assets/logo.svg";
+import logoDarkUrl from "@/assets/logo-black.svg";
 import { LanguageSwitcher } from "@/ui/shared/components/LanguageSwitcher";
 
 const { Sider } = Layout;
 
-import { brand } from "@/ui/theme/tokens";
-
-const SIDEBAR_DARK_BG = brand.sidebarBg;
+/* Light shell (Stripe/Attio/Linear signature): white sidebar separated from
+   the canvas by a hairline; violet reserved for the active item only. */
+const SIDEBAR_BG = "var(--ds-surface-0)";
+const SIDEBAR_BORDER = "1px solid var(--ds-border-subtle)";
 
 type SidebarMenuItem =
   | { key: string; icon: ReactNode; label: string }
@@ -31,7 +32,8 @@ function SideMenu({
 }: Pick<SidebarProps, "menuItems" | "selectedKeys" | "onMenuClick">) {
   return (
     <Menu
-      theme="dark"
+      className="app-sider-nav"
+      theme="light"
       mode="inline"
       selectedKeys={selectedKeys}
       items={menuItems}
@@ -45,7 +47,7 @@ function SidebarLogo({ maxWidth }: { maxWidth: number }) {
   const { t } = useTranslation();
   return (
     <img
-      src={logoUrl}
+      src={logoDarkUrl}
       alt={t("layout.brand")}
       width={maxWidth}
       height={maxWidth}
@@ -67,8 +69,8 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         closable={false}
         styles={{
           wrapper: { width: 288 },
-          body: { background: SIDEBAR_DARK_BG, padding: 0, display: "flex", flexDirection: "column" },
-          content: { background: SIDEBAR_DARK_BG },
+          body: { background: SIDEBAR_BG, padding: 0, display: "flex", flexDirection: "column" },
+          content: { background: SIDEBAR_BG },
         }}
         aria-label={t("layout.openMenu")}
       >
@@ -79,20 +81,17 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
             icon={<CloseOutlined />}
             onClick={onDrawerClose}
             aria-label={t("layout.closeMenu")}
-            style={{ color: "rgba(255,255,255,0.65)" }}
           />
         </div>
-        <div style={{ display: "flex", justifyContent: "center", padding: "8px 12px 20px" }}>
-          <SidebarLogo maxWidth={136} />
+        <div style={{ display: "flex", justifyContent: "center", padding: "4px 12px 16px" }}>
+          <SidebarLogo maxWidth={112} />
         </div>
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
-        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { colorFillTertiary: "rgba(255,255,255,0.1)", colorBgElevated: "#1e293b", colorText: "rgba(255,255,255,0.85)", colorTextPlaceholder: "rgba(255,255,255,0.45)" } }}>
-          <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,0.12)", background: SIDEBAR_DARK_BG }}>
-            <LanguageSwitcher variant="sidebar" />
-          </div>
-        </ConfigProvider>
+        <div style={{ padding: "14px 16px 18px", borderTop: SIDEBAR_BORDER, background: SIDEBAR_BG }}>
+          <LanguageSwitcher variant="sidebar" />
+        </div>
       </Drawer>
     );
   }
@@ -100,10 +99,11 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
   return (
     <Sider
       width={248}
-      theme="dark"
+      theme="light"
       style={{
         height: "100vh",
-        background: SIDEBAR_DARK_BG,
+        background: SIDEBAR_BG,
+        borderInlineEnd: SIDEBAR_BORDER,
         position: "fixed",
         insetInlineStart: 0,
         top: 0,
@@ -120,11 +120,9 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
-        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { colorFillTertiary: "rgba(255,255,255,0.1)", colorBgElevated: "#1e293b", colorText: "rgba(255,255,255,0.85)", colorTextPlaceholder: "rgba(255,255,255,0.45)" } }}>
-          <div style={{ padding: "14px 16px 20px", borderTop: "1px solid rgba(255,255,255,0.08)", background: SIDEBAR_DARK_BG }}>
-            <LanguageSwitcher variant="sidebar" />
-          </div>
-        </ConfigProvider>
+        <div style={{ padding: "12px 16px 16px", borderTop: SIDEBAR_BORDER, background: SIDEBAR_BG }}>
+          <LanguageSwitcher variant="sidebar" />
+        </div>
       </div>
     </Sider>
   );

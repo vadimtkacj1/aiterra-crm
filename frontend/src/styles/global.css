@@ -193,12 +193,23 @@ h2.ant-typography,
    SIDEBAR MENU
    ============================================================ */
 
-/* Active item: branded purple bg + left indicator bar */
-.ant-menu-dark .ant-menu-item-selected {
-  background: var(--ds-sidebar-item-active-bg) !important;
+/* Light shell (Stripe/Attio signature): violet only on the active item */
+.app-sider-nav .ant-menu-item {
+  color: var(--ds-text-secondary);
+}
+.app-sider-nav .ant-menu-item .anticon {
+  color: var(--ds-text-tertiary);
+}
+.app-sider-nav .ant-menu-item-selected {
+  background: var(--ds-color-primary-surface) !important;
+  color: var(--ds-color-primary) !important;
+  font-weight: var(--ds-font-weight-medium);
   position: relative;
 }
-.ant-menu-dark .ant-menu-item-selected::before {
+.app-sider-nav .ant-menu-item-selected .anticon {
+  color: var(--ds-color-primary);
+}
+.app-sider-nav .ant-menu-item-selected::before {
   content: '';
   position: absolute;
   inset-inline-start: 0;
@@ -206,12 +217,11 @@ h2.ant-typography,
   bottom: 7px;
   width: 3px;
   border-radius: 0 var(--ds-radius-full) var(--ds-radius-full) 0;
-  background: var(--ds-sidebar-active-indicator);
+  background: var(--ds-color-primary);
 }
-
-/* Hover: subtle white tint */
-.ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover {
-  background: var(--ds-sidebar-item-hover) !important;
+.app-sider-nav .ant-menu-item:not(.ant-menu-item-selected):hover {
+  background: var(--ds-surface-2) !important;
+  color: var(--ds-text-primary) !important;
 }
 
 /* ============================================================
@@ -634,14 +644,14 @@ h2.ant-typography,
 }
 
 /* ── Sidebar nav group titles (Refero: Fernand/Navan grouped nav) ── */
-.ant-menu-dark .ant-menu-item-group-title {
+.app-sider-nav .ant-menu-item-group-title {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.07em;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--ds-text-tertiary);
   padding-block: 10px 2px;
   padding-inline: 28px 16px;
 }
-.ant-menu-dark .ant-menu-item-group:first-child .ant-menu-item-group-title {
+.app-sider-nav .ant-menu-item-group:first-child .ant-menu-item-group-title {
   padding-block-start: 4px;
 }

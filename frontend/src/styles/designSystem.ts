@@ -274,10 +274,11 @@ export const appTheme = {
       headerHeight:     tokens.layout.headerHeight,
       headerPadding:    "0 20px",
       headerBg:         tokens.colors.surface0,
-      siderBg:          tokens.colors.sidebarBg,
+      // Light shell (Stripe/Attio signature) — sider matches the card surface
+      siderBg:          tokens.colors.surface0,
       bodyBg:           tokens.colors.surface1,
       footerBg:         tokens.colors.surface1,
-      triggerBg:        tokens.colors.sidebarBg,
+      triggerBg:        tokens.colors.surface0,
     },
 
     // ── Sider (sidebar) ──────────────────────────────────────────

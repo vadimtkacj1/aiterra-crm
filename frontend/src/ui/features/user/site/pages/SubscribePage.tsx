@@ -1,10 +1,13 @@
-import { CheckCircleOutlined, WhatsAppOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Result, Spin, Typography } from "antd";
+import { CheckCircle2, MessageCircle } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-
-const { Title, Text } = Typography;
+import { Button } from "@/components/ui/button";
+import { Form, FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormValues {
   name: string;
@@ -12,6 +15,8 @@ interface FormValues {
   email?: string;
   message?: string;
 }
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function submitLead(token: string, values: FormValues): Promise<void> {
   const res = await fetch("/api/site-leads/submit", {
@@ -35,7 +40,9 @@ async function submitLead(token: string, values: FormValues): Promise<void> {
 export function SubscribePage() {
   const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
-  const [form] = Form.useForm<FormValues>();
+  const form = useForm<FormValues>({
+    defaultValues: { name: "", phone: "", email: "", message: "" },
+  });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,23 +65,32 @@ export function SubscribePage() {
   if (done) {
     return (
       <div style={wrapStyle}>
-        <Result
-          icon={<CheckCircleOutlined style={{ color: "var(--ds-color-success)" }} />}
-          title={t("subscribe.successTitle")}
-          subTitle={t("subscribe.successSubtitle")}
-        />
+        <div className="flex flex-col items-center gap-3 p-8 text-center">
+          <CheckCircle2 className="size-16" style={{ color: "var(--ds-color-success)" }} aria-hidden="true" />
+          <h2 className="m-0 text-2xl font-semibold">{t("subscribe.successTitle")}</h2>
+          <p className="m-0 text-sm text-muted-foreground">{t("subscribe.successSubtitle")}</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div style={wrapStyle}>
-      <Spin spinning={submitting}>
+      <div className="relative w-full" style={{ maxWidth: 420 }}>
+        {submitting && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60">
+            <Spinner size="lg" label={t("subscribe.submitBtn")} />
+          </div>
+        )}
         <div style={cardStyle}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <WhatsAppOutlined style={{ fontSize: 36, color: "#25d366", marginBottom: 8 }} />
-            <Title level={3} style={{ margin: 0 }}>{t("subscribe.title")}</Title>
-            <Text type="secondary">{t("subscribe.subtitle")}</Text>
+            <MessageCircle
+              className="mx-auto mb-2 size-9"
+              style={{ color: "#25d366" }}
+              aria-hidden="true"
+            />
+            <h3 className="m-0 text-xl font-semibold">{t("subscribe.title")}</h3>
+            <p className="m-0 text-sm text-muted-foreground">{t("subscribe.subtitle")}</p>
           </div>
 
           {error && (
@@ -83,47 +99,48 @@ export function SubscribePage() {
             </div>
           )}
 
-          <Form form={form} layout="vertical" onFinish={(v) => void handleFinish(v)}>
-            <Form.Item
+          <Form form={form} onFinish={(v) => void handleFinish(v)}>
+            <FormItem<FormValues, "name">
               name="name"
               label={t("subscribe.fieldName")}
-              rules={[{ required: true, message: t("subscribe.fieldNameRequired") }]}
+              rules={{ required: t("subscribe.fieldNameRequired") }}
             >
-              <Input placeholder={t("subscribe.fieldNamePlaceholder")} size="large" />
-            </Form.Item>
+              {(field) => <Input {...field} placeholder={t("subscribe.fieldNamePlaceholder")} />}
+            </FormItem>
 
-            <Form.Item
+            <FormItem<FormValues, "phone">
               name="phone"
               label={t("subscribe.fieldPhone")}
-              rules={[{ required: true, message: t("subscribe.fieldPhoneRequired") }]}
+              rules={{ required: t("subscribe.fieldPhoneRequired") }}
             >
-              <Input placeholder="+972501234567" size="large" type="tel" />
-            </Form.Item>
+              {(field) => <Input {...field} placeholder="+972501234567" type="tel" />}
+            </FormItem>
 
-            <Form.Item
+            <FormItem<FormValues, "email">
               name="email"
               label={t("subscribe.fieldEmail")}
-              rules={[{ type: "email", message: t("subscribe.fieldEmailInvalid") }]}
+              rules={{
+                validate: (v) => !v || EMAIL_RE.test(v) || t("subscribe.fieldEmailInvalid"),
+              }}
             >
-              <Input placeholder={t("subscribe.fieldEmailPlaceholder")} size="large" type="email" />
-            </Form.Item>
+              {(field) => (
+                <Input {...field} placeholder={t("subscribe.fieldEmailPlaceholder")} type="email" />
+              )}
+            </FormItem>
 
-            <Form.Item name="message" label={t("subscribe.fieldMessage")}>
-              <Input.TextArea
-                placeholder={t("subscribe.fieldMessagePlaceholder")}
-                rows={3}
-                size="large"
-              />
-            </Form.Item>
+            <FormItem<FormValues, "message"> name="message" label={t("subscribe.fieldMessage")}>
+              {(field) => (
+                <Textarea {...field} placeholder={t("subscribe.fieldMessagePlaceholder")} rows={3} />
+              )}
+            </FormItem>
 
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" size="large" block loading={submitting}>
-                {t("subscribe.submitBtn")}
-              </Button>
-            </Form.Item>
+            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+              {submitting && <Spinner size="sm" className="text-primary-foreground" />}
+              {t("subscribe.submitBtn")}
+            </Button>
           </Form>
         </div>
-      </Spin>
+      </div>
     </div>
   );
 }
@@ -142,6 +159,5 @@ const cardStyle: React.CSSProperties = {
   borderRadius: 12,
   padding: "32px 28px",
   width: "100%",
-  maxWidth: 420,
   boxShadow: "0 2px 16px rgba(0,0,0,0.09)",
 };

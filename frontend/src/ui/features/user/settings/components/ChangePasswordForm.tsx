@@ -1,7 +1,13 @@
-﻿import { SaveOutlined } from "@ant-design/icons";
-import { App, Button, Card, Form, Input } from "antd";
+import { Save } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
 import { TranslatableError } from "../../../../../domain/errors";
 import { useApp } from "../../../../../app/AppProviders";
 import { useUnsavedChangesWarning } from "../../../../shared/hooks/useUnsavedChangesWarning";
@@ -15,10 +21,11 @@ type PasswordForm = {
 export function ChangePasswordForm() {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message } = App.useApp();
-  const [form] = Form.useForm<PasswordForm>();
+  const form = useForm<PasswordForm>({
+    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
+  });
   const [submitting, setSubmitting] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const isDirty = form.formState.isDirty;
 
   useUnsavedChangesWarning(isDirty, {
     title: t("settings.unsavedTitle"),
@@ -31,14 +38,13 @@ export function ChangePasswordForm() {
     setSubmitting(true);
     try {
       await services.auth.changeOwnPassword(values.currentPassword, values.newPassword);
-      void message.success(t("settings.passwordSuccess"));
-      setIsDirty(false);
-      form.resetFields();
+      message.success(t("settings.passwordSuccess"));
+      form.reset();
     } catch (e) {
       if (e instanceof TranslatableError) {
-        void message.error(t(e.i18nKey));
+        message.error(t(e.i18nKey));
       } else {
-        void message.error(e instanceof Error ? e.message : t("errors.generic"));
+        message.error(e instanceof Error ? e.message : t("errors.generic"));
       }
     } finally {
       setSubmitting(false);
@@ -46,49 +52,47 @@ export function ChangePasswordForm() {
   };
 
   return (
-    <Card style={{ width: "100%" }} title={t("settings.passwordSectionTitle")}>
-      <Form form={form} layout="vertical" onFinish={(v) => void onFinish(v)} requiredMark="optional" onValuesChange={() => setIsDirty(true)}>
-        <Form.Item
-          name="currentPassword"
-          label={t("settings.currentPassword")}
-          rules={[{ required: true, message: t("settings.currentPasswordRequired") }]}
-        >
-          <Input.Password autoComplete="current-password" />
-        </Form.Item>
-        <Form.Item
-          name="newPassword"
-          label={t("settings.newPassword")}
-          rules={[
-            { required: true, message: t("settings.newPasswordRequired") },
-            { min: 8, message: t("settings.passwordMinLength") },
-          ]}
-        >
-          <Input.Password autoComplete="new-password" />
-        </Form.Item>
-        <Form.Item
-          name="confirmPassword"
-          label={t("settings.confirmPassword")}
-          dependencies={["newPassword"]}
-          rules={[
-            { required: true, message: t("settings.confirmPasswordRequired") },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue("newPassword") === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error(t("settings.passwordMismatch")));
-              },
-            }),
-          ]}
-        >
-          <Input.Password autoComplete="new-password" />
-        </Form.Item>
-        <Form.Item style={{ marginBottom: 0 }}>
-          <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={submitting}>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{t("settings.passwordSectionTitle")}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form form={form} onFinish={(v) => void onFinish(v)}>
+          <FormItem<PasswordForm, "currentPassword">
+            name="currentPassword"
+            label={t("settings.currentPassword")}
+            rules={{ required: t("settings.currentPasswordRequired") }}
+          >
+            {(field) => <Input {...field} type="password" autoComplete="current-password" />}
+          </FormItem>
+          <FormItem<PasswordForm, "newPassword">
+            name="newPassword"
+            label={t("settings.newPassword")}
+            rules={{
+              required: t("settings.newPasswordRequired"),
+              minLength: { value: 8, message: t("settings.passwordMinLength") },
+              deps: ["confirmPassword"],
+            }}
+          >
+            {(field) => <Input {...field} type="password" autoComplete="new-password" />}
+          </FormItem>
+          <FormItem<PasswordForm, "confirmPassword">
+            name="confirmPassword"
+            label={t("settings.confirmPassword")}
+            rules={{
+              required: t("settings.confirmPasswordRequired"),
+              validate: (value, values) =>
+                !value || values.newPassword === value || t("settings.passwordMismatch"),
+            }}
+          >
+            {(field) => <Input {...field} type="password" autoComplete="new-password" />}
+          </FormItem>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? <Spinner size="sm" className="text-current" /> : <Save />}
             {t("settings.savePassword")}
           </Button>
-        </Form.Item>
-      </Form>
+        </Form>
+      </CardContent>
     </Card>
   );
 }

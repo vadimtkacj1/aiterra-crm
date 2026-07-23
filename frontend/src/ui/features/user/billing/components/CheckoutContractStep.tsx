@@ -1,8 +1,10 @@
-﻿import { Button, Checkbox, Flex, Typography } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SignaturePad from "signature_pad";
 import type { PendingPaymentAction } from "@/services/billing/IBillingService";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import { buildCheckoutContractPdfBlob } from "@/ui/shared/utils/checkoutContractPdf";
 import { formatInvoiceMoney } from "./billingUtils";
 
@@ -140,12 +142,8 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
 
   return (
     <div style={{ width: "100%", maxWidth: 880 }}>
-      <Typography.Title level={4} style={{ marginTop: 0, marginBottom: 8 }}>
-        {t("billing.contract.stepTitle")}
-      </Typography.Title>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 16, fontSize: 13 }}>
-        {t("billing.contract.stepIntro")}
-      </Typography.Paragraph>
+      <h4 className="mb-2 mt-0 text-xl font-semibold">{t("billing.contract.stepTitle")}</h4>
+      <p className="mb-4 mt-0 text-[13px] text-muted-foreground">{t("billing.contract.stepIntro")}</p>
 
       <div
         style={{
@@ -158,15 +156,12 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
         }}
       >
         <div
+          className="text-[11px] font-semibold uppercase text-(--ds-text-secondary)"
           style={{
             padding: "10px 14px",
             borderBottom: "1px solid rgba(15,23,42,.06)",
             background: "var(--ds-surface-1)",
-            fontSize: 11,
-            fontWeight: 600,
             letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: "var(--ds-text-secondary)",
           }}
         >
           {t("billing.contract.pdfPreviewLabel")}
@@ -182,9 +177,9 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
         )}
       </div>
 
-      <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
+      <span className="mb-2 block text-xs text-muted-foreground">
         {t("billing.contract.localizedTermsLabel")}
-      </Typography.Text>
+      </span>
       <div
         style={{
           maxHeight: 220,
@@ -197,18 +192,16 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
         }}
       >
         {localizedClauses.map((c, i) => (
-          <Typography.Paragraph key={i} style={{ marginBottom: 12, fontSize: 13, lineHeight: 1.65 }}>
+          <p key={i} className="mb-3 mt-0 text-[13px] leading-[1.65]">
             {c}
-          </Typography.Paragraph>
+          </p>
         ))}
       </div>
 
-      <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 8 }}>
+      <span className="mb-2 block text-[13px] font-semibold">
         {t("billing.contract.signatureLabel")}
-      </Typography.Text>
-      <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0, marginBottom: 8 }}>
-        {t("billing.contract.signatureHint")}
-      </Typography.Paragraph>
+      </span>
+      <p className="mb-2 mt-0 text-xs text-muted-foreground">{t("billing.contract.signatureHint")}</p>
 
       <div
         ref={wrapRef}
@@ -222,25 +215,28 @@ export function CheckoutContractStep({ payment, accountId, appLocale, submitting
       >
         <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: 168, touchAction: "none" }} />
       </div>
-      <Flex justify="flex-end" style={{ marginBottom: 16 }}>
-        <Button size="small" type="link" onClick={clearSignature}>
+      <div className="mb-4 flex justify-end">
+        <Button variant="link" size="sm" onClick={clearSignature}>
           {t("billing.contract.clearSignature")}
         </Button>
-      </Flex>
+      </div>
 
-      <Checkbox checked={readContract} onChange={(e) => setReadContract(e.target.checked)} style={{ marginBottom: 16 }}>
-        <Typography.Text style={{ fontSize: 13 }}>{t("billing.contract.readCheckbox")}</Typography.Text>
-      </Checkbox>
+      <label className="mb-4 flex cursor-pointer items-start gap-2">
+        <Checkbox
+          checked={readContract}
+          onCheckedChange={(checked) => setReadContract(checked === true)}
+          className="mt-0.5"
+        />
+        <span className="text-[13px]">{t("billing.contract.readCheckbox")}</span>
+      </label>
 
       <Button
-        type="primary"
-        size="large"
-        block
-        loading={submitting}
+        size="lg"
+        className="h-12 w-full rounded-[10px] font-semibold"
         disabled={!canContinue}
         onClick={() => void handleContinue()}
-        style={{ height: 48, borderRadius: 10, fontWeight: 600 }}
       >
+        {submitting && <Spinner size="sm" className="text-current" aria-hidden="true" />}
         {t("billing.contract.continueToPayment")}
       </Button>
     </div>

@@ -1,8 +1,9 @@
-import { LineChartOutlined } from "@ant-design/icons";
-import { Card, Skeleton } from "antd";
+import { ChartLine } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useApp } from "@/app/AppProviders";
 import { useAccountLayoutOutlet } from "@/ui/layouts/accountLayoutContext";
 import { accountPath, Paths } from "@/ui/navigation/paths";
@@ -33,7 +34,11 @@ export function MetaAnalyticsPage() {
   if (accountLoading) {
     return (
       <UserContentLayout>
-        <Skeleton active title paragraph={{ rows: 2 }} />
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
       </UserContentLayout>
     );
   }
@@ -44,7 +49,7 @@ export function MetaAnalyticsPage() {
         <PageHeader title={t("analytics.meta.title")} subtitle={t("analytics.meta.subtitle")} />
         <Card>
           <EmptyState
-            icon={<LineChartOutlined style={{ fontSize: 64, color: "var(--ds-text-disabled)" }} />}
+            icon={<ChartLine aria-hidden="true" className="size-16 text-(--ds-text-disabled)" strokeWidth={1.25} />}
             title={t("analytics.meta.notLinkedTitle")}
             description={t("analytics.meta.notLinkedDescription")}
             action={{

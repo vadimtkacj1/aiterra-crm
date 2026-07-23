@@ -1,10 +1,14 @@
-﻿import { CheckCircleOutlined, CreditCardOutlined, LockOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
-import { App, Button, Checkbox, Input, Spin, Typography } from "antd";
+import { CheckCircle2, CreditCard, Lock, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import SignaturePad from "signature_pad";
 import type { ContractPublic } from "../../../../../domain/Contract";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
 import { PdfViewer } from "../components/PdfViewer";
 import { renderContractBody } from "../components/contractBodyRenderer";
 import { Paths } from "@/ui/navigation/paths";
@@ -70,7 +74,6 @@ const panelShadow = "0 8px 30px -8px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 
 export function ContractSignPage() {
   const { token } = useParams<{ token: string }>();
   const { t, i18n } = useTranslation();
-  const { message } = App.useApp();
   const navigate = useNavigate();
 
   const [contract, setContract] = useState<ContractPublic | null>(null);
@@ -166,15 +169,15 @@ export function ContractSignPage() {
     if (!token || !contract) return;
     const pad = padRef.current;
     if (!pad || pad.isEmpty()) {
-      void message.warning(t("contracts.sign.signatureRequired"));
+      message.warning(t("contracts.sign.signatureRequired"));
       return;
     }
     if (!signerName.trim()) {
-      void message.warning(t("contracts.sign.nameRequired"));
+      message.warning(t("contracts.sign.nameRequired"));
       return;
     }
     if (!isValidEmail(recipientEmail)) {
-      void message.warning(t("contracts.sign.emailRequired"));
+      message.warning(t("contracts.sign.emailRequired"));
       return;
     }
     if (!agreed) return;
@@ -192,7 +195,7 @@ export function ContractSignPage() {
       }
       setDone(true);
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : t("errors.generic"));
+      message.error(e instanceof Error ? e.message : t("errors.generic"));
     } finally {
       setSubmitting(false);
     }
@@ -201,7 +204,7 @@ export function ContractSignPage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: pageBg }}>
-        <Spin size="large" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -220,10 +223,8 @@ export function ContractSignPage() {
             border: "1px solid rgba(15,23,42,.08)",
           }}
         >
-          <Typography.Title level={3} style={{ marginBottom: 8 }}>
-            {t("contracts.sign.notFound")}
-          </Typography.Title>
-          <Typography.Text type="secondary">{error}</Typography.Text>
+          <h3 className="mb-2 mt-0 text-2xl font-semibold">{t("contracts.sign.notFound")}</h3>
+          <span className="text-sm text-muted-foreground">{error}</span>
         </div>
       </div>
     );
@@ -262,45 +263,43 @@ export function ContractSignPage() {
             textAlign: "center",
           }}
         >
-          <CheckCircleOutlined style={{ fontSize: 56, color: "var(--ds-color-success)", marginBottom: 20 }} />
-          <Typography.Title level={3} style={{ margin: "0 0 12px" }}>
-            {t("contracts.sign.successTitle")}
-          </Typography.Title>
+          <CheckCircle2
+            aria-hidden="true"
+            className="mx-auto mb-5 size-14"
+            style={{ color: "var(--ds-color-success)" }}
+          />
+          <h3 className="mb-3 mt-0 text-2xl font-semibold">{t("contracts.sign.successTitle")}</h3>
           {isSubscription && subscriptionActive && (
-            <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
+            <span className="mb-6 block text-sm text-muted-foreground">
               {t("contracts.sign.subscriptionActiveNote")}
-            </Typography.Text>
+            </span>
           )}
           {isSubscription && !subscriptionActive && (
-            <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
+            <span className="mb-6 block text-sm text-muted-foreground">
               {t("contracts.sign.subscriptionPayFirst")}
-            </Typography.Text>
+            </span>
           )}
           {!isSubscription && allPaid && (
-            <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24, fontSize: 14 }}>
+            <span className="mb-6 block text-sm text-muted-foreground">
               {t("contracts.sign.paymentStatusPaid")}
-            </Typography.Text>
+            </span>
           )}
           {!isSubscription && !allPaid && (
             <div style={{ marginBottom: 24 }} />
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="flex flex-col gap-3">
             {showPayButton && (
-              <Button
-                type="primary"
-                onClick={handlePayNow}
-                style={{ borderRadius: 10, height: 44 }}
-              >
+              <Button onClick={handlePayNow} className="h-11 rounded-[10px]">
                 {payButtonLabel}
               </Button>
             )}
             {contract.pdfBase64 ? (
-              <Button onClick={downloadPdf} style={{ borderRadius: 10, height: 44 }}>
+              <Button variant="outline" onClick={downloadPdf} className="h-11 rounded-[10px]">
                 {t("contracts.sign.downloadSignedPdf")}
               </Button>
             ) : null}
-            <Button href="/" style={{ borderRadius: 10, height: 44 }}>
-              {t("contracts.sign.backToSite")}
+            <Button variant="outline" asChild className="h-11 rounded-[10px]">
+              <a href="/">{t("contracts.sign.backToSite")}</a>
             </Button>
           </div>
         </div>
@@ -344,12 +343,12 @@ export function ContractSignPage() {
               color: "#1d4ed8",
             }}
           >
-            <SafetyCertificateOutlined />
+            <ShieldCheck aria-hidden="true" className="size-4.5" />
           </span>
           {t("contracts.sign.secureLabel")}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ds-text-tertiary)" }}>
-          <LockOutlined />
+          <Lock aria-hidden="true" className="size-3.5" />
           {t("contracts.sign.encryptionNote")}
         </span>
       </header>
@@ -384,22 +383,18 @@ export function ContractSignPage() {
               scrollMarginTop: 24,
             }}
           >
-            <Typography.Text
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "var(--ds-text-secondary)",
-                display: "block",
-                marginBottom: 10,
-              }}
+            <span
+              className="mb-2.5 block text-[11px] font-bold uppercase text-(--ds-text-secondary)"
+              style={{ letterSpacing: "0.1em" }}
             >
               {t("contracts.sign.contractLabel")}
-            </Typography.Text>
-            <Typography.Title level={2} style={{ margin: "0 0 20px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--ds-text-primary)" }}>
+            </span>
+            <h2
+              className="mb-5 mt-0 text-3xl font-bold tracking-[-0.02em]"
+              style={{ color: "var(--ds-text-primary)" }}
+            >
               {contract.title}
-            </Typography.Title>
+            </h2>
 
             {contract.body && (
               <div
@@ -433,10 +428,10 @@ export function ContractSignPage() {
               return (
                 <div style={{ marginBottom: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    <span className="text-xs text-muted-foreground">
                       {t("contracts.sign.attachedPdf")}
-                    </Typography.Text>
-                    <Button size="small" type="link" style={{ padding: 0, fontSize: 12 }} onClick={openPdf}>
+                    </span>
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={openPdf}>
                       {t("contracts.sign.openPdf")}
                     </Button>
                   </div>
@@ -497,14 +492,14 @@ export function ContractSignPage() {
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <CreditCardOutlined style={{ fontSize: 18, color: "var(--ds-text-secondary)" }} />
+                    <CreditCard aria-hidden="true" className="size-4.5 text-(--ds-text-secondary)" />
                     <span>
-                      <Typography.Text strong style={{ display: "block", fontSize: 14, color: "var(--ds-text-primary)" }}>
+                      <span className="block text-sm font-semibold" style={{ color: "var(--ds-text-primary)" }}>
                         {t("contracts.sign.paymentStages")}
-                      </Typography.Text>
-                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      </span>
+                      <span className="text-xs text-muted-foreground">
                         {t("contracts.sign.stagesSummary", { count: stageCount })}
-                      </Typography.Text>
+                      </span>
                     </span>
                   </span>
                 </div>
@@ -539,22 +534,17 @@ export function ContractSignPage() {
                       >
                         {i + 1}
                       </span>
-                      <Typography.Text style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.5 }}>
+                      <span style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.5 }}>
                         <strong>{t("contracts.sign.stage")} {i + 1}</strong>
                         {s.description ? `: ${s.description}` : ""}
-                      </Typography.Text>
+                      </span>
                     </span>
-                    <Typography.Text
-                      strong
-                      style={{
-                        fontSize: 15,
-                        fontVariantNumeric: "tabular-nums",
-                        color: "var(--ds-text-primary)",
-                        flexShrink: 0,
-                      }}
+                    <span
+                      className="shrink-0 text-[15px] font-semibold tabular-nums"
+                      style={{ color: "var(--ds-text-primary)" }}
                     >
                       {fmtMoney(s.amount, contract.currency)}
-                    </Typography.Text>
+                    </span>
                   </div>
                 ))}
                 <div
@@ -567,12 +557,12 @@ export function ContractSignPage() {
                     color: "#fff",
                   }}
                 >
-                  <Typography.Text strong style={{ color: "#e2e8f0", fontSize: 14 }}>
+                  <span className="text-sm font-semibold" style={{ color: "#e2e8f0" }}>
                     {t("contracts.sign.total")}
-                  </Typography.Text>
-                  <Typography.Text strong style={{ color: "#fff", fontSize: 22, fontVariantNumeric: "tabular-nums" }}>
+                  </span>
+                  <span className="text-[22px] font-semibold tabular-nums" style={{ color: "#fff" }}>
                     {fmtMoney(contract.totalAmount, contract.currency)}
-                  </Typography.Text>
+                  </span>
                 </div>
               </div>
             )}
@@ -601,43 +591,44 @@ export function ContractSignPage() {
                 border: "1px solid rgba(37, 99, 235, 0.15)",
               }}
             >
-              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+              <span className="mb-1 block text-xs text-muted-foreground">
                 {t("contracts.sign.totalLabel")}
-              </Typography.Text>
-              <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ds-text-primary)" }}>
+              </span>
+              <h2
+                className="m-0 text-3xl font-extrabold tracking-[-0.03em] tabular-nums"
+                style={{ color: "var(--ds-text-primary)" }}
+              >
                 {fmtMoney(contract.totalAmount, contract.currency)}
-              </Typography.Title>
+              </h2>
               {stageCount > 1 && (
-                <Typography.Text type="secondary" style={{ fontSize: 12, marginTop: 6, display: "block" }}>
+                <span className="mt-1.5 block text-xs text-muted-foreground">
                   {t("contracts.sign.stagesSummary", { count: stageCount })}
-                </Typography.Text>
+                </span>
               )}
             </div>
 
             <div>
-              <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 8, color: "#334155" }}>
+              <span className="mb-2 block text-[13px] font-semibold" style={{ color: "#334155" }}>
                 {t("contracts.sign.yourName")}
-              </Typography.Text>
+              </span>
               <Input
-                size="large"
                 value={signerName}
                 onChange={(e) => setSignerName(e.target.value)}
                 placeholder={t("contracts.sign.yourNamePlaceholder")}
-                style={{ borderRadius: 10 }}
+                className="h-10 rounded-[10px]"
               />
             </div>
 
             <div>
-              <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 8, color: "#334155" }}>
+              <span className="mb-2 block text-[13px] font-semibold" style={{ color: "#334155" }}>
                 {t("contracts.sign.recipientEmail")}
-              </Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
+              </span>
+              <span className="mb-2 block text-xs text-muted-foreground">
                 {t("contracts.sign.recipientEmailHint")}
-              </Typography.Text>
+              </span>
               {/* LTR island: email must not inherit RTL or typing/cursor breaks in Hebrew UI */}
               <div dir="ltr" lang="en" style={{ direction: "ltr" }}>
                 <Input
-                  size="large"
                   type="email"
                   inputMode="email"
                   autoComplete="email"
@@ -647,18 +638,19 @@ export function ContractSignPage() {
                   value={recipientEmail}
                   onChange={(e) => setRecipientEmail(e.target.value)}
                   placeholder={t("contracts.sign.recipientEmailPlaceholder")}
-                  style={{ borderRadius: 10, textAlign: "left", unicodeBidi: "plaintext" }}
+                  className="h-10 rounded-[10px]"
+                  style={{ textAlign: "left", unicodeBidi: "plaintext" }}
                 />
               </div>
             </div>
 
             <div>
-              <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 4, color: "#334155" }}>
+              <span className="mb-1 block text-[13px] font-semibold" style={{ color: "#334155" }}>
                 {t("contracts.sign.signHere")}
-              </Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 10 }}>
+              </span>
+              <span className="mb-2.5 block text-xs text-muted-foreground">
                 {t("contracts.sign.signatureHint")}
-              </Typography.Text>
+              </span>
               <div
                 ref={wrapRef}
                 style={{
@@ -672,29 +664,35 @@ export function ContractSignPage() {
                 <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: 192, touchAction: "none" }} />
               </div>
               <div style={{ textAlign: "end", marginTop: 6 }}>
-                <Button type="link" size="small" onClick={clearSignature} style={{ paddingInlineEnd: 0 }}>
+                <Button variant="link" size="sm" onClick={clearSignature} className="pe-0">
                   {t("contracts.sign.clearSignature")}
                 </Button>
               </div>
             </div>
 
-            <Checkbox checked={agreed} onChange={(e) => setAgreed(e.target.checked)}>
-              <Typography.Text style={{ fontSize: 13, lineHeight: 1.65, color: "#334155" }}>
+            <label className="flex cursor-pointer items-start gap-2">
+              <Checkbox
+                checked={agreed}
+                onCheckedChange={(checked) => setAgreed(checked === true)}
+                className="mt-0.5"
+              />
+              <span className="text-[13px] leading-[1.65]" style={{ color: "#334155" }}>
                 <Trans
                   i18nKey="contracts.sign.acceptTermsHtml"
                   components={{
                     terms: <a href="#contract-terms" style={termsLinkStyle} onClick={scrollToTerms} />,
                   }}
                 />
-              </Typography.Text>
-            </Checkbox>
+              </span>
+            </label>
 
-            <Checkbox
-              checked={policiesAgreed}
-              onChange={(e) => setPoliciesAgreed(e.target.checked)}
-              style={{ marginTop: 4 }}
-            >
-              <Typography.Text style={{ fontSize: 13, lineHeight: 1.65, color: "#334155" }}>
+            <label className="mt-1 flex cursor-pointer items-start gap-2">
+              <Checkbox
+                checked={policiesAgreed}
+                onCheckedChange={(checked) => setPoliciesAgreed(checked === true)}
+                className="mt-0.5"
+              />
+              <span className="text-[13px] leading-[1.65]" style={{ color: "#334155" }}>
                 <Trans
                   i18nKey="contracts.sign.acceptPoliciesHtml"
                   components={{
@@ -703,8 +701,8 @@ export function ContractSignPage() {
                     cancel: <a href={Paths.cancelPolicy} target="_blank" rel="noreferrer" style={termsLinkStyle} />,
                   }}
                 />
-              </Typography.Text>
-            </Checkbox>
+              </span>
+            </label>
 
             {!canSubmit && (
               <div
@@ -718,9 +716,9 @@ export function ContractSignPage() {
                   border: "1px dashed rgba(15,23,42,.12)",
                 }}
               >
-                <Typography.Text strong style={{ fontSize: 12, color: "var(--ds-text-secondary)", display: "block", marginBottom: 6 }}>
+                <span className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--ds-text-secondary)" }}>
                   {t("contracts.sign.completeToSign")}
-                </Typography.Text>
+                </span>
                 {!signerName.trim() && <div>• {t("contracts.sign.needName")}</div>}
                 {!emailOk && <div>• {t("contracts.sign.needEmail")}</div>}
                 {!hasSignature && <div>• {t("contracts.sign.needSignature")}</div>}
@@ -729,21 +727,19 @@ export function ContractSignPage() {
             )}
 
             <Button
-              type="primary"
-              size="large"
-              block
-              disabled={!canSubmit}
-              loading={submitting}
+              size="lg"
+              disabled={!canSubmit || submitting}
               onClick={() => void handleSign()}
-              icon={canSubmit ? <CheckCircleOutlined /> : undefined}
+              className="h-12.5 w-full rounded-xl text-base font-bold"
               style={{
-                height: 50,
-                borderRadius: 12,
-                fontWeight: 700,
-                fontSize: 16,
                 boxShadow: canSubmit ? "0 4px 14px rgba(37, 99, 235, 0.35)" : undefined,
               }}
             >
+              {submitting ? (
+                <Spinner size="sm" className="text-current" aria-hidden="true" />
+              ) : canSubmit ? (
+                <CheckCircle2 aria-hidden="true" />
+              ) : null}
               {t("contracts.sign.submit")}
             </Button>
           </aside>

@@ -37,6 +37,31 @@ export function statusColor(s: string): string {
   return m[s] ?? "default";
 }
 
+/** antd Tag color strings → ui/badge variants (same mapping as ResponsiveCardView). */
+export function badgeVariantFromTagColor(
+  color?: string,
+): "default" | "primary" | "processing" | "success" | "warning" | "error" {
+  switch (color) {
+    case "success":
+    case "green":
+      return "success";
+    case "processing":
+    case "blue":
+      return "processing";
+    case "warning":
+    case "orange":
+    case "gold":
+      return "warning";
+    case "error":
+    case "red":
+      return "error";
+    case "purple":
+      return "primary";
+    default:
+      return "default";
+  }
+}
+
 export function appLocaleFromLanguage(lng: string): string {
   return lng.startsWith("he") ? "he-IL" : "en-US";
 }

@@ -1,4 +1,3 @@
-import { App } from "antd";
 import {
   createContext,
   useCallback,
@@ -10,6 +9,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
+import { message } from "@/lib/toast";
 import { launchAccountGuidedTour, type GuidedDriver } from "./guidedTourRun";
 
 import "driver.js/dist/driver.css";
@@ -39,7 +39,6 @@ type ProviderProps = {
 export function GuidedTourProvider({ children, isAdmin, showAccountContext }: ProviderProps) {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
-  const { message } = App.useApp();
   const driverRef = useRef<GuidedDriver | null>(null);
 
   const destroyDriver = useCallback(() => {
@@ -70,11 +69,11 @@ export function GuidedTourProvider({ children, isAdmin, showAccountContext }: Pr
       },
     });
     if (!d) {
-      void message.warning(t("tour.unavailableHint"));
+      message.warning(t("tour.unavailableHint"));
       return;
     }
     driverRef.current = d;
-  }, [isAdmin, showAccountContext, t, i18n, destroyDriver, message]);
+  }, [isAdmin, showAccountContext, t, i18n, destroyDriver]);
 
   const value = useMemo(
     (): GuidedTourContextValue => ({

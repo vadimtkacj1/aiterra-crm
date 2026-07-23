@@ -1,6 +1,6 @@
-﻿import { Bar } from "@ant-design/plots";
-import { Card } from "antd";
+import { Bar } from "@ant-design/plots";
 import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { usePlotPalette } from "../chart/analyticsPlotTheme";
 
@@ -26,37 +26,42 @@ export function CampaignSpendChart({ rows, currency }: CampaignSpendChartProps) 
   const h = Math.max(200, data.length * 40 + 72);
 
   return (
-    <Card size="small" title={t("analytics.chart.spendByCampaign")}>
-      <Bar
-        data={data}
-        xField="value"
-        yField="name"
-        seriesField="key"
-        colorField="key"
-        autoFit
-        height={h}
-        insetLeft={4}
-        insetRight={8}
-        legend={false}
-        scale={{
-          color: { range: palette },
-        }}
-        style={{
-          maxWidth: 24,
-          radiusTopLeft: 6,
-          radiusTopRight: 6,
-          radiusBottomRight: 6,
-          radiusBottomLeft: 6,
-        }}
-        axis={{
-          x: {
-            title: false,
-            labelFormatter: (d: string) => `${Number(d).toLocaleString()} ${currency}`,
-          },
-          y: { title: false },
-        }}
-        interaction={{ elementHighlight: { background: true } }}
-      />
+    <Card>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-sm">{t("analytics.chart.spendByCampaign")}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <Bar
+          data={data}
+          xField="value"
+          yField="name"
+          seriesField="key"
+          colorField="key"
+          autoFit
+          height={h}
+          insetLeft={4}
+          insetRight={8}
+          legend={false}
+          scale={{
+            color: { range: palette },
+          }}
+          style={{
+            maxWidth: 24,
+            radiusTopLeft: 6,
+            radiusTopRight: 6,
+            radiusBottomRight: 6,
+            radiusBottomLeft: 6,
+          }}
+          axis={{
+            x: {
+              title: false,
+              labelFormatter: (d: string) => `${Number(d).toLocaleString()} ${currency}`,
+            },
+            y: { title: false },
+          }}
+          interaction={{ elementHighlight: { background: true } }}
+        />
+      </CardContent>
     </Card>
   );
 }

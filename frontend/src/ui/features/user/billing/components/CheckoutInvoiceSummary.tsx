@@ -1,6 +1,6 @@
-import { Divider, Flex, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import type { PendingPaymentAction } from "@/services/billing/IBillingService";
+import { Separator } from "@/components/ui/separator";
 
 function formatMoney(amount: number, currency: string): string {
   const cur = (currency || "ILS").length === 3 ? currency.toUpperCase() : "ILS";
@@ -26,26 +26,17 @@ export function CheckoutInvoiceSummary({ payment }: Props) {
 
   return (
     <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-      <Typography.Text
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--ds-text-tertiary)",
-          display: "block",
-          marginBottom: 16,
-        }}
+      <span
+        className="block text-[11px] font-semibold uppercase text-(--ds-text-tertiary)"
+        style={{ letterSpacing: "0.08em", marginBottom: 16 }}
       >
         {t("billing.invoiceHeading")}
-      </Typography.Text>
+      </span>
 
-      <Typography.Title level={3} style={{ margin: "0 0 6px", fontWeight: 700, letterSpacing: "-0.02em" }}>
-        {payment.summary}
-      </Typography.Title>
-      <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+      <h3 className="m-0 mb-1.5 text-xl font-bold tracking-[-0.02em]">{payment.summary}</h3>
+      <span className="text-[13px] text-muted-foreground">
         {payment.flow === "monthly" ? t("billing.flowMonthly") : t("billing.flowOneTime")}
-      </Typography.Text>
+      </span>
 
       {payment.lineItems && payment.lineItems.length > 0 && (
         <div
@@ -58,50 +49,40 @@ export function CheckoutInvoiceSummary({ payment }: Props) {
           }}
         >
           <div
+            className="text-[11px] font-semibold uppercase text-(--ds-text-tertiary)"
             style={{
               padding: "10px 16px 8px",
-              fontSize: 11,
-              fontWeight: 600,
               letterSpacing: "0.07em",
-              textTransform: "uppercase",
-              color: "var(--ds-text-tertiary)",
               borderBottom: "1px solid rgba(15,23,42,.06)",
             }}
           >
             {t("billing.invoiceLinesHeading")}
           </div>
           {payment.lineItems.map((li, i) => (
-            <Flex
+            <div
               key={i}
-              justify="space-between"
-              align="center"
+              className="flex items-center justify-between"
               style={{
                 padding: "12px 16px",
                 borderTop: i > 0 ? "1px solid rgba(15,23,42,.05)" : undefined,
               }}
             >
-              <Typography.Text style={{ fontSize: 14, color: "var(--ds-text-primary)" }}>
+              <span className="text-sm text-(--ds-text-primary)">
                 {li.label}
                 {li.code ? (
-                  <Typography.Text type="secondary" style={{ marginInlineStart: 6, fontSize: 12 }}>
-                    ({li.code})
-                  </Typography.Text>
+                  <span className="ms-1.5 text-xs text-muted-foreground">({li.code})</span>
                 ) : null}
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+              </span>
+              <span className="text-sm font-medium tabular-nums">
                 {formatMoney(li.amount, payment.currency)}
-              </Typography.Text>
-            </Flex>
+              </span>
+            </div>
           ))}
-          <Divider style={{ margin: 0 }} />
-          <Flex justify="space-between" align="center" style={{ padding: "14px 16px" }}>
-            <Typography.Text strong style={{ fontSize: 14 }}>
-              {t("billing.invoiceTotal")}
-            </Typography.Text>
-            <Typography.Text strong style={{ fontSize: 18, letterSpacing: "-0.01em" }}>
-              {total}
-            </Typography.Text>
-          </Flex>
+          <Separator />
+          <div className="flex items-center justify-between" style={{ padding: "14px 16px" }}>
+            <span className="text-sm font-semibold">{t("billing.invoiceTotal")}</span>
+            <span className="text-lg font-semibold tracking-[-0.01em] tabular-nums">{total}</span>
+          </div>
         </div>
       )}
     </div>

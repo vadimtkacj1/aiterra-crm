@@ -1,6 +1,9 @@
-import { CheckCircleFilled, CreditCardOutlined, WalletOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Divider, Flex, Typography, theme } from "antd";
+import { CircleCheck, CreditCard, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { tokens } from "@/styles/designSystem";
 
 interface Props {
@@ -27,107 +30,90 @@ export function CheckoutPaymentPanel({
   onPay,
 }: Props) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
+  const IntentIcon = intent === "savedCard" ? CreditCard : Wallet;
 
   return (
     <div
+      className="flex flex-col gap-5 bg-(--ds-surface-0)"
       style={{
         flex: "0 0 340px",
         minWidth: 300,
-        background: token.colorBgContainer,
         borderRadius: tokens.radius.lg,
-        border: `1px solid ${token.colorBorderSecondary}`,
+        border: "1px solid var(--ds-border-subtle)",
         boxShadow: tokens.shadow.md,
         padding: "28px 28px 24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 20,
       }}
     >
       <div>
-        <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
-          {t("billing.invoiceTotal")}
-        </Typography.Text>
-        <Typography.Title
-          level={2}
-          style={{ margin: 0, fontWeight: 700, letterSpacing: "-0.03em", fontSize: 32 }}
-        >
-          {total}
-        </Typography.Title>
+        <span className="mb-1 block text-xs text-muted-foreground">{t("billing.invoiceTotal")}</span>
+        <h2 className="m-0 text-[32px] font-bold tracking-[-0.03em] tabular-nums">{total}</h2>
       </div>
 
-      <Divider style={{ margin: 0 }} />
+      <Separator />
 
-      <Flex
-        align="center"
-        gap={10}
-        style={{
-          padding: "12px 14px",
-          borderRadius: token.borderRadius,
-          background: token.colorBgLayout,
-          border: `1px solid ${token.colorBorderSecondary}`,
-        }}
+      <div
+        className="flex items-center gap-2.5 rounded-md border border-(--ds-border-subtle) bg-(--ds-surface-1)"
+        style={{ padding: "12px 14px" }}
       >
-        {intent === "savedCard" ? (
-          <CreditCardOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
-        ) : (
-          <WalletOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
-        )}
+        <IntentIcon aria-hidden="true" className="size-4.5 shrink-0 text-(--ds-text-secondary)" />
         <div>
-          <Typography.Text strong style={{ fontSize: 13, display: "block" }}>
+          <span className="block text-[13px] font-semibold">
             {intent === "savedCard" ? t("billing.payWithSavedCard") : t("billing.payNow")}
-          </Typography.Text>
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          </span>
+          <span className="text-xs text-muted-foreground">
             {intent === "savedCard" ? t("billing.checkoutSavedCardNote") : t("billing.checkoutHostedNote")}
-          </Typography.Text>
+          </span>
         </div>
-      </Flex>
+      </div>
 
-      <Typography.Paragraph type="secondary" style={{ margin: 0, fontSize: 12, lineHeight: 1.55 }}>
-        {t("billing.checkoutPayNote")}
-      </Typography.Paragraph>
+      <p className="m-0 text-xs leading-[1.55] text-muted-foreground">{t("billing.checkoutPayNote")}</p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <Checkbox checked={consentChecked} onChange={(e) => onConsentChange(e.target.checked)}>
-          <Typography.Text style={{ fontSize: 13 }}>
+      <div className="flex flex-col gap-2.5">
+        <label className="flex cursor-pointer items-start gap-2">
+          <Checkbox
+            checked={consentChecked}
+            onCheckedChange={(checked) => onConsentChange(checked === true)}
+            className="mt-0.5"
+          />
+          <span className="text-[13px]">
             {intent === "savedCard" ? t("billing.checkoutConsentSaved") : t("billing.checkoutConsentHosted")}
-          </Typography.Text>
-        </Checkbox>
-        <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.5 }}>
+          </span>
+        </label>
+        <span className="text-xs leading-normal text-muted-foreground">
           {t("billing.checkoutLegal")}{" "}
-          <a href={termsUrl} target="_blank" rel="noreferrer">
+          <a href={termsUrl} target="_blank" rel="noreferrer" className="text-(--ds-text-link) hover:underline">
             {t("billing.checkoutTermsLink")}
           </a>{" "}
           {t("billing.checkoutAnd")}{" "}
-          <a href={privacyUrl} target="_blank" rel="noreferrer">
+          <a href={privacyUrl} target="_blank" rel="noreferrer" className="text-(--ds-text-link) hover:underline">
             {t("billing.checkoutPrivacyPolicyLink")}
           </a>{" "}
           {t("billing.checkoutAnd")}{" "}
-          <a href={cancelUrl} target="_blank" rel="noreferrer">
+          <a href={cancelUrl} target="_blank" rel="noreferrer" className="text-(--ds-text-link) hover:underline">
             {t("billing.checkoutCancelPolicyLink")}
           </a>
           .
-        </Typography.Text>
+        </span>
       </div>
 
       <Button
-        type="primary"
-        size="large"
-        icon={intent === "savedCard" ? <CreditCardOutlined /> : <WalletOutlined />}
-        loading={loading}
-        disabled={!consentChecked}
+        size="lg"
+        disabled={!consentChecked || loading}
         onClick={onPay}
-        style={{ height: 48, fontWeight: 600, fontSize: 15, boxShadow: "none" }}
+        className="h-12 text-[15px] font-semibold shadow-none"
       >
+        {loading ? (
+          <Spinner size="sm" className="text-current" aria-hidden="true" />
+        ) : (
+          <IntentIcon aria-hidden="true" />
+        )}
         {intent === "savedCard" ? t("billing.payWithSavedCard") : t("billing.payNow")}
       </Button>
 
-      <Flex align="center" justify="center" gap={6}>
-        <CheckCircleFilled style={{ fontSize: 13, color: token.colorSuccess }} />
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          {t("billing.invoiceSecureNote")}
-        </Typography.Text>
-      </Flex>
+      <div className="flex items-center justify-center gap-1.5">
+        <CircleCheck aria-hidden="true" className="size-3.25" style={{ color: "var(--ds-color-success)" }} />
+        <span className="text-xs text-muted-foreground">{t("billing.invoiceSecureNote")}</span>
+      </div>
     </div>
   );
 }

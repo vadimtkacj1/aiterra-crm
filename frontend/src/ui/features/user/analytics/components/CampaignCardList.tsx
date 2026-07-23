@@ -1,5 +1,7 @@
-﻿import { Card, Collapse, Flex, Space, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import type { CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 
 interface CampaignCardListProps {
@@ -9,13 +11,9 @@ interface CampaignCardListProps {
 
 function MetricRow({ label, value }: { label: string; value: string | number }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", gap: 8 }}>
-      <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-        {label}
-      </Typography.Text>
-      <Typography.Text strong style={{ fontSize: 13, textAlign: "end" }}>
-        {value}
-      </Typography.Text>
+    <div className="flex items-center justify-between gap-2 py-0.5">
+      <span className="text-[13px] text-muted-foreground">{label}</span>
+      <span className="text-end text-[13px] font-semibold tabular-nums">{value}</span>
     </div>
   );
 }
@@ -28,16 +26,10 @@ export function CampaignCardList({ rows, currency }: CampaignCardListProps) {
   const pct = (v: number | undefined) => `${(v ?? 0).toFixed(2)}%`;
 
   return (
-    <Flex vertical gap={8} style={{ width: "100%" }}>
+    <div className="flex w-full flex-col gap-2">
       {rows.map((row) => (
-        <Card
-          key={row.campaignId}
-          size="small"
-          styles={{ body: { padding: 12 } }}
-        >
-          <Typography.Text strong style={{ fontSize: 14, display: "block", marginBottom: 8 }}>
-            {row.campaignName}
-          </Typography.Text>
+        <Card key={row.campaignId} className="p-3">
+          <span className="mb-2 block text-sm font-semibold">{row.campaignName}</span>
           <MetricRow label={t("analytics.table.impressions")} value={int(row.impressions)} />
           <MetricRow label={t("analytics.table.clicks")} value={int(row.clicks)} />
           <MetricRow label={t("analytics.table.ctr")} value={pct(row.ctr)} />
@@ -48,56 +40,52 @@ export function CampaignCardList({ rows, currency }: CampaignCardListProps) {
           <MetricRow label={t("analytics.table.cpc")} value={money(row.cpc)} />
           <MetricRow label={t("analytics.table.cpm")} value={money(row.cpm)} />
 
-          <Collapse
-            ghost
-            size="small"
-            style={{ marginTop: 8 }}
-            items={[
-              {
-                key: "more",
-                label: t("analytics.table.moreMetrics"),
-                children: (
-                  <Flex vertical gap={0} style={{ width: "100%" }}>
-                    <MetricRow label={t("analytics.table.inlineLinkClicks")} value={int(row.inlineLinkClicks)} />
-                    <MetricRow label={t("analytics.table.inlineLinkClickCtr")} value={pct(row.inlineLinkClickCtr)} />
-                    <MetricRow
-                      label={t("analytics.table.costPerInlineLinkClick")}
-                      value={money(row.costPerInlineLinkClick)}
-                    />
-                    <MetricRow label={t("analytics.table.uniqueClicks")} value={int(row.uniqueClicks)} />
-                    <MetricRow label={t("analytics.table.uniqueCtr")} value={pct(row.uniqueCtr)} />
-                    <MetricRow
-                      label={t("analytics.table.costPerUniqueClick")}
-                      value={money(row.costPerUniqueClick)}
-                    />
-                    <MetricRow label={t("analytics.table.outboundClicks")} value={int(row.outboundClicks)} />
-                    <MetricRow label={t("analytics.table.linkClicks")} value={int(row.linkClicks)} />
-                    <MetricRow label={t("analytics.table.landingPageViews")} value={int(row.landingPageViews)} />
-                    <MetricRow label={t("analytics.table.postEngagement")} value={int(row.postEngagement)} />
-                    <MetricRow label={t("analytics.table.videoViews")} value={int(row.videoViews)} />
-                    <Typography.Text strong style={{ display: "block", marginTop: 8, fontSize: 12 }}>
-                      {t("analytics.table.actionsDetail")}
-                    </Typography.Text>
-                    {(row.actionBreakdown?.length ?? 0) === 0 ? (
-                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                        {t("analytics.table.noActionsDetail")}
-                      </Typography.Text>
-                    ) : (
-                      <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
-                        {(row.actionBreakdown ?? []).map((a) => (
-                          <Tag key={`${row.campaignId}-${a.actionType}`}>
-                            {a.actionType}: {a.value.toLocaleString()}
-                          </Tag>
-                        ))}
-                      </Space>
-                    )}
-                  </Flex>
-                ),
-              },
-            ]}
-          />
+          <Accordion type="multiple" className="mt-2">
+            <AccordionItem value="more" className="border-b-0">
+              <AccordionTrigger className="py-2 text-[13px]">
+                {t("analytics.table.moreMetrics")}
+              </AccordionTrigger>
+              <AccordionContent className="pb-2">
+                <div className="flex w-full flex-col">
+                  <MetricRow label={t("analytics.table.inlineLinkClicks")} value={int(row.inlineLinkClicks)} />
+                  <MetricRow label={t("analytics.table.inlineLinkClickCtr")} value={pct(row.inlineLinkClickCtr)} />
+                  <MetricRow
+                    label={t("analytics.table.costPerInlineLinkClick")}
+                    value={money(row.costPerInlineLinkClick)}
+                  />
+                  <MetricRow label={t("analytics.table.uniqueClicks")} value={int(row.uniqueClicks)} />
+                  <MetricRow label={t("analytics.table.uniqueCtr")} value={pct(row.uniqueCtr)} />
+                  <MetricRow
+                    label={t("analytics.table.costPerUniqueClick")}
+                    value={money(row.costPerUniqueClick)}
+                  />
+                  <MetricRow label={t("analytics.table.outboundClicks")} value={int(row.outboundClicks)} />
+                  <MetricRow label={t("analytics.table.linkClicks")} value={int(row.linkClicks)} />
+                  <MetricRow label={t("analytics.table.landingPageViews")} value={int(row.landingPageViews)} />
+                  <MetricRow label={t("analytics.table.postEngagement")} value={int(row.postEngagement)} />
+                  <MetricRow label={t("analytics.table.videoViews")} value={int(row.videoViews)} />
+                  <span className="mt-2 block text-xs font-semibold">
+                    {t("analytics.table.actionsDetail")}
+                  </span>
+                  {(row.actionBreakdown?.length ?? 0) === 0 ? (
+                    <span className="text-xs text-muted-foreground">
+                      {t("analytics.table.noActionsDetail")}
+                    </span>
+                  ) : (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {(row.actionBreakdown ?? []).map((a) => (
+                        <Badge key={`${row.campaignId}-${a.actionType}`} variant="default">
+                          {a.actionType}: {a.value.toLocaleString()}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       ))}
-    </Flex>
+    </div>
   );
 }

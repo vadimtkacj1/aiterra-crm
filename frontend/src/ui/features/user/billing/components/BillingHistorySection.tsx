@@ -1,10 +1,14 @@
-import { DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Table, Tag, Tooltip, Typography } from "antd";
+import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { UserBillingHistoryRow } from "@/services/billing/IBillingService";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
-import { billingShell, formatInvoiceMoney, fmtDateTime } from "./billingUtils";
+import { TableActionButton } from "@/ui/shared/components/TableActionButton";
+import { formatInvoiceMoney, fmtDateTime } from "./billingUtils";
 import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
 
 interface Props {
@@ -14,19 +18,32 @@ interface Props {
   accountId: string;
 }
 
+const STATUS_VARIANT: Record<string, "default" | "primary" | "processing" | "success" | "warning" | "error"> = {
+  paid: "success",
+  unpaid: "warning",
+  ongoing: "processing",
+  voided: "default",
+  cancelled: "error",
+  superseded: "default",
+  unknown: "default",
+};
+
 function PaymentStatusTag({ status }: { status: UserBillingHistoryRow["paymentStatus"] }) {
   const { t } = useTranslation();
-  const map: Record<string, { label: string; color: string }> = {
-    paid: { label: t("billing.historyStatusPaid"), color: "success" },
-    unpaid: { label: t("billing.historyStatusUnpaid"), color: "warning" },
-    ongoing: { label: t("billing.historyStatusOngoing"), color: "processing" },
-    voided: { label: t("billing.historyStatusVoided"), color: "default" },
-    cancelled: { label: t("billing.historyStatusCancelled"), color: "error" },
-    superseded: { label: t("billing.historyStatusSuperseded"), color: "default" },
-    unknown: { label: t("billing.historyStatusUnknown"), color: "default" },
+  const labels: Record<string, string> = {
+    paid: t("billing.historyStatusPaid"),
+    unpaid: t("billing.historyStatusUnpaid"),
+    ongoing: t("billing.historyStatusOngoing"),
+    voided: t("billing.historyStatusVoided"),
+    cancelled: t("billing.historyStatusCancelled"),
+    superseded: t("billing.historyStatusSuperseded"),
+    unknown: t("billing.historyStatusUnknown"),
   };
-  const cfg = map[status] ?? map.unknown;
-  return <Tag color={cfg.color} style={{ marginInlineEnd: 0 }}>{cfg.label}</Tag>;
+  return (
+    <Badge variant={STATUS_VARIANT[status] ?? "default"}>
+      {labels[status] ?? labels.unknown}
+    </Badge>
+  );
 }
 
 export function BillingHistorySection({ rows, loading, appLocale, accountId }: Props) {
@@ -47,24 +64,89 @@ export function BillingHistorySection({ rows, loading, appLocale, accountId }: P
     });
   };
 
+  const columns: DataTableColumn<UserBillingHistoryRow>[] = [
+    {
+      title: t("billing.date"),
+      dataIndex: "createdAt",
+      width: 140,
+      render: (v) => <span className="tabular-nums">{fmtDateTime(v as string, appLocale)}</span>,
+    },
+    {
+      title: t("billing.description"),
+      dataIndex: "description",
+      render: (v) => (
+        <span className="block max-w-80 truncate">{(v as string | null) ?? "—"}</span>
+      ),
+    },
+    {
+      title: t("billing.historyColType"),
+      dataIndex: "chargeType",
+      width: 100,
+      render: (ct) =>
+        (ct as string) === "monthly" ? (
+          <Badge variant="primary">{t("billing.chargeTypeMonthly")}</Badge>
+        ) : (
+          <Badge variant="processing">{t("billing.chargeTypeOneTime")}</Badge>
+        ),
+    },
+    {
+      title: t("billing.amount"),
+      key: "amount",
+      width: 120,
+      render: (_, r) => {
+        if (r.amount == null) return "—";
+        const main = formatInvoiceMoney(r.amount, r.currency, appLocale);
+        if (r.chargeType === "monthly" && r.installmentMonths && r.installmentMonths >= 2 && r.installmentTotalAmount) {
+          return (
+            <div>
+              <span className="font-semibold tabular-nums">{main}</span>
+              <span className="block text-[11px] text-muted-foreground">
+                {t("billing.historyInstallmentNote", {
+                  total: formatInvoiceMoney(r.installmentTotalAmount, r.currency, appLocale),
+                  months: r.installmentMonths,
+                })}
+              </span>
+            </div>
+          );
+        }
+        return <span className="tabular-nums">{main}</span>;
+      },
+    },
+    {
+      title: t("billing.status"),
+      dataIndex: "paymentStatus",
+      width: 110,
+      render: (s) => <PaymentStatusTag status={s as UserBillingHistoryRow["paymentStatus"]} />,
+    },
+    {
+      title: "",
+      key: "actions",
+      width: 52,
+      render: (_, r) =>
+        r.amount ? (
+          <TableActionButton
+            tooltip={t("billing.downloadPdf")}
+            icon={<Download aria-hidden="true" />}
+            onClick={() => downloadRow(r)}
+          />
+        ) : null,
+    },
+  ];
+
   return (
-    <>
-      <Card
-        title={t("billing.historyCardTitle")}
-        loading={loading}
-        size="small"
-        variant="borderless"
-        styles={{
-          header: { borderBottom: `1px solid ${billingShell.borderInner}` },
-          body: { padding: 0 },
-        }}
-        style={{
-          borderRadius: billingShell.radiusMd,
-          boxShadow: billingShell.shadow,
-          border: `1px solid ${billingShell.borderInner}`,
-        }}
-      >
-        {isMobile ? (
+    <Card className="rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
+      <div className="border-b border-(--ds-border-subtle) px-4 py-3">
+        <span className="text-[15px] font-semibold">{t("billing.historyCardTitle")}</span>
+      </div>
+      {loading && !isMobile ? (
+        <div className="space-y-3 p-4">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-4/5" />
+          <Skeleton className="h-4 w-3/5" />
+        </div>
+      ) : isMobile ? (
+        <div className="p-3">
           <ResponsiveCardView
             items={rows.map((r) => ({
               id: String(r.id),
@@ -92,95 +174,30 @@ export function BillingHistorySection({ rows, loading, appLocale, accountId }: P
                 },
               ],
               extra: r.amount != null ? (
-                <Typography.Text strong style={{ fontSize: 14 }}>
+                <span className="text-sm font-semibold tabular-nums">
                   {formatInvoiceMoney(r.amount, r.currency, appLocale)}
-                </Typography.Text>
+                </span>
               ) : undefined,
               actions: r.amount
-                ? [{ label: "PDF", onClick: () => downloadRow(r), icon: <DownloadOutlined />, type: "default" as const }]
+                ? [{ label: "PDF", onClick: () => downloadRow(r), icon: <Download aria-hidden="true" />, type: "default" as const }]
                 : [],
             }))}
             loading={loading}
             emptyText={t("billing.historyEmpty")}
           />
-        ) : (
-          <Table
-            size="middle"
-            rowKey="id"
-            scroll={{ x: 560 }}
-            pagination={{ pageSize: 8 }}
-            dataSource={rows}
-            locale={{
-              emptyText: <EmptyState title={t("billing.historyEmpty")} style={{ padding: "24px 16px" }} />,
-            }}
-            columns={[
-              {
-                title: t("billing.date"),
-                dataIndex: "createdAt",
-                width: 140,
-                render: (v: string) => <span style={{ fontVariantNumeric: "tabular-nums" }}>{fmtDateTime(v, appLocale)}</span>,
-              },
-              {
-                title: t("billing.description"),
-                dataIndex: "description",
-                ellipsis: true,
-                render: (v: string | null) => v ?? "—",
-              },
-              {
-                title: t("billing.historyColType"),
-                dataIndex: "chargeType",
-                width: 100,
-                render: (ct: string) =>
-                  ct === "monthly" ? (
-                    <Tag color="purple">{t("billing.chargeTypeMonthly")}</Tag>
-                  ) : (
-                    <Tag color="blue">{t("billing.chargeTypeOneTime")}</Tag>
-                  ),
-              },
-              {
-                title: t("billing.amount"),
-                key: "amount",
-                width: 120,
-                render: (_, r: UserBillingHistoryRow) => {
-                  if (r.amount == null) return "—";
-                  const main = formatInvoiceMoney(r.amount, r.currency, appLocale);
-                  if (r.chargeType === "monthly" && r.installmentMonths && r.installmentMonths >= 2 && r.installmentTotalAmount) {
-                    return (
-                      <div>
-                        <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>{main}</Typography.Text>
-                        <Typography.Text type="secondary" style={{ display: "block", fontSize: 11 }}>
-                          {t("billing.historyInstallmentNote", {
-                            total: formatInvoiceMoney(r.installmentTotalAmount, r.currency, appLocale),
-                            months: r.installmentMonths,
-                          })}
-                        </Typography.Text>
-                      </div>
-                    );
-                  }
-                  return <Typography.Text style={{ fontVariantNumeric: "tabular-nums" }}>{main}</Typography.Text>;
-                },
-              },
-              {
-                title: t("billing.status"),
-                dataIndex: "paymentStatus",
-                width: 110,
-                render: (s: UserBillingHistoryRow["paymentStatus"]) => <PaymentStatusTag status={s} />,
-              },
-              {
-                title: "",
-                key: "actions",
-                width: 52,
-                render: (_, r: UserBillingHistoryRow) =>
-                  r.amount ? (
-                    <Tooltip title={t("billing.downloadPdf")}>
-                      <Button size="small" icon={<DownloadOutlined />} onClick={() => downloadRow(r)} />
-                    </Tooltip>
-                  ) : null,
-              },
-            ]}
-          />
-        )}
-      </Card>
-    </>
+        </div>
+      ) : (
+        <DataTable<UserBillingHistoryRow>
+          rowKey="id"
+          scroll={{ x: 560 }}
+          pagination={{ pageSize: 8 }}
+          dataSource={rows}
+          locale={{
+            emptyText: <EmptyState title={t("billing.historyEmpty")} style={{ padding: "24px 16px" }} />,
+          }}
+          columns={columns}
+        />
+      )}
+    </Card>
   );
 }

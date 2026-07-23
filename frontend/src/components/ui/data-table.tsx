@@ -52,6 +52,8 @@ export interface DataTableProps<T> {
     rowExpandable?: (record: T) => boolean;
     onExpand?: (expanded: boolean, record: T) => void;
   };
+  /** antd-style row props factory (onClick, style, className, …). */
+  onRow?: (record: T, index: number) => React.HTMLAttributes<HTMLTableRowElement>;
   scroll?: { x?: number | string };
   className?: string;
 }
@@ -72,7 +74,7 @@ function alignClass(align?: DataTableColumn<never>["align"]): string {
 
 export function DataTable<T>({
   columns, dataSource, rowKey, loading, size = "middle", locale,
-  pagination = {}, rowSelection, expandable, scroll, className,
+  pagination = {}, rowSelection, expandable, onRow, scroll, className,
 }: DataTableProps<T>) {
   const [page, setPage] = React.useState(1);
   const [expandedKeys, setExpandedKeys] = React.useState<Set<Key>>(new Set());
@@ -157,9 +159,16 @@ export function DataTable<T>({
                 const key = getKey(record, rowKey, ri);
                 const canExpand = expandable ? (expandable.rowExpandable?.(record) ?? true) : false;
                 const isExpanded = expandedKeys.has(key);
+                const rowProps = onRow?.(record, ri);
                 return (
                   <React.Fragment key={key}>
-                    <tr className="border-b border-border transition-colors hover:bg-muted/50">
+                    <tr
+                      {...rowProps}
+                      className={cn(
+                        "border-b border-border transition-colors hover:bg-muted/50",
+                        rowProps?.className,
+                      )}
+                    >
                       {rowSelection && (
                         <td className={cellPad}>
                           <Checkbox

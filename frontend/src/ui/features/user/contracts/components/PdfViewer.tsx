@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { theme } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -8,7 +7,6 @@ interface Props {
 }
 
 export function PdfViewer({ base64, style }: Props) {
-  const { token } = theme.useToken();
   const { t } = useTranslation();
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
@@ -35,7 +33,7 @@ export function PdfViewer({ base64, style }: Props) {
 
   if (error) {
     return (
-      <div style={{ color: token.colorError, padding: 12, fontSize: 13, ...style }}>
+      <div style={{ color: "var(--ds-color-error)", padding: 12, fontSize: 13, ...style }}>
         {t("contracts.pdf.loadError")}
       </div>
     );
@@ -43,7 +41,7 @@ export function PdfViewer({ base64, style }: Props) {
 
   if (!blobUrl) {
     return (
-      <div style={{ color: token.colorTextTertiary, padding: 16, fontSize: 13, textAlign: "center", minHeight: 120, ...style }}>
+      <div style={{ color: "var(--ds-text-tertiary)", padding: 16, fontSize: 13, textAlign: "center", minHeight: 120, ...style }}>
         {t("contracts.pdf.loading")}
       </div>
     );
@@ -55,7 +53,7 @@ export function PdfViewer({ base64, style }: Props) {
       type="application/pdf"
       style={{ display: "block", width: "100%", height: 720, minHeight: 400, border: "none", ...style }}
     >
-      <div style={{ padding: 16, fontSize: 13, color: token.colorTextSecondary, textAlign: "center" }}>
+      <div style={{ padding: 16, fontSize: 13, color: "var(--ds-text-secondary)", textAlign: "center" }}>
         <a href={blobUrl} target="_blank" rel="noreferrer">{t("contracts.pdf.open")}</a>
       </div>
     </object>

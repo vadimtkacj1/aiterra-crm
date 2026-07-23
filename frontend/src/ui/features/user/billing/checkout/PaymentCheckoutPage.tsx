@@ -1,6 +1,8 @@
-﻿import { Button, Result, Spin } from "antd";
+import { Info } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { appLocaleFromLanguage, formatInvoiceMoney } from "../components/billingUtils";
 import { CheckoutInvoiceSummary } from "../components/CheckoutInvoiceSummary";
 import { CheckoutPaymentPanel } from "../components/CheckoutPaymentPanel";
@@ -19,7 +21,7 @@ export function PaymentCheckoutPage() {
   if (c.loadingPayment) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Spin size="large" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -27,16 +29,14 @@ export function PaymentCheckoutPage() {
   if (!c.payment) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Result
-          status="info"
-          title={c.t("billing.checkoutMissingPaymentTitle")}
-          subTitle={c.t("billing.checkoutMissingPaymentDesc")}
-          extra={
-            <Button type="primary" onClick={c.goBack}>
-              {c.t("billing.paymentSuccessBack")}
-            </Button>
-          }
-        />
+        <div className="flex flex-col items-center gap-3 p-8 text-center">
+          <Info aria-hidden="true" className="size-16 text-(--ds-color-info)" strokeWidth={1.25} />
+          <h2 className="m-0 text-2xl font-semibold">{c.t("billing.checkoutMissingPaymentTitle")}</h2>
+          <p className="m-0 text-sm text-muted-foreground">{c.t("billing.checkoutMissingPaymentDesc")}</p>
+          <Button className="mt-2" onClick={c.goBack}>
+            {c.t("billing.paymentSuccessBack")}
+          </Button>
+        </div>
       </div>
     );
   }

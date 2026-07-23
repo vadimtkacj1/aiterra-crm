@@ -1,41 +1,39 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
-  ArrowLeftOutlined,
-  DownloadOutlined,
-  FilePdfOutlined,
-  FileTextOutlined,
-  ReloadOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
-import {
-  App,
-  Button,
-  Card,
-  Checkbox,
-  Col,
-  ConfigProvider,
-  DatePicker,
-  Divider,
-  Drawer,
-  Dropdown,
-  Flex,
-  Grid,
-  Row,
-  Skeleton,
-  Table,
-  Tag,
-  Typography,
-} from "antd";
-import type { ColumnsType } from "antd/es/table";
-import dayjs, { type Dayjs } from "dayjs";
+  ArrowLeft,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { MenuDropdown } from "@/components/ui/menu-compat";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
+import { useIsMobile } from "@/lib/use-media-query";
 import type { CampaignAdsData, CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { useApp } from "@/app/AppProviders";
 import { accountPath } from "@/ui/navigation/paths";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { CampaignCreativeGallery } from "../components/CampaignCreativeGallery";
+import { DateRangeControl, rangeParam, type DateRange } from "../components/DateRangeControl";
 import { KpiStatCard } from "../components/KpiStatCard";
 import {
   classifyCampaignObjective,
@@ -44,10 +42,6 @@ import {
   type CampaignGoalKind,
 } from "../utils/campaignObjective";
 import { exportCampaignDetailCsv, exportCampaignDetailPdf } from "../utils/exportUtils";
-
-const { RangePicker } = DatePicker;
-
-type DateRange = [Dayjs | null, Dayjs | null] | null;
 
 // All available metric columns for the "Manage Columns" feature
 const ALL_COLUMNS = [
@@ -79,10 +73,8 @@ function defaultColumnsForKind(kind: CampaignGoalKind): MetricCol[] {
 
 export function MetaCampaignDeepDivePage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const { services } = useApp();
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { accountId, campaignId } = useParams<{ accountId: string; campaignId: string }>();
 
@@ -95,11 +87,8 @@ export function MetaCampaignDeepDivePage() {
   const [manageOpen, setManageOpen] = useState(false);
   const prevDetailCampaignId = useRef<string | undefined>(undefined);
 
-  const messageRef = useRef(message);
-  messageRef.current = message;
-
-  const since = dateRange?.[0]?.format("YYYY-MM-DD");
-  const until = dateRange?.[1]?.format("YYYY-MM-DD");
+  const since = rangeParam(dateRange?.[0]);
+  const until = rangeParam(dateRange?.[1]);
 
   const campaign = useMemo(
     () => snapshot?.rows.find((r) => r.campaignId === campaignId) ?? null,
@@ -120,7 +109,7 @@ export function MetaCampaignDeepDivePage() {
       const snap = await services.metaAnalytics.fetchSnapshot(accountId, since, until);
       setSnapshot(snap);
     } catch (e) {
-      messageRef.current.error(e instanceof Error ? e.message : t("analytics.loadError"));
+      message.error(e instanceof Error ? e.message : t("analytics.loadError"));
     } finally {
       setLoading(false);
     }
@@ -167,7 +156,7 @@ export function MetaCampaignDeepDivePage() {
   }, [campaign]);
 
   // Dynamic column factory
-  const metricsColumns: ColumnsType<CampaignSummaryRow> = useMemo(() => {
+  const metricsColumns: DataTableColumn<CampaignSummaryRow>[] = useMemo(() => {
     const fmt = (v: number | undefined, dec = 0) =>
       dec > 0 ? (v ?? 0).toFixed(dec) : (v ?? 0).toLocaleString();
 
@@ -193,14 +182,17 @@ export function MetaCampaignDeepDivePage() {
       outboundClicks: { title: t("analytics.table.outboundClicks"), width: 130, render: (r) => fmt(r.outboundClicks) },
     };
 
-    const cols: ColumnsType<CampaignSummaryRow> = [
+    const cols: DataTableColumn<CampaignSummaryRow>[] = [
       {
         title: t("analytics.table.campaign"),
         dataIndex: "campaignName",
         key: "name",
-        fixed: "left",
         width: 220,
-        ellipsis: true,
+        render: (v) => (
+          <span className="block max-w-[220px] truncate" title={String(v ?? "")}>
+            {v as string}
+          </span>
+        ),
       },
     ];
 
@@ -212,7 +204,9 @@ export function MetaCampaignDeepDivePage() {
         title: def.title,
         key,
         width: def.width,
-        render: (_: unknown, row: CampaignSummaryRow) => def.render(row),
+        render: (_: unknown, row: CampaignSummaryRow) => (
+          <span className="tabular-nums">{def.render(row)}</span>
+        ),
       });
     }
 
@@ -222,124 +216,116 @@ export function MetaCampaignDeepDivePage() {
   if (loading && !snapshot) {
     return (
       <UserContentLayout>
-        <Skeleton active paragraph={{ rows: 6 }} />
+        <div className="flex flex-col gap-3">
+          {[0, 1, 2, 3, 4, 5].map((k) => (
+            <Skeleton key={k} className="h-4 w-full" />
+          ))}
+        </div>
       </UserContentLayout>
     );
   }
 
   return (
     <UserContentLayout>
-      <Flex vertical gap={24} style={{ width: "100%" }}>
+      <div className="flex w-full flex-col gap-6">
         {/* Page header: back link + campaign title + status tags */}
         <div>
-          <div style={{ marginBottom: 8 }}>
+          <div className="mb-2">
             <Button
-              icon={<ArrowLeftOutlined />}
-              type="text"
-              size="small"
-              style={{ marginInlineStart: -8, color: "var(--ds-text-secondary)" }}
+              variant="ghost"
+              size="sm"
+              className="-ms-2 text-(--ds-text-secondary)"
               onClick={() => navigate(accountPath(accountId ?? "", "meta"))}
             >
+              <ArrowLeft aria-hidden="true" className="rtl:rotate-180" />
               {t("meta.deepdive.backToCampaigns")}
             </Button>
           </div>
-          <Flex align="center" gap={12} wrap="wrap">
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <Typography.Title
-                level={2}
-                style={{ margin: 0, fontSize: isMobile ? 22 : 28, fontWeight: 600 }}
-                ellipsis
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <h2
+                className="m-0 truncate font-semibold"
+                style={{ fontSize: isMobile ? 22 : 28 }}
               >
                 {campaign?.campaignName ?? campaignId}
-              </Typography.Title>
+              </h2>
             </div>
-            <Flex gap={4} wrap="wrap">
+            <div className="flex flex-wrap gap-1">
               {campaign?.objective && (
-                <Tag>{campaign.objective.replace(/_/g, " ")}</Tag>
+                <Badge>{campaign.objective.replace(/_/g, " ")}</Badge>
               )}
               {campaign?.status && (
-                <Tag color={campaign.status === "ACTIVE" ? "success" : "warning"}>
+                <Badge variant={campaign.status === "ACTIVE" ? "success" : "warning"}>
                   {campaign.status}
-                </Tag>
+                </Badge>
               )}
-            </Flex>
-          </Flex>
+            </div>
+          </div>
         </div>
 
         {/* Top KPI cards */}
         {campaign && mainGoal && (
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} lg={6}>
-              <KpiStatCard
-                title={t("analytics.stats.spend")}
-                value={campaign.spend}
-                suffix={currency}
-                precision={2}
-              />
-            </Col>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiStatCard
+              title={t("analytics.stats.spend")}
+              value={campaign.spend}
+              suffix={currency}
+              precision={2}
+            />
             {mainGoal.value !== "0" && (
-              <Col xs={24} sm={12} lg={6}>
-                <KpiStatCard title={mainGoal.label} value={mainGoal.value} />
-              </Col>
+              <KpiStatCard title={mainGoal.label} value={mainGoal.value} />
             )}
-            <Col xs={24} sm={12} lg={6}>
-              <KpiStatCard title={t("analytics.stats.impressions")} value={campaign.impressions} />
-            </Col>
+            <KpiStatCard title={t("analytics.stats.impressions")} value={campaign.impressions} />
             {costPerResult && (
-              <Col xs={24} sm={12} lg={6}>
-                <KpiStatCard
-                  title={costPerResult.label}
-                  value={costPerResult.value}
-                  suffix={currency}
-                />
-              </Col>
+              <KpiStatCard
+                title={costPerResult.label}
+                value={costPerResult.value}
+                suffix={currency}
+              />
             )}
-          </Row>
+          </div>
         )}
 
         {/* ── Creatives section (prominent, right after KPIs) ── */}
-        <Divider style={{ margin: 0 }} />
-        <Flex vertical gap={16}>
-          <Typography.Title level={5} style={{ margin: 0 }}>
+        <Separator />
+        <div className="flex flex-col gap-4">
+          <h5 className="m-0 text-base font-semibold">
             {t("meta.deepdive.creativesTitle")}
-          </Typography.Title>
+          </h5>
           <CampaignCreativeGallery
             ads={adsData?.ads ?? []}
             currency={adsData?.currency ?? currency}
             loading={adsLoading}
             objective={adsData?.objective ?? campaign?.objective ?? ""}
           />
-        </Flex>
+        </div>
 
         {/* ── Detailed metrics: one card = toolbar + table ── */}
-        <Divider style={{ margin: 0 }} />
-        <Card title={t("meta.deepdive.metricsTitle")} styles={{ body: { padding: 16 } }}>
-          <Flex vertical gap={16}>
-            <Flex gap={8} wrap="wrap" align="center" justify="space-between">
-              <ConfigProvider direction="ltr">
-                <RangePicker
-                  value={dateRange ? [dateRange[0], dateRange[1]] : null}
-                  onChange={(val) => setDateRange(val as DateRange)}
-                  presets={[
-                    { label: t("analytics.period.last7Days"), value: [dayjs().subtract(6, "day"), dayjs()] },
-                    { label: t("analytics.period.last30Days"), value: [dayjs().subtract(29, "day"), dayjs()] },
-                    { label: t("analytics.period.last90Days"), value: [dayjs().subtract(89, "day"), dayjs()] },
-                  ]}
-                  format="YYYY-MM-DD"
-                  style={{ width: isMobile ? "100%" : 260 }}
+        <Separator />
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-sm">{t("meta.deepdive.metricsTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <DateRangeControl
+                  value={dateRange}
+                  onChange={setDateRange}
+                  className={isMobile ? "w-full" : undefined}
                 />
-              </ConfigProvider>
-              <Flex gap={8}>
-                <Button icon={<SettingOutlined />} onClick={() => setManageOpen(true)}>
-                  {!isMobile && t("meta.deepdive.manageColumns")}
-                </Button>
-                <Dropdown
-                  disabled={!campaign}
-                  menu={{
-                    items: [
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setManageOpen(true)}>
+                    <Settings aria-hidden="true" />
+                    {!isMobile && t("meta.deepdive.manageColumns")}
+                  </Button>
+                  <MenuDropdown
+                    disabled={!campaign}
+                    align="end"
+                    items={[
                       {
                         key: "csv",
-                        icon: <FileTextOutlined />,
+                        icon: <FileSpreadsheet aria-hidden="true" className="size-4" />,
                         label: t("meta.panel.exportCsv"),
                         onClick: () =>
                           campaign &&
@@ -347,7 +333,7 @@ export function MetaCampaignDeepDivePage() {
                       },
                       {
                         key: "pdf",
-                        icon: <FilePdfOutlined />,
+                        icon: <FileText aria-hidden="true" className="size-4" />,
                         label: t("meta.panel.exportPdf"),
                         onClick: () =>
                           campaign &&
@@ -358,78 +344,83 @@ export function MetaCampaignDeepDivePage() {
                             snapshot?.periodLabel,
                           ),
                       },
-                    ],
-                  }}
-                >
-                  <Button icon={<DownloadOutlined />} disabled={!campaign}>
-                    {!isMobile && t("meta.panel.export")}{" "}
+                    ]}
+                  >
+                    <Button variant="outline" disabled={!campaign}>
+                      <Download aria-hidden="true" />
+                      {!isMobile && t("meta.panel.export")}
+                    </Button>
+                  </MenuDropdown>
+                  <Button
+                    variant="outline"
+                    disabled={loading}
+                    onClick={() => { void loadSnapshot(); void loadAds(); }}
+                  >
+                    {loading
+                      ? <Spinner size="sm" className="text-current" aria-hidden="true" />
+                      : <RefreshCw aria-hidden="true" />}
+                    {!isMobile && t("common.reload")}
                   </Button>
-                </Dropdown>
-                <Button
-                  icon={<ReloadOutlined />}
+                </div>
+              </div>
+
+              <div dir="ltr">
+                <DataTable<CampaignSummaryRow>
                   loading={loading}
-                  onClick={() => { void loadSnapshot(); void loadAds(); }}
-                >
-                  {!isMobile && t("common.reload")}
-                </Button>
-              </Flex>
-            </Flex>
-
-            <ConfigProvider direction="ltr">
-              <Table<CampaignSummaryRow>
-                loading={loading}
-                rowKey="campaignId"
-                size="middle"
-                dataSource={tableData}
-                columns={metricsColumns}
-                pagination={false}
-                scroll={{ x: "max-content" }}
-                locale={{ emptyText: t("common.noData") }}
-              />
-            </ConfigProvider>
-          </Flex>
+                  rowKey="campaignId"
+                  size="middle"
+                  dataSource={tableData}
+                  columns={metricsColumns}
+                  pagination={false}
+                  scroll={{ x: "max-content" }}
+                  locale={{ emptyText: t("common.noData") }}
+                />
+              </div>
+            </div>
+          </CardContent>
         </Card>
-      </Flex>
+      </div>
 
-      {/* Manage Columns Drawer */}
-      <Drawer
-        title={t("meta.deepdive.manageColumns")}
-        open={manageOpen}
-        onClose={() => setManageOpen(false)}
-        width={320}
-      >
-        <Typography.Paragraph type="secondary" style={{ marginBottom: 16 }}>
-          {t("meta.deepdive.manageColumnsHint")}
-        </Typography.Paragraph>
-        <Flex vertical gap={12}>
-          {ALL_COLUMNS.map((col) => (
-            <Checkbox
-              key={col}
-              checked={activeColumns.includes(col)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setActiveColumns((prev) => [...prev, col]);
-                } else {
-                  setActiveColumns((prev) => prev.filter((c) => c !== col));
-                }
-              }}
+      {/* Manage Columns Sheet */}
+      <Sheet open={manageOpen} onOpenChange={setManageOpen}>
+        <SheetContent className="w-80" closeLabel={t("common.close")}>
+          <SheetHeader>
+            <SheetTitle>{t("meta.deepdive.manageColumns")}</SheetTitle>
+            <SheetDescription>{t("meta.deepdive.manageColumnsHint")}</SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-3">
+            {ALL_COLUMNS.map((col) => (
+              <label key={col} className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox
+                  checked={activeColumns.includes(col)}
+                  onCheckedChange={(checked) => {
+                    if (checked === true) {
+                      setActiveColumns((prev) => [...prev, col]);
+                    } else {
+                      setActiveColumns((prev) => prev.filter((c) => c !== col));
+                    }
+                  }}
+                />
+                {col.replace(/([A-Z])/g, " $1").trim()}
+              </label>
+            ))}
+          </div>
+          <div className="mt-6 flex gap-2">
+            <Button variant="outline" onClick={() => setActiveColumns([...ALL_COLUMNS])}>
+              {t("meta.deepdive.selectAll")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                campaign &&
+                setActiveColumns(defaultColumnsForKind(classifyCampaignObjective(campaign.objective)))
+              }
             >
-              {col.replace(/([A-Z])/g, " $1").trim()}
-            </Checkbox>
-          ))}
-        </Flex>
-        <Flex gap={8} style={{ marginTop: 24 }}>
-          <Button onClick={() => setActiveColumns([...ALL_COLUMNS])}>{t("meta.deepdive.selectAll")}</Button>
-          <Button
-            onClick={() =>
-              campaign &&
-              setActiveColumns(defaultColumnsForKind(classifyCampaignObjective(campaign.objective)))
-            }
-          >
-            {t("meta.deepdive.resetColumns")}
-          </Button>
-        </Flex>
-      </Drawer>
+              {t("meta.deepdive.resetColumns")}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </UserContentLayout>
   );
 }

@@ -1,8 +1,10 @@
-﻿import { Bar, Line } from "@ant-design/plots";
-import { Card, Col, Empty, Row, Segmented, theme } from "antd";
+import { Bar, Line } from "@ant-design/plots";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Segmented } from "@/components/ui/segmented";
 import type { CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { usePlotPalette } from "../chart/analyticsPlotTheme";
 
 interface Props {
@@ -25,7 +27,6 @@ export function DailyTrendChart({
 }) {
   const { t } = useTranslation();
   const palette = usePlotPalette();
-  const { token } = theme.useToken();
   const [period, setPeriod] = useState<"week" | "month" | "year">("week");
   if (!daily || daily.length === 0) return null;
 
@@ -58,28 +59,18 @@ export function DailyTrendChart({
   const totalSpend = spendData.reduce((sum, item) => sum + item.spend, 0);
 
   return (
-    <Card
-      size="small"
-      styles={{
-        body: { padding: 0 },
-        header: {
-          padding: "14px 18px 8px",
-          borderBottom: "none",
-          minHeight: "auto",
-        },
-      }}
-      title={
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div style={{ display: "grid", gap: 2 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: token.colorText }}>
+    <Card>
+      <CardHeader className="px-4.5 pb-2 pt-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="grid gap-0.5">
+            <span className="text-[15px] font-semibold text-foreground">
               {t("analytics.chart.dailyTrend")}
             </span>
-            <span style={{ fontSize: 12, color: token.colorTextSecondary }}>
+            <span className="text-xs text-muted-foreground tabular-nums">
               {activeConfig.label} · {totalSpend.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
           </div>
           <Segmented
-            size="middle"
             value={period}
             onChange={(value) => setPeriod(value as "week" | "month" | "year")}
             options={[
@@ -89,63 +80,64 @@ export function DailyTrendChart({
             ]}
           />
         </div>
-      }
-    >
-      <div style={{ padding: "0 12px 12px" }}>
-        <Line
-          data={spendData}
-          xField="date"
-          yField="spend"
-          autoFit
-          height={260}
-          padding={[18, 24, 34, 40]}
-          scale={{
-            color: {
-              range: [palette[0]],
-            },
-          }}
-          style={{
-            lineWidth: 2,
-          }}
-          point={{
-            size: 3,
-            shape: "hollow",
-            style: {
-              stroke: palette[0],
-              lineWidth: 1.5,
-              fill: "#ffffff",
-            },
-          }}
-          axis={{
-            x: {
-              title: false,
-              tick: false,
-              line: true,
-              labelAutoRotate: false,
-              labelSpacing: 10,
-            },
-            y: {
-              title: false,
-              tick: false,
-              line: false,
-              gridLine: true,
-              labelFormatter: (value: string) => Number(value).toLocaleString(),
-            },
-          }}
-          tooltip={{
-            title: "date",
-            items: [
-              {
-                channel: "y",
-                name: t("analytics.table.spend"),
-                valueFormatter: (value: number) =>
-                  value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="px-3 pb-3">
+          <Line
+            data={spendData}
+            xField="date"
+            yField="spend"
+            autoFit
+            height={260}
+            padding={[18, 24, 34, 40]}
+            scale={{
+              color: {
+                range: [palette[0]],
               },
-            ],
-          }}
-          legend={false}
-        />
-      </div>
+            }}
+            style={{
+              lineWidth: 2,
+            }}
+            point={{
+              size: 3,
+              shape: "hollow",
+              style: {
+                stroke: palette[0],
+                lineWidth: 1.5,
+                fill: "#ffffff",
+              },
+            }}
+            axis={{
+              x: {
+                title: false,
+                tick: false,
+                line: true,
+                labelAutoRotate: false,
+                labelSpacing: 10,
+              },
+              y: {
+                title: false,
+                tick: false,
+                line: false,
+                gridLine: true,
+                labelFormatter: (value: string) => Number(value).toLocaleString(),
+              },
+            }}
+            tooltip={{
+              title: "date",
+              items: [
+                {
+                  channel: "y",
+                  name: t("analytics.table.spend"),
+                  valueFormatter: (value: number) =>
+                    value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                },
+              ],
+            }}
+            legend={false}
+          />
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -168,8 +160,13 @@ function GroupedBarCard({
 
   if (data.length === 0) {
     return (
-      <Card size="small" title={title}>
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+      <Card>
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-sm">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <EmptyState style={{ padding: "16px 0" }} />
+        </CardContent>
       </Card>
     );
   }
@@ -183,33 +180,38 @@ function GroupedBarCard({
       : (v: number) => `${Number(v).toLocaleString()}${valueSuffix ? ` ${valueSuffix}` : ""}`;
 
   return (
-    <Card size="small" title={title}>
-      <Bar
-        data={data}
-        xField="value"
-        yField="name"
-        seriesField="metric"
-        colorField="metric"
-        group
-        autoFit
-        height={h}
-        insetLeft={4}
-        insetRight={8}
-        scale={{ color: { domain: metrics, range } }}
-        style={{
-          maxWidth: 14,
-          radiusTopLeft: 4,
-          radiusTopRight: 4,
-          radiusBottomRight: 4,
-          radiusBottomLeft: 4,
-        }}
-        axis={{ x: { title: false }, y: { title: false } }}
-        legend={{ position: "top" }}
-        tooltip={{
-          items: [{ channel: "x", valueFormatter }],
-        }}
-        interaction={{ elementHighlight: { background: true } }}
-      />
+    <Card>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-sm">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <Bar
+          data={data}
+          xField="value"
+          yField="name"
+          seriesField="metric"
+          colorField="metric"
+          group
+          autoFit
+          height={h}
+          insetLeft={4}
+          insetRight={8}
+          scale={{ color: { domain: metrics, range } }}
+          style={{
+            maxWidth: 14,
+            radiusTopLeft: 4,
+            radiusTopRight: 4,
+            radiusBottomRight: 4,
+            radiusBottomLeft: 4,
+          }}
+          axis={{ x: { title: false }, y: { title: false } }}
+          legend={{ position: "top" }}
+          tooltip={{
+            items: [{ channel: "x", valueFormatter }],
+          }}
+          interaction={{ elementHighlight: { background: true } }}
+        />
+      </CardContent>
     </Card>
   );
 }
@@ -348,66 +350,59 @@ function ActionBreakdownChart({ data }: { data: CampaignAnalyticsSnapshot }) {
   const h = barChartHeight(chartData.length, 200, 32);
 
   return (
-    <Card size="small" title={t("analytics.chart.actionBreakdown")}>
-      <Bar
-        data={chartData}
-        xField="value"
-        yField="name"
-        autoFit
-        height={h}
-        insetLeft={4}
-        insetRight={8}
-        colorField="name"
-        scale={{
-          color: { range: chartData.map((_, i) => palette[i % palette.length]) },
-        }}
-        style={{
-          maxWidth: 20,
-          radiusTopLeft: 4,
-          radiusTopRight: 4,
-          radiusBottomRight: 4,
-          radiusBottomLeft: 4,
-        }}
-        axis={{ x: { title: false }, y: { title: false } }}
-        legend={false}
-        tooltip={{
-          items: [{ channel: "x", valueFormatter: (v: number) => v.toLocaleString() }],
-        }}
-        interaction={{ elementHighlight: { background: true } }}
-      />
+    <Card>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-sm">{t("analytics.chart.actionBreakdown")}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <Bar
+          data={chartData}
+          xField="value"
+          yField="name"
+          autoFit
+          height={h}
+          insetLeft={4}
+          insetRight={8}
+          colorField="name"
+          scale={{
+            color: { range: chartData.map((_, i) => palette[i % palette.length]) },
+          }}
+          style={{
+            maxWidth: 20,
+            radiusTopLeft: 4,
+            radiusTopRight: 4,
+            radiusBottomRight: 4,
+            radiusBottomLeft: 4,
+          }}
+          axis={{ x: { title: false }, y: { title: false } }}
+          legend={false}
+          tooltip={{
+            items: [{ channel: "x", valueFormatter: (v: number) => v.toLocaleString() }],
+          }}
+          interaction={{ elementHighlight: { background: true } }}
+        />
+      </CardContent>
     </Card>
   );
 }
 
 export function CampaignMetricsCharts({ data }: Props) {
   return (
-    <Row gutter={[16, 16]}>
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {data.dailyBreakdown && data.dailyBreakdown.length > 0 && (
-        <Col xs={24}>
+        <div className="lg:col-span-2">
           <DailyTrendChart daily={data.dailyBreakdown} />
-        </Col>
+        </div>
       )}
-      <Col xs={24}>
+      <div className="lg:col-span-2">
         <PerformanceChart rows={data.rows} />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ClicksBreakdownChart rows={data.rows} />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ReachFrequencyChart rows={data.rows} />
-      </Col>
-      <Col xs={24} lg={12}>
-        <CtrChart rows={data.rows} />
-      </Col>
-      <Col xs={24} lg={12}>
-        <CostMetricsChart rows={data.rows} currency={data.currency} />
-      </Col>
-      <Col xs={24} lg={12}>
-        <EngagementChart rows={data.rows} />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ActionBreakdownChart data={data} />
-      </Col>
-    </Row>
+      </div>
+      <ClicksBreakdownChart rows={data.rows} />
+      <ReachFrequencyChart rows={data.rows} />
+      <CtrChart rows={data.rows} />
+      <CostMetricsChart rows={data.rows} currency={data.currency} />
+      <EngagementChart rows={data.rows} />
+      <ActionBreakdownChart data={data} />
+    </div>
   );
 }

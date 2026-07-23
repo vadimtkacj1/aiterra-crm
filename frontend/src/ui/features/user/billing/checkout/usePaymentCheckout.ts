@@ -1,8 +1,8 @@
-import { App } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
+import { message } from "@/lib/toast";
 import type { PendingPaymentAction } from "@/services/billing/IBillingService";
 import { accountPath } from "@/ui/navigation/paths";
 import type { CheckoutLocationState } from "./checkoutTypes";
@@ -14,7 +14,6 @@ export function usePaymentCheckout() {
   const { accountId: accountIdParam } = useParams<{ accountId: string }>();
   const accountId = accountIdParam ?? "0";
   const { services } = useApp();
-  const { message } = App.useApp();
 
   const state = location.state as CheckoutLocationState | null;
 

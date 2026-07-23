@@ -1,9 +1,12 @@
-import { CheckCircleOutlined, CreditCardOutlined, LockOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
-import { App, Button, Divider, Spin, Typography } from "antd";
+import { CheckCircle2, CreditCard, Lock, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import type { ContractPublic } from "../../../../../domain/Contract";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
 
 function fmtMoney(amount: number, currency: string) {
   try {
@@ -47,7 +50,6 @@ const cardShadow =
 export function ContractPayPage() {
   const { token } = useParams<{ token: string }>();
   const { t } = useTranslation();
-  const { message } = App.useApp();
 
   const [contract, setContract] = useState<ContractPublic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,12 +75,12 @@ export function ContractPayPage() {
       const data = await createContractCheckout(token, combined);
       const url = (data.paymentUrl || "").trim();
       if (!url) {
-        void message.warning(t("contracts.sign.paymentLinkPending"));
+        message.warning(t("contracts.sign.paymentLinkPending"));
         return;
       }
       window.location.assign(url);
     } catch (e) {
-      void message.error(e instanceof Error ? e.message : t("errors.generic"));
+      message.error(e instanceof Error ? e.message : t("errors.generic"));
     } finally {
       setPaying(false);
     }
@@ -87,7 +89,7 @@ export function ContractPayPage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: pageBg }}>
-        <Spin size="large" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -103,15 +105,15 @@ export function ContractPayPage() {
   if (error || !contract) {
     return centeredCard(
       <>
-        <Typography.Title level={3} style={{ marginBottom: 8 }}>{t("contracts.sign.notFound")}</Typography.Title>
-        <Typography.Text type="secondary">{error}</Typography.Text>
+        <h3 className="mb-2 mt-0 text-2xl font-semibold">{t("contracts.sign.notFound")}</h3>
+        <span className="text-sm text-muted-foreground">{error}</span>
       </>
     );
   }
 
   if (contract.status !== "signed") {
     return centeredCard(
-      <Typography.Text type="secondary">{t("contracts.pay.contractNotSigned")}</Typography.Text>
+      <span className="text-sm text-muted-foreground">{t("contracts.pay.contractNotSigned")}</span>
     );
   }
 
@@ -121,13 +123,17 @@ export function ContractPayPage() {
   if (pending.length === 0) {
     return centeredCard(
       <>
-        <CheckCircleOutlined style={{ fontSize: 48, color: "var(--ds-color-success)", marginBottom: 16 }} />
-        <Typography.Title level={4} style={{ marginBottom: 8 }}>{contract.title}</Typography.Title>
-        <Typography.Text type="secondary">
+        <CheckCircle2
+          aria-hidden="true"
+          className="mx-auto mb-4 size-12"
+          style={{ color: "var(--ds-color-success)" }}
+        />
+        <h4 className="mb-2 mt-0 text-xl font-semibold">{contract.title}</h4>
+        <span className="text-sm text-muted-foreground">
           {isSubscription && subscriptionActive
             ? t("contracts.sign.subscriptionActiveNote")
             : t("contracts.sign.paymentStatusPaid")}
-        </Typography.Text>
+        </span>
       </>
     );
   }
@@ -153,12 +159,12 @@ export function ContractPayPage() {
             width: 36, height: 36, borderRadius: 10,
             background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)", color: "#1d4ed8",
           }}>
-            <SafetyCertificateOutlined />
+            <ShieldCheck aria-hidden="true" className="size-4.5" />
           </span>
           {t("contracts.sign.secureLabel")}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ds-text-tertiary)" }}>
-          <LockOutlined />
+          <Lock aria-hidden="true" className="size-3.5" />
           {t("contracts.sign.encryptionNote")}
         </span>
       </header>
@@ -170,15 +176,15 @@ export function ContractPayPage() {
           boxShadow: cardShadow, padding: "40px 36px", maxWidth: 480, width: "100%",
         }}>
           {/* Contract title */}
-          <Typography.Text style={{
-            fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
-            textTransform: "uppercase", color: "var(--ds-text-secondary)", display: "block", marginBottom: 6,
-          }}>
+          <span
+            className="mb-1.5 block text-[11px] font-bold uppercase text-(--ds-text-secondary)"
+            style={{ letterSpacing: "0.1em" }}
+          >
             {t("contracts.sign.contractLabel")}
-          </Typography.Text>
-          <Typography.Title level={3} style={{ margin: "0 0 24px", fontWeight: 700, color: "var(--ds-text-primary)" }}>
+          </span>
+          <h3 className="mb-6 mt-0 text-2xl font-bold" style={{ color: "var(--ds-text-primary)" }}>
             {contract.title}
-          </Typography.Title>
+          </h3>
 
           {/* Payment breakdown (multiple stages) */}
           {isMultiple ? (
@@ -189,9 +195,9 @@ export function ContractPayPage() {
               border: "1px solid rgba(37, 99, 235, 0.15)",
               marginBottom: 24,
             }}>
-              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 12 }}>
+              <span className="mb-3 block text-xs text-muted-foreground">
                 {t("contracts.pay.breakdown")}
-              </Typography.Text>
+              </span>
 
               {pending.map((s, i) => (
                 <div
@@ -202,24 +208,27 @@ export function ContractPayPage() {
                     borderBottom: i < pending.length - 1 ? "1px solid rgba(37,99,235,0.1)" : undefined,
                   }}
                 >
-                  <Typography.Text style={{ fontSize: 14, color: "#334155" }}>
+                  <span className="text-sm" style={{ color: "#334155" }}>
                     {s.description || t("contracts.sign.stage")}
-                  </Typography.Text>
-                  <Typography.Text strong style={{ fontSize: 14, color: "#1e3a8a" }}>
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: "#1e3a8a" }}>
                     {fmtMoney(s.amount, currency)}
-                  </Typography.Text>
+                  </span>
                 </div>
               ))}
 
-              <Divider style={{ margin: "12px 0 10px", borderColor: "rgba(37,99,235,0.2)" }} />
+              <Separator style={{ margin: "12px 0 10px", background: "rgba(37,99,235,0.2)" }} />
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography.Text strong style={{ fontSize: 14, color: "var(--ds-text-primary)" }}>
+                <span className="text-sm font-semibold" style={{ color: "var(--ds-text-primary)" }}>
                   {t("contracts.pay.total")}
-                </Typography.Text>
-                <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ds-text-primary)" }}>
+                </span>
+                <h2
+                  className="m-0 text-3xl font-extrabold tracking-[-0.03em] tabular-nums"
+                  style={{ color: "var(--ds-text-primary)" }}
+                >
                   {fmtMoney(totalAmount, currency)}
-                </Typography.Title>
+                </h2>
               </div>
             </div>
           ) : (
@@ -229,33 +238,36 @@ export function ContractPayPage() {
               background: "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
               border: "1px solid rgba(37, 99, 235, 0.15)", marginBottom: 28,
             }}>
-              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+              <span className="mb-1 block text-xs text-muted-foreground">
                 {t("contracts.pay.amountDue")}
-              </Typography.Text>
-              <Typography.Title level={2} style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ds-text-primary)" }}>
+              </span>
+              <h2
+                className="m-0 text-3xl font-extrabold tracking-[-0.03em] tabular-nums"
+                style={{ color: "var(--ds-text-primary)" }}
+              >
                 {fmtMoney(pending[0].amount, currency)}
-              </Typography.Title>
+              </h2>
               {pending[0].description && (
-                <Typography.Text type="secondary" style={{ fontSize: 12, marginTop: 6, display: "block" }}>
+                <span className="mt-1.5 block text-xs text-muted-foreground">
                   {pending[0].description}
-                </Typography.Text>
+                </span>
               )}
             </div>
           )}
 
           {/* Pay button */}
           <Button
-            type="primary"
-            size="large"
-            block
-            loading={paying}
-            icon={<CreditCardOutlined />}
+            size="lg"
+            disabled={paying}
             onClick={() => void handlePay(isMultiple)}
-            style={{
-              height: 52, borderRadius: 12, fontWeight: 700, fontSize: 17,
-              boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)", marginBottom: 12,
-            }}
+            className="mb-3 h-13 w-full rounded-xl text-[17px] font-bold"
+            style={{ boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)" }}
           >
+            {paying ? (
+              <Spinner size="sm" className="text-current" aria-hidden="true" />
+            ) : (
+              <CreditCard aria-hidden="true" />
+            )}
             {t("contracts.sign.payStageNow", {
               amount: fmtMoney(isMultiple ? totalAmount : pending[0].amount, currency),
             })}
@@ -263,13 +275,13 @@ export function ContractPayPage() {
 
           {/* Hint for combined */}
           {isMultiple && (
-            <Typography.Text type="secondary" style={{ display: "block", textAlign: "center", fontSize: 12, marginBottom: 4 }}>
+            <span className="mb-1 block text-center text-xs text-muted-foreground">
               {t("contracts.pay.combinedHint")}
-            </Typography.Text>
+            </span>
           )}
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "var(--ds-text-tertiary)" }}>
-            <LockOutlined />
+            <Lock aria-hidden="true" className="size-3.5" />
             {t("contracts.pay.redirectNote")}
           </div>
         </div>

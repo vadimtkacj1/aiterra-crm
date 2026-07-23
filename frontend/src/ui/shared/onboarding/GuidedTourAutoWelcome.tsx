@@ -1,6 +1,13 @@
-import { Button, Flex, Modal, Typography, theme } from "antd";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { OnboardingStored } from "./onboardingStorage";
 import { useGuidedTour } from "./guidedTourContext";
 
@@ -22,7 +29,6 @@ export function GuidedTourAutoWelcome({
   dismissGuidedTour,
 }: Props) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
   const { startGuidedTour } = useGuidedTour();
   const [welcomeOpen, setWelcomeOpen] = useState(false);
 
@@ -67,42 +73,33 @@ export function GuidedTourAutoWelcome({
   }
 
   return (
-    <Modal
-      open={welcomeOpen}
-      footer={null}
-      closable={false}
-      centered
-      maskClosable={false}
-      width="min(420px, 92vw)"
-      styles={{
-        root: { padding: 0 },
-        container: {
-          borderRadius: token.borderRadiusLG * 1.5,
-          overflow: "hidden",
-          boxShadow: token.boxShadowSecondary,
-          border: `1px solid ${token.colorBorderSecondary}`,
-        },
-        body: { padding: "20px 20px 16px" },
-        mask: { backdropFilter: "blur(4px)" },
-      }}
-    >
-      <Typography.Title level={5} style={{ margin: "0 0 2px", color: token.colorTextHeading }}>
-        {t("tour.welcomeTitle")}
-      </Typography.Title>
-      <Typography.Text type="secondary" style={{ display: "block", marginBottom: 12, fontSize: 13 }}>
-        {t("tour.welcomeBrand")}
-      </Typography.Text>
-      <Typography.Paragraph style={{ marginBottom: 16, fontSize: 14, lineHeight: 1.55, color: token.colorText }}>
-        {isMobile ? t("tour.welcomeBodyMobile") : t("tour.welcomeBodyDesktop")}
-      </Typography.Paragraph>
-      <Flex gap={10} justify="flex-end" wrap="wrap">
-        <Button onClick={onSkip}>
-          {t("tour.skip")}
-        </Button>
-        <Button type="primary" onClick={onPrimary}>
-          {isMobile ? t("tour.gotIt") : t("tour.start")}
-        </Button>
-      </Flex>
-    </Modal>
+    <Dialog open={welcomeOpen}>
+      <DialogContent
+        hideClose
+        className="w-[min(420px,92vw)] gap-0 p-5 pb-4"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="gap-0.5">
+          <DialogTitle className="text-base font-semibold leading-snug">
+            {t("tour.welcomeTitle")}
+          </DialogTitle>
+          <DialogDescription className="text-[13px]">
+            {t("tour.welcomeBrand")}
+          </DialogDescription>
+        </DialogHeader>
+        <p className="mb-4 mt-3 text-sm leading-relaxed text-foreground">
+          {isMobile ? t("tour.welcomeBodyMobile") : t("tour.welcomeBodyDesktop")}
+        </p>
+        <div className="flex flex-wrap justify-end gap-2.5">
+          <Button variant="outline" onClick={onSkip}>
+            {t("tour.skip")}
+          </Button>
+          <Button onClick={onPrimary}>
+            {isMobile ? t("tour.gotIt") : t("tour.start")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

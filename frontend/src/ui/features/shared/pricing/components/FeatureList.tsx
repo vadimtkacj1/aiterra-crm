@@ -1,14 +1,12 @@
-import { CheckOutlined } from "@ant-design/icons";
-import { theme } from "antd";
+import { Check } from "lucide-react";
 
 export function FeatureList({ items }: { items: string[] }) {
-  const { token } = theme.useToken();
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+    <ul className="m-0 list-none p-0">
       {items.map((item) => (
-        <li key={item} style={{ padding: "4px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <li key={item} className="flex items-start gap-2 py-1">
           <span>{item}</span>
-          <CheckOutlined style={{ color: token.colorSuccess, marginTop: 3 }} />
+          <Check className="mt-[3px] size-4 shrink-0 text-success" aria-hidden="true" />
         </li>
       ))}
     </ul>

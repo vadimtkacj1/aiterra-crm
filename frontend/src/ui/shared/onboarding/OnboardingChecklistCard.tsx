@@ -1,8 +1,12 @@
-import { CloseOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
-import { Alert, Button, Card, Flex, Progress, Steps, Typography, theme } from "antd";
+import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import { accountPath, Paths } from "../../navigation/paths";
 import { onboardingAllDone, type OnboardingStored } from "./onboardingStorage";
 
@@ -24,7 +28,6 @@ type StepDef = {
 
 export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMeta, accountId }: Props) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
 
   const billingTo = accountId ? accountPath(accountId, "billing") : Paths.accounts;
   const metaTo = accountId ? accountPath(accountId, "meta") : Paths.accounts;
@@ -82,31 +85,34 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
     return (
       <Alert
         data-tour-target="quick-start-card"
-        type="info"
-        showIcon
-        style={{ marginBottom: 16, borderRadius: token.borderRadiusLG }}
+        variant="info"
+        className="mb-4 rounded-lg"
         title={
-          <Flex align="center" justify="space-between" gap={12} wrap="wrap">
-            <Flex align="center" gap={12} style={{ flex: 1, minWidth: 0 }}>
-              <Typography.Text strong style={{ whiteSpace: "nowrap" }}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <span className="whitespace-nowrap font-semibold">
                 {t("onboarding.collapsedTitle", { done: String(doneCount), total: String(total) })}
-              </Typography.Text>
-              <Progress percent={percent} size="small" style={{ flex: 1, minWidth: 120, maxWidth: 220 }} />
-            </Flex>
-            <Flex gap={8} wrap="wrap">
+              </span>
+              <div className="flex min-w-30 max-w-55 flex-1 items-center gap-2">
+                <Progress value={percent} className="h-1.5" />
+                <span className="text-xs tabular-nums text-muted-foreground">{percent}%</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               {firstOpen ? (
-                <Link to={firstOpen.to}>
-                  <Button type="primary" size="small">
-                    {t("onboarding.continueStep")}
-                  </Button>
-                </Link>
+                <Button asChild size="sm">
+                  <Link to={firstOpen.to}>{t("onboarding.continueStep")}</Link>
+                </Button>
               ) : null}
-              <Button type="link" size="small" icon={<UpOutlined />} onClick={toggleCollapsed}>
+              <Button variant="link" size="sm" onClick={toggleCollapsed}>
+                <ChevronUp aria-hidden="true" />
                 {t("onboarding.expand")}
               </Button>
-              <Button type="text" size="small" icon={<CloseOutlined />} aria-label={t("onboarding.dismiss")} onClick={dismiss} />
-            </Flex>
-          </Flex>
+              <Button variant="ghost" size="sm" aria-label={t("onboarding.dismiss")} onClick={dismiss}>
+                <X aria-hidden="true" />
+              </Button>
+            </div>
+          </div>
         }
       />
     );
@@ -114,116 +120,117 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
 
   const firstIncompleteIdx = stepsDef.findIndex((x) => !x.done);
 
-  const stepItems = stepsDef.map((s, i) => {
-    const active = i === firstIncompleteIdx && !s.done;
-    return {
-      title: (
-        <Flex align="center" gap={8} wrap="wrap">
-          {s.done ? (
-            <Typography.Text type="secondary" strong={false}>
-              {s.title}
-            </Typography.Text>
-          ) : (
-            <Link to={s.to} style={{ fontWeight: 600, color: active ? token.colorPrimary : undefined }}>
-              {s.title}
-            </Link>
-          )}
-        </Flex>
-      ),
-      description: (
-        <Typography.Paragraph type="secondary" style={{ marginBottom: 0, marginTop: 4, fontSize: 13, maxWidth: 520 }}>
-          {s.hint}
-        </Typography.Paragraph>
-      ),
-      status: (s.done ? "finish" : active ? "process" : "wait") as "wait" | "process" | "finish",
-    };
-  });
-
   return (
     <Card
       data-tour-target="quick-start-card"
-      size="small"
-      style={{
-        marginBottom: 20,
-        borderRadius: token.borderRadiusLG,
-        border: `1px solid ${token.colorBorderSecondary}`,
-        background: token.colorBgContainer,
-        boxShadow: "0 2px 8px rgba(15,23,42,0.06)",
-      }}
-      styles={{ body: { padding: "16px 18px 18px" } }}
-      title={
-        <Flex align="center" justify="space-between" gap={12} wrap="wrap" style={{ width: "100%" }}>
-          <div>
-            <Typography.Text strong style={{ fontSize: 15, display: "block" }}>
-              {t("onboarding.cardTitle")}
-            </Typography.Text>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {t("onboarding.cardSubtitle", { done: String(doneCount), total: String(total) })}
-            </Typography.Text>
-          </div>
-          <Flex gap={4}>
-            <Button type="text" size="small" icon={<DownOutlined />} aria-label={t("onboarding.minimize")} onClick={toggleCollapsed} />
-            <Button type="text" size="small" icon={<CloseOutlined />} aria-label={t("onboarding.dismiss")} onClick={dismiss} />
-          </Flex>
-        </Flex>
-      }
+      className="mb-5 rounded-xl border-border bg-card shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
     >
-      <Typography.Paragraph style={{ marginBottom: 14, fontSize: 13, lineHeight: 1.55, color: token.colorTextSecondary }}>
-        {t("onboarding.cardIntro")}
-      </Typography.Paragraph>
-      {!hasMeta ? (
-        <Typography.Paragraph
-          type="secondary"
-          style={{
-            marginTop: -6,
-            marginBottom: 14,
-            fontSize: 12,
-            lineHeight: 1.55,
-            padding: "10px 12px",
-            borderRadius: token.borderRadius,
-            background: token.colorFillAlter,
-            border: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
-          {accountId ? t("onboarding.metaSkippedAccount") : t("onboarding.metaSkippedGlobal")}
-        </Typography.Paragraph>
-      ) : null}
-
-      <Progress percent={percent} status={percent === 100 ? "success" : "active"} style={{ marginBottom: 16 }} />
-
-      <div style={{ marginBottom: 14 }}>
-        <Typography.Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>
-          {t("onboarding.legend")}
-        </Typography.Text>
-        <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.6 }}>
-          {[
-            t("onboarding.legendBusiness"),
-            t("onboarding.legendBilling"),
-            ...(hasMeta ? [t("onboarding.legendMeta")] : []),
-            t("onboarding.legendSettings"),
-            t("onboarding.legendBell"),
-          ].join(" · ")}
-        </Typography.Text>
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4.5 py-3">
+        <div>
+          <span className="block text-[15px] font-semibold">{t("onboarding.cardTitle")}</span>
+          <span className="text-xs text-muted-foreground">
+            {t("onboarding.cardSubtitle", { done: String(doneCount), total: String(total) })}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" aria-label={t("onboarding.minimize")} onClick={toggleCollapsed}>
+            <ChevronDown aria-hidden="true" />
+          </Button>
+          <Button variant="ghost" size="sm" aria-label={t("onboarding.dismiss")} onClick={dismiss}>
+            <X aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
-      <Steps direction="vertical" size="small" items={stepItems} />
+      <div className="px-4.5 pb-4.5 pt-4">
+        <p className="mb-3.5 text-[13px] leading-relaxed text-muted-foreground">
+          {t("onboarding.cardIntro")}
+        </p>
+        {!hasMeta ? (
+          <p className="-mt-1.5 mb-3.5 rounded-md border border-border bg-muted px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+            {accountId ? t("onboarding.metaSkippedAccount") : t("onboarding.metaSkippedGlobal")}
+          </p>
+        ) : null}
 
-      <Flex justify="space-between" align="center" wrap="wrap" gap={12} style={{ marginTop: 16 }}>
-        {firstOpen ? (
-          <Link to={firstOpen.to}>
-            <Button type="primary">{t("onboarding.ctaContinue")}</Button>
-          </Link>
-        ) : (
-          <Typography.Text type="success" strong>
-            {t("onboarding.allDone")}
-          </Typography.Text>
-        )}
-        <Flex gap={8} wrap="wrap" justify="flex-end" style={{ marginInlineStart: "auto" }}>
-          <Link to={Paths.help}>
-            <Button type="default">{t("onboarding.openHelpFull")}</Button>
-          </Link>
-        </Flex>
-      </Flex>
+        <div className="mb-4 flex items-center gap-2">
+          <Progress
+            value={percent}
+            className={cn("h-2", percent === 100 && "**:data-[slot=progress-indicator]:bg-success")}
+          />
+          <span className="text-xs tabular-nums text-muted-foreground">{percent}%</span>
+        </div>
+
+        <div className="mb-3.5">
+          <span className="mb-1.5 block text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+            {t("onboarding.legend")}
+          </span>
+          <span className="text-xs leading-relaxed text-muted-foreground">
+            {[
+              t("onboarding.legendBusiness"),
+              t("onboarding.legendBilling"),
+              ...(hasMeta ? [t("onboarding.legendMeta")] : []),
+              t("onboarding.legendSettings"),
+              t("onboarding.legendBell"),
+            ].join(" · ")}
+          </span>
+        </div>
+
+        {/* Vertical steps */}
+        <ol className="m-0 list-none space-y-4 p-0">
+          {stepsDef.map((s, i) => {
+            const active = i === firstIncompleteIdx && !s.done;
+            return (
+              <li key={s.key} className="flex items-start gap-3">
+                <span
+                  className={cn(
+                    "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium tabular-nums",
+                    s.done
+                      ? "border-success/40 bg-(--ds-color-success-surface) text-success"
+                      : active
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-muted text-muted-foreground",
+                  )}
+                  aria-hidden="true"
+                >
+                  {s.done ? <Check className="size-3.5" /> : i + 1}
+                </span>
+                <div className="min-w-0">
+                  {s.done ? (
+                    <span className="text-sm text-muted-foreground">{s.title}</span>
+                  ) : (
+                    <Link
+                      to={s.to}
+                      className={cn(
+                        "text-sm font-semibold hover:underline",
+                        active ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {s.title}
+                    </Link>
+                  )}
+                  <p className="mb-0 mt-1 max-w-130 text-[13px] text-muted-foreground">{s.hint}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          {firstOpen ? (
+            <Button asChild>
+              <Link to={firstOpen.to}>{t("onboarding.ctaContinue")}</Link>
+            </Button>
+          ) : (
+            <span className="font-semibold text-success">{t("onboarding.allDone")}</span>
+          )}
+          <div className="ms-auto flex flex-wrap justify-end gap-2">
+            <Button asChild variant="outline">
+              <Link to={Paths.help}>{t("onboarding.openHelpFull")}</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

@@ -1,32 +1,38 @@
-import {
-  CopyOutlined,
-  GlobalOutlined,
-  MailOutlined,
-  ReloadOutlined,
-  SaveOutlined,
-  WhatsAppOutlined,
-} from "@ant-design/icons";
-import { App, Button, Card, Col, Flex, Input, Radio, Row, Tooltip, Typography } from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Copy, Globe, Mail, RefreshCw, Save } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useApp } from "../../../../../app/AppProviders";
 import type { SiteConfig, SiteLead } from "../../../../../domain/Site";
-import { AppTable } from "../../../../shared/components/AppTable";
+import { WhatsAppIcon } from "@/components/icons/brand";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { message } from "@/lib/toast";
 import { EmptyState } from "../../../../shared/components/EmptyState";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
 
-const { Text, Link } = Typography;
+function CardBodySkeleton() {
+  return (
+    <div className="space-y-3">
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-4 w-1/2" />
+      <Skeleton className="h-4 w-2/3" />
+    </div>
+  );
+}
 
 export function SitePage() {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message } = App.useApp();
   const { accountId } = useParams<{ accountId: string }>();
-  const messageRef = useRef(message);
-  messageRef.current = message;
 
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
@@ -55,7 +61,7 @@ export function SitePage() {
       setEmailSubject(data.emailNotifySubject ?? "");
       setEmailMessage(data.emailNotifyMessage ?? "");
     } catch {
-      messageRef.current.error(t("site.loadError"));
+      message.error(t("site.loadError"));
     } finally {
       setConfigLoading(false);
     }
@@ -67,7 +73,7 @@ export function SitePage() {
       const data = await services.site.listLeads(accountId ?? "0");
       setLeads(data);
     } catch {
-      messageRef.current.error(t("site.leads.loadError"));
+      message.error(t("site.leads.loadError"));
     } finally {
       setLeadsLoading(false);
     }
@@ -88,9 +94,9 @@ export function SitePage() {
         emailNotifyMessage: emailMessage || null,
       });
       setConfig(updated);
-      void messageRef.current.success(t("site.notify.saved"));
+      message.success(t("site.notify.saved"));
     } catch {
-      void messageRef.current.error(t("site.saveError"));
+      message.error(t("site.saveError"));
     } finally {
       setWaSaving(false);
     }
@@ -102,69 +108,80 @@ export function SitePage() {
 
   function copyToClipboard(text: string) {
     void navigator.clipboard.writeText(text).then(() => {
-      void messageRef.current.success(t("site.subscribe.copied"));
+      message.success(t("site.subscribe.copied"));
     });
   }
 
-  const leadsColumns: ColumnsType<SiteLead> = [
+  const leadsColumns: DataTableColumn<SiteLead>[] = [
     {
       title: t("site.leads.colName"),
       dataIndex: "name",
       key: "name",
-      ellipsis: true,
       width: 150,
+      onCell: () => ({ style: { maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }),
     },
     {
       title: t("site.leads.colPhone"),
       dataIndex: "phone",
       key: "phone",
-      render: (v: string | null) => v ?? "—",
+      render: (v) => (v as string | null) ?? "—",
       width: 130,
     },
     {
       title: t("site.leads.colEmail"),
       dataIndex: "email",
       key: "email",
-      render: (v: string | null) => v ?? "—",
-      ellipsis: true,
+      render: (v) => (v as string | null) ?? "—",
       width: 180,
+      onCell: () => ({ style: { maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }),
     },
     {
       title: t("site.leads.colMessage"),
       dataIndex: "message",
       key: "message",
-      render: (v: string | null) => v ?? "—",
-      ellipsis: true,
+      render: (v) => (v as string | null) ?? "—",
+      onCell: () => ({ style: { maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }),
     },
     {
       title: t("site.leads.colTreatment"),
       dataIndex: "treatment",
       key: "treatment",
       width: 160,
-      render: (v: string | null) => v ?? "—",
+      render: (v) => (v as string | null) ?? "—",
     },
     {
       title: t("site.leads.colSource"),
       dataIndex: "source",
       key: "source",
-      ellipsis: true,
-      render: (v: string | null) =>
-        v ? (
-          <Tooltip title={v}>
-            <Link href={v} target="_blank" ellipsis style={{ maxWidth: 200 }}>
-              {v}
-            </Link>
-          </Tooltip>
+      width: 200,
+      render: (v) => {
+        const src = v as string | null;
+        return src ? (
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block max-w-[200px] truncate text-primary hover:underline"
+                >
+                  {src}
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>{src}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ) : (
           "—"
-        ),
-      width: 200,
+        );
+      },
     },
     {
       title: t("site.leads.colDate"),
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (v: string) => new Date(v).toLocaleString(),
+      render: (v) => <span className="tabular-nums">{new Date(v as string).toLocaleString()}</span>,
       width: 155,
     },
   ];
@@ -173,265 +190,295 @@ export function SitePage() {
     <UserContentLayout maxWidth={960} align="start">
       <PageHeader title={t("site.title")} subtitle={t("site.subtitle")} />
 
-      <Row gutter={[0, 24]} style={{ width: "100%" }}>
+      <div className="grid w-full gap-6">
         {/* Subscription link */}
-        <Col span={24}>
-          <Card title={t("site.subscribe.title")} loading={configLoading}>
-            <Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
-              {t("site.subscribe.hint")}
-            </Text>
-            {subscribeUrl ? (
-              <Flex wrap gap={8} align="center">
-                <span
-                  dir="ltr"
-                  style={{
-                    fontFamily: "var(--ds-font-family-mono)",
-                    fontSize: 13,
-                    padding: "5px 12px",
-                    background: "var(--ds-surface-1)",
-                    border: "1px solid var(--ds-border-subtle)",
-                    borderRadius: 8,
-                    maxWidth: 500,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: "inline-block",
-                    color: "var(--ds-text-secondary)",
-                  }}
-                >
-                  {subscribeUrl}
-                </span>
-                <Button
-                  size="small"
-                  icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(subscribeUrl)}
-                >
-                  {t("site.subscribe.copy")}
-                </Button>
-                <Button
-                  size="small"
-                  icon={<GlobalOutlined />}
-                  href={subscribeUrl}
-                  target="_blank"
-                >
-                  {t("site.subscribe.open")}
-                </Button>
-              </Flex>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("site.subscribe.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {configLoading ? (
+              <CardBodySkeleton />
             ) : (
-              <Text type="secondary">—</Text>
+              <>
+                <p className="mb-3 text-sm text-muted-foreground">{t("site.subscribe.hint")}</p>
+                {subscribeUrl ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      dir="ltr"
+                      className="inline-block max-w-[500px] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border px-3 py-1"
+                      style={{
+                        fontFamily: "var(--ds-font-family-mono)",
+                        fontSize: 13,
+                        background: "var(--ds-surface-1)",
+                        borderColor: "var(--ds-border-subtle)",
+                        color: "var(--ds-text-secondary)",
+                      }}
+                    >
+                      {subscribeUrl}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(subscribeUrl)}>
+                      <Copy />
+                      {t("site.subscribe.copy")}
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={subscribeUrl} target="_blank" rel="noreferrer">
+                        <Globe />
+                        {t("site.subscribe.open")}
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </>
             )}
-          </Card>
-        </Col>
+          </CardContent>
+        </Card>
 
         {/* Notification config */}
-        <Col span={24}>
-          <Card title={t("site.notify.title")} loading={configLoading}>
-            <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
-              {t("site.notify.hint")}
-            </Text>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("site.notify.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {configLoading ? (
+              <CardBodySkeleton />
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-muted-foreground">{t("site.notify.hint")}</p>
 
-            {/* Channel selector */}
-            <div style={{ marginBottom: 20 }}>
-              <Text strong style={{ display: "block", marginBottom: 8 }}>
-                {t("site.notify.channelLabel")}
-              </Text>
-              <Radio.Group value={notifyChannel} onChange={(e) => setNotifyChannel(e.target.value as string)}>
-                <Radio value="whatsapp">
-                  <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 4 }} />
-                  WhatsApp
-                </Radio>
-                <Radio value="email">
-                  <MailOutlined style={{ marginInlineEnd: 4 }} />
-                  {t("site.notify.channelEmail")}
-                </Radio>
-                <Radio value="both">{t("site.notify.channelBoth")}</Radio>
-                <Radio value="none">{t("site.notify.channelNone")}</Radio>
-              </Radio.Group>
-            </div>
+                {/* Channel selector */}
+                <div className="mb-5">
+                  <span className="mb-2 block text-sm font-semibold">{t("site.notify.channelLabel")}</span>
+                  <RadioGroup
+                    value={notifyChannel}
+                    onValueChange={(v) => setNotifyChannel(v)}
+                    className="flex flex-wrap items-center gap-x-6 gap-y-2"
+                  >
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <RadioGroupItem value="whatsapp" />
+                      <WhatsAppIcon className="text-[#25d366]" />
+                      WhatsApp
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <RadioGroupItem value="email" />
+                      <Mail className="size-4" />
+                      {t("site.notify.channelEmail")}
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <RadioGroupItem value="both" />
+                      {t("site.notify.channelBoth")}
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <RadioGroupItem value="none" />
+                      {t("site.notify.channelNone")}
+                    </label>
+                  </RadioGroup>
+                </div>
 
-            {/* WhatsApp message template */}
-            {(notifyChannel === "whatsapp" || notifyChannel === "both") && (
-              <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-                <Col xs={24}>
-                  <Text strong style={{ display: "block", marginBottom: 8 }}>
-                    <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 6 }} />
-                    {t("site.whatsapp.title")}
-                  </Text>
-                </Col>
-                <Col xs={24}>
-                  {(config?.waOwnerPhoneVerified || config?.waOwnerPhone) ? (
-                    /* ── Connected state ── */
-                    <Flex align="center" gap={12} wrap="wrap">
-                      <WhatsAppOutlined style={{ color: "var(--ds-color-success)", fontSize: 20 }} />
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <Text strong>{t("site.whatsapp.connected")}</Text>
-                        <Text
-                          type="secondary"
-                          style={{ display: "block", fontSize: 12, fontVariantNumeric: "tabular-nums", direction: "ltr", unicodeBidi: "isolate", textAlign: "start" }}
-                        >
-                          {config.waOwnerPhoneVerified ?? config.waOwnerPhone}
-                        </Text>
-                      </div>
-                      <Button
-                        size="small"
-                        loading={waConnecting}
-                        icon={<ReloadOutlined />}
-                        onClick={async () => {
-                          setWaConnecting(true);
-                          try {
-                            const status = await services.site.waConnectStatus(accountId ?? "0");
-                            if (status.verified) await loadConfig();
-                          } finally {
-                            setWaConnecting(false);
-                          }
-                        }}
-                      >
-                        {t("site.whatsapp.refresh")}
-                      </Button>
-                    </Flex>
-                  ) : (
-                    /* ── Not connected — show permanent code ── */
-                    <div>
-                      <Text strong style={{ display: "block", marginBottom: 6 }}>
-                        {t("site.whatsapp.connectInstructions")}
-                      </Text>
-                      {waConnectBotPhone && (
-                        <div style={{ marginBottom: 6 }}>
-                          <Text type="secondary">{t("site.whatsapp.connectSendTo")} </Text>
-                          <Text strong copyable style={{ fontVariantNumeric: "tabular-nums", direction: "ltr", unicodeBidi: "isolate", display: "inline-block" }}>
-                            {waConnectBotPhone}
-                          </Text>
+                {/* WhatsApp message template */}
+                {(notifyChannel === "whatsapp" || notifyChannel === "both") && (
+                  <div className="mb-4 grid gap-4">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold">
+                      <WhatsAppIcon className="text-[#25d366]" />
+                      {t("site.whatsapp.title")}
+                    </span>
+                    {config?.waOwnerPhoneVerified || config?.waOwnerPhone ? (
+                      /* ── Connected state ── */
+                      <div className="flex flex-wrap items-center gap-3">
+                        <WhatsAppIcon className="size-5" style={{ color: "var(--ds-color-success)" }} />
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-sm font-semibold">{t("site.whatsapp.connected")}</span>
+                          <span
+                            className="block text-xs tabular-nums text-muted-foreground"
+                            style={{ direction: "ltr", unicodeBidi: "isolate", textAlign: "start" }}
+                          >
+                            {config.waOwnerPhoneVerified ?? config.waOwnerPhone}
+                          </span>
                         </div>
-                      )}
-                      <div style={{ marginBottom: 12 }}>
-                        <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>{t("site.whatsapp.connectSendMessage")}</Text>
-                        <Text
-                          strong
-                          copyable
-                          style={{ fontSize: 22, letterSpacing: 3, fontFamily: "var(--ds-font-family-mono)", color: "var(--ds-color-primary)" }}
-                        >
-                          {waConnectCode || "…"}
-                        </Text>
-                      </div>
-                      <Button
-                        type="primary"
-                        loading={waConnecting}
-                        icon={<ReloadOutlined />}
-                        onClick={async () => {
-                          setWaConnecting(true);
-                          try {
-                            const status = await services.site.waConnectStatus(accountId ?? "0");
-                            if (status.verified && status.phone) {
-                              await loadConfig();
-                              void messageRef.current.success(t("site.whatsapp.connectSuccess"));
-                            } else {
-                              void messageRef.current.info(t("site.whatsapp.connectNotYet"));
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={waConnecting}
+                          onClick={async () => {
+                            setWaConnecting(true);
+                            try {
+                              const status = await services.site.waConnectStatus(accountId ?? "0");
+                              if (status.verified) await loadConfig();
+                            } finally {
+                              setWaConnecting(false);
                             }
-                          } finally {
-                            setWaConnecting(false);
-                          }
-                        }}
-                      >
-                        {t("site.whatsapp.connectCheck")}
-                      </Button>
+                          }}
+                        >
+                          {waConnecting ? <Spinner size="sm" className="text-current" /> : <RefreshCw />}
+                          {t("site.whatsapp.refresh")}
+                        </Button>
+                      </div>
+                    ) : (
+                      /* ── Not connected — show permanent code ── */
+                      <div>
+                        <span className="mb-1.5 block text-sm font-semibold">
+                          {t("site.whatsapp.connectInstructions")}
+                        </span>
+                        {waConnectBotPhone && (
+                          <div className="mb-1.5 flex items-center gap-1.5">
+                            <span className="text-sm text-muted-foreground">
+                              {t("site.whatsapp.connectSendTo")}{" "}
+                            </span>
+                            <span
+                              className="inline-block text-sm font-semibold tabular-nums"
+                              style={{ direction: "ltr", unicodeBidi: "isolate" }}
+                            >
+                              {waConnectBotPhone}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-6"
+                              aria-label={t("site.subscribe.copy")}
+                              onClick={() => copyToClipboard(waConnectBotPhone)}
+                            >
+                              <Copy className="size-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                        <div className="mb-3">
+                          <span className="mb-1 block text-sm text-muted-foreground">
+                            {t("site.whatsapp.connectSendMessage")}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="font-semibold"
+                              style={{
+                                fontSize: 22,
+                                letterSpacing: 3,
+                                fontFamily: "var(--ds-font-family-mono)",
+                                color: "var(--ds-color-primary)",
+                              }}
+                            >
+                              {waConnectCode || "…"}
+                            </span>
+                            {waConnectCode && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-6"
+                                aria-label={t("site.subscribe.copy")}
+                                onClick={() => copyToClipboard(waConnectCode)}
+                              >
+                                <Copy className="size-3.5" />
+                              </Button>
+                            )}
+                          </span>
+                        </div>
+                        <Button
+                          disabled={waConnecting}
+                          onClick={async () => {
+                            setWaConnecting(true);
+                            try {
+                              const status = await services.site.waConnectStatus(accountId ?? "0");
+                              if (status.verified && status.phone) {
+                                await loadConfig();
+                                message.success(t("site.whatsapp.connectSuccess"));
+                              } else {
+                                message.info(t("site.whatsapp.connectNotYet"));
+                              }
+                            } finally {
+                              setWaConnecting(false);
+                            }
+                          }}
+                        >
+                          {waConnecting ? <Spinner size="sm" className="text-current" /> : <RefreshCw />}
+                          {t("site.whatsapp.connectCheck")}
+                        </Button>
+                      </div>
+                    )}
+                    <div>
+                      <span className="mb-1 block text-sm text-muted-foreground">
+                        {t("site.whatsapp.message")}
+                      </span>
+                      <Textarea
+                        value={waNotifyMessage}
+                        onChange={(e) => setWaNotifyMessage(e.target.value)}
+                        placeholder={t("site.whatsapp.messagePlaceholder")}
+                        rows={2}
+                        className="min-h-0"
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">{t("site.whatsapp.messageHint")}</p>
                     </div>
-                  )}
-                </Col>
-                <Col xs={24}>
-                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                    {t("site.whatsapp.message")}
-                  </Text>
-                  <Input.TextArea
-                    value={waNotifyMessage}
-                    onChange={(e) => setWaNotifyMessage(e.target.value)}
-                    placeholder={t("site.whatsapp.messagePlaceholder")}
-                    rows={2}
-                  />
-                  <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: "block" }}>
-                    {t("site.whatsapp.messageHint")}
-                  </Text>
-                </Col>
-              </Row>
-            )}
+                  </div>
+                )}
 
-            {/* Email fields */}
-            {(notifyChannel === "email" || notifyChannel === "both") && (
-              <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-                <Col xs={24}>
-                  <Text strong style={{ display: "block", marginBottom: 8 }}>
-                    <MailOutlined style={{ marginInlineEnd: 6 }} />
-                    {t("site.email.title")}
-                  </Text>
-                </Col>
-                <Col xs={24}>
-                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                    {t("site.email.subject")}
-                  </Text>
-                  <Input
-                    value={emailSubject}
-                    onChange={(e) => setEmailSubject(e.target.value)}
-                    placeholder={t("site.email.subjectPlaceholder")}
-                  />
-                </Col>
-                <Col xs={24}>
-                  <Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                    {t("site.email.message")}
-                  </Text>
-                  <Input.TextArea
-                    value={emailMessage}
-                    onChange={(e) => setEmailMessage(e.target.value)}
-                    placeholder={t("site.email.messagePlaceholder")}
-                    rows={2}
-                  />
-                  <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: "block" }}>
-                    {t("site.email.messageHint")}
-                  </Text>
-                </Col>
-              </Row>
-            )}
+                {/* Email fields */}
+                {(notifyChannel === "email" || notifyChannel === "both") && (
+                  <div className="mb-4 grid gap-4">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold">
+                      <Mail className="size-4" />
+                      {t("site.email.title")}
+                    </span>
+                    <div>
+                      <span className="mb-1 block text-sm text-muted-foreground">{t("site.email.subject")}</span>
+                      <Input
+                        value={emailSubject}
+                        onChange={(e) => setEmailSubject(e.target.value)}
+                        placeholder={t("site.email.subjectPlaceholder")}
+                      />
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-sm text-muted-foreground">{t("site.email.message")}</span>
+                      <Textarea
+                        value={emailMessage}
+                        onChange={(e) => setEmailMessage(e.target.value)}
+                        placeholder={t("site.email.messagePlaceholder")}
+                        rows={2}
+                        className="min-h-0"
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">{t("site.email.messageHint")}</p>
+                    </div>
+                  </div>
+                )}
 
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              loading={waSaving}
-              onClick={() => void saveNotifyConfig()}
-            >
-              {t("site.notify.save")}
-            </Button>
-          </Card>
-        </Col>
+                <Button disabled={waSaving} onClick={() => void saveNotifyConfig()}>
+                  {waSaving ? <Spinner size="sm" className="text-current" /> : <Save />}
+                  {t("site.notify.save")}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Leads table */}
-        <Col span={24}>
-          <Card
-            title={
-              <>
-                {t("site.leads.title")}
-                <Text type="secondary" style={{ fontWeight: 400, marginInlineStart: 8, fontVariantNumeric: "tabular-nums" }}>
-                  ({leads.length})
-                </Text>
-              </>
-            }
-            extra={
-              <Button
-                icon={<ReloadOutlined />}
-                size="small"
-                loading={leadsLoading}
-                onClick={() => void loadLeads()}
-              >
-                {t("site.leads.refresh")}
-              </Button>
-            }
-          >
-            <AppTable<SiteLead>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between space-y-0">
+            <CardTitle>
+              {t("site.leads.title")}
+              <span className="ms-2 font-normal tabular-nums text-muted-foreground">({leads.length})</span>
+            </CardTitle>
+            <Button variant="outline" size="sm" disabled={leadsLoading} onClick={() => void loadLeads()}>
+              {leadsLoading ? <Spinner size="sm" className="text-current" /> : <RefreshCw />}
+              {t("site.leads.refresh")}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <DataTable<SiteLead>
               loading={leadsLoading}
               dataSource={leads}
               columns={leadsColumns}
-              locale={{ emptyText: <EmptyState description={t("site.leads.empty")} style={{ padding: "24px 0" }} /> }}
+              rowKey="id"
+              size="small"
+              scroll={{ x: "max-content" }}
+              pagination={{
+                pageSize: 10,
+                showTotal: (total, range) => `${range[0]}-${range[1]} / ${total}`,
+              }}
+              locale={{
+                emptyText: <EmptyState description={t("site.leads.empty")} style={{ padding: "24px 0" }} />,
+              }}
             />
-          </Card>
-        </Col>
-      </Row>
+          </CardContent>
+        </Card>
+      </div>
     </UserContentLayout>
   );
 }

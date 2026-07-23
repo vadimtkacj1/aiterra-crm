@@ -1,11 +1,16 @@
-﻿import { CheckCircleOutlined, DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Flex, Modal, Space, Table, Tag, Typography } from "antd";
+import { CircleCheck, Download } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PaymentRecord } from "@/domain/Billing";
 import type { BillingOverview } from "@/services/billing/IBillingService";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
-import { billingShell, formatInvoiceMoney } from "./billingUtils";
+import { formatInvoiceMoney } from "./billingUtils";
+import { AppModal } from "@/ui/shared/components/AppModal";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 
@@ -26,23 +31,16 @@ function InvoicePaymentStatusTag({ status }: { status: PaymentRecord["status"] }
         : t("billing.statusFailed");
   if (status === "succeeded") {
     return (
-      <Tag icon={<CheckCircleOutlined />} color="success" style={{ marginInlineEnd: 0 }}>
+      <Badge variant="success">
+        <CircleCheck aria-hidden="true" />
         {label}
-      </Tag>
+      </Badge>
     );
   }
   if (status === "pending") {
-    return (
-      <Tag color="warning" style={{ marginInlineEnd: 0 }}>
-        {label}
-      </Tag>
-    );
+    return <Badge variant="warning">{label}</Badge>;
   }
-  return (
-    <Tag color="error" style={{ marginInlineEnd: 0 }}>
-      {label}
-    </Tag>
-  );
+  return <Badge variant="error">{label}</Badge>;
 }
 
 export function PaymentsSection({ overview, loading, appLocale, accountId }: Props) {
@@ -66,145 +64,130 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
     [accountId],
   );
 
+  const columns: DataTableColumn<BillingOverview["payments"][number]>[] = [
+    {
+      title: t("billing.date"),
+      dataIndex: "date",
+      key: "date",
+      width: 108,
+      render: (v) => <span className="tabular-nums">{v as string}</span>,
+    },
+    {
+      title: t("billing.invoiceNumberShort"),
+      dataIndex: "id",
+      key: "id",
+      width: 132,
+      render: (id) => (
+        <span className="block max-w-30 truncate font-semibold tabular-nums">{id as string}</span>
+      ),
+    },
+    {
+      title: t("billing.total"),
+      key: "amount",
+      width: 100,
+      render: (_, r) => (
+        <span className="tabular-nums">{formatInvoiceMoney(r.amount, r.currency, appLocale)}</span>
+      ),
+    },
+    {
+      title: t("billing.status"),
+      dataIndex: "status",
+      key: "status",
+      width: 120,
+      render: (s) => <InvoicePaymentStatusTag status={s as PaymentRecord["status"]} />,
+    },
+    {
+      title: t("billing.actions"),
+      key: "actions",
+      width: 200,
+      render: (_, r) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" className="rounded-lg" onClick={() => downloadPaymentPdf(r)}>
+            <Download aria-hidden="true" />
+            PDF
+          </Button>
+          <Button
+            variant="link"
+            className="h-auto p-0 font-medium"
+            onClick={() => setActiveInvoice(r)}
+          >
+            {t("billing.view")}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
-      <Card
-        title={t("billing.invoices")}
-        loading={loading}
-        size="small"
-        variant="borderless"
-        styles={{
-          header: { borderBottom: `1px solid ${billingShell.borderInner}` },
-          body: { padding: 0 },
-        }}
-        style={{
-          borderRadius: billingShell.radiusMd,
-          boxShadow: billingShell.shadow,
-          border: `1px solid ${billingShell.borderInner}`,
-        }}
-      >
-            {isMobile ? (
-              <ResponsiveCardView
-                items={(overview?.payments ?? []).map((r) => ({
-                  id: r.id,
-                  title: `#${r.id}`,
-                  subtitle: r.date,
-                  description: r.description,
-                  tags: [
-                    {
-                      label: r.status === "succeeded" ? t("billing.statusSucceeded") : r.status === "pending" ? t("billing.statusPending") : t("billing.statusFailed"),
-                      color: r.status === "succeeded" ? "success" : r.status === "pending" ? "warning" : "error",
-                    },
-                  ],
-                  extra: (
-                    <Typography.Text strong style={{ fontSize: 14 }}>
-                      {formatInvoiceMoney(r.amount, r.currency, appLocale)}
-                    </Typography.Text>
-                  ),
-                  actions: [
-                    {
-                      label: "PDF",
-                      onClick: () => downloadPaymentPdf(r),
-                      icon: <DownloadOutlined />,
-                      type: "primary" as const,
-                    },
-                    {
-                      label: t("billing.view"),
-                      onClick: () => setActiveInvoice(r),
-                      type: "link" as const,
-                    },
-                  ],
-                }))}
-                loading={loading}
-                emptyText={t("billing.emptyPayments")}
-              />
-            ) : (
-              <Table
-                size="middle"
-                rowKey="id"
-                scroll={{ x: 500 }}
-                pagination={{ pageSize: 5 }}
-                dataSource={overview?.payments ?? []}
-                locale={{ emptyText: <EmptyState title={t("billing.emptyPayments")} style={{ padding: "24px 16px" }} /> }}
-                columns={[
+      <Card className="rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
+        <div className="border-b border-(--ds-border-subtle) px-4 py-3">
+          <span className="text-[15px] font-semibold">{t("billing.invoices")}</span>
+        </div>
+        {loading && !isMobile ? (
+          <div className="space-y-3 p-4">
+            <Skeleton className="h-4 w-2/5" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="h-4 w-3/5" />
+          </div>
+        ) : isMobile ? (
+          <div className="p-3">
+            <ResponsiveCardView
+              items={(overview?.payments ?? []).map((r) => ({
+                id: r.id,
+                title: `#${r.id}`,
+                subtitle: r.date,
+                description: r.description,
+                tags: [
                   {
-                    title: t("billing.date"),
-                    dataIndex: "date",
-                    key: "date",
-                    width: 108,
-                    render: (v: string) => <span style={{ fontVariantNumeric: "tabular-nums" }}>{v}</span>,
+                    label: r.status === "succeeded" ? t("billing.statusSucceeded") : r.status === "pending" ? t("billing.statusPending") : t("billing.statusFailed"),
+                    color: r.status === "succeeded" ? "success" : r.status === "pending" ? "warning" : "error",
+                  },
+                ],
+                extra: (
+                  <span className="text-sm font-semibold tabular-nums">
+                    {formatInvoiceMoney(r.amount, r.currency, appLocale)}
+                  </span>
+                ),
+                actions: [
+                  {
+                    label: "PDF",
+                    onClick: () => downloadPaymentPdf(r),
+                    icon: <Download aria-hidden="true" />,
+                    type: "primary" as const,
                   },
                   {
-                    title: t("billing.invoiceNumberShort"),
-                    dataIndex: "id",
-                    key: "id",
-                    width: 132,
-                    ellipsis: true,
-                    render: (id: string) => (
-                      <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
-                        {id}
-                      </Typography.Text>
-                    ),
+                    label: t("billing.view"),
+                    onClick: () => setActiveInvoice(r),
+                    type: "link" as const,
                   },
-                  {
-                    title: t("billing.total"),
-                    key: "amount",
-                    width: 100,
-                    render: (_, r) => (
-                      <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                        {formatInvoiceMoney(r.amount, r.currency, appLocale)}
-                      </span>
-                    ),
-                  },
-                  {
-                    title: t("billing.status"),
-                    dataIndex: "status",
-                    key: "status",
-                    width: 120,
-                    render: (s: PaymentRecord["status"]) => <InvoicePaymentStatusTag status={s} />,
-                  },
-                  {
-                    title: t("billing.actions"),
-                    key: "actions",
-                    width: 200,
-                    render: (_, r) => (
-                      <Space size={8} wrap>
-                        <Button
-                          type="primary"
-                          size="small"
-                          icon={<DownloadOutlined />}
-                          onClick={() => downloadPaymentPdf(r)}
-                          style={{ borderRadius: 8 }}
-                        >
-                          PDF
-                        </Button>
-                        <Button
-                          type="link"
-                          onClick={() => setActiveInvoice(r)}
-                          style={{ padding: 0, height: "auto", fontWeight: 500 }}
-                        >
-                          {t("billing.view")}
-                        </Button>
-                      </Space>
-                    ),
-                  },
-                ]}
-              />
-            )}
+                ],
+              }))}
+              loading={loading}
+              emptyText={t("billing.emptyPayments")}
+            />
+          </div>
+        ) : (
+          <DataTable<BillingOverview["payments"][number]>
+            rowKey="id"
+            scroll={{ x: 500 }}
+            pagination={{ pageSize: 5 }}
+            dataSource={overview?.payments ?? []}
+            locale={{ emptyText: <EmptyState title={t("billing.emptyPayments")} style={{ padding: "24px 16px" }} /> }}
+            columns={columns}
+          />
+        )}
       </Card>
 
-      <Modal
+      <AppModal
         title={t("billing.invoiceDetailsTitle")}
         open={Boolean(activeInvoice)}
         onCancel={() => setActiveInvoice(null)}
         footer={
           activeInvoice ? (
-            <Button
-              type="primary"
-              icon={<DownloadOutlined />}
-              onClick={() => downloadPaymentPdf(activeInvoice)}
-              style={{ borderRadius: 8 }}
-            >
+            <Button className="rounded-lg" onClick={() => downloadPaymentPdf(activeInvoice)}>
+              <Download aria-hidden="true" />
               {t("billing.downloadPdf")}
             </Button>
           ) : null
@@ -213,14 +196,14 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
       >
         {activeInvoice ? (
           <>
-            <Flex align="flex-start" style={{ marginBottom: 16 }}>
+            <div className="mb-4 flex items-start">
               <div>
-                <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 6 }}>
+                <span className="mb-1.5 block text-xs text-muted-foreground">
                   {t("billing.status")}
-                </Typography.Text>
+                </span>
                 <InvoicePaymentStatusTag status={activeInvoice.status} />
               </div>
-            </Flex>
+            </div>
             <div>
               {(
                 [
@@ -229,7 +212,7 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
                     key: "total",
                     label: t("billing.total"),
                     value: (
-                      <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                      <span className="tabular-nums">
                         {formatInvoiceMoney(activeInvoice.amount, activeInvoice.currency, appLocale)}
                       </span>
                     ),
@@ -238,29 +221,27 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
                   {
                     key: "invoiceId",
                     label: t("billing.invoiceId"),
-                    value: <Typography.Text strong>{activeInvoice.id}</Typography.Text>,
+                    value: <span className="font-semibold">{activeInvoice.id}</span>,
                   },
                 ] as const
               ).map((row, index) => (
-                <Flex
+                <div
                   key={row.key}
-                  justify="space-between"
-                  align="baseline"
-                  gap={16}
+                  className="flex items-baseline justify-between gap-4"
                   style={
                     index === 0
                       ? undefined
                       : { borderTop: "1px solid var(--ds-border-subtle)", paddingTop: 12, marginTop: 12 }
                   }
                 >
-                  <Typography.Text type="secondary">{row.label}</Typography.Text>
-                  <Typography.Text style={{ textAlign: "end" }}>{row.value}</Typography.Text>
-                </Flex>
+                  <span className="text-sm text-muted-foreground">{row.label}</span>
+                  <span className="text-end text-sm">{row.value}</span>
+                </div>
               ))}
             </div>
           </>
         ) : null}
-      </Modal>
+      </AppModal>
     </>
   );
 }

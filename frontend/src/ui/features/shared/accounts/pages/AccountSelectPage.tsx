@@ -1,8 +1,8 @@
-﻿import { App } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
+import { message } from "@/lib/toast";
 import type { Account } from "@/services/accounts/IAccountService";
 import { accountPath, defaultAccountSection } from "@/ui/navigation/paths";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
@@ -11,14 +11,11 @@ import { AccountList } from "../components/AccountList";
 
 export function AccountSelectPage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const navigate = useNavigate();
   const { services } = useApp();
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const messageRef = useRef(message);
   const tRef = useRef(t);
-  messageRef.current = message;
   tRef.current = t;
 
   useEffect(() => {
@@ -36,7 +33,7 @@ export function AccountSelectPage() {
         }
       } catch (e) {
         if (mounted) {
-          messageRef.current.error(e instanceof Error ? e.message : tRef.current("accounts.loadError"));
+          message.error(e instanceof Error ? e.message : tRef.current("accounts.loadError"));
         }
       } finally {
         if (mounted) setLoading(false);

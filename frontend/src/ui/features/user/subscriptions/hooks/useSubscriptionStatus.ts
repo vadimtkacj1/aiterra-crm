@@ -1,9 +1,9 @@
-import { App } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { SubscriptionStatus } from "@/services/admin/AdminService";
 import { useApp } from "../../../../../app/AppProviders";
+import { message } from "@/lib/toast";
 
 function extractErrorMessage(e: unknown, fallback: string): string {
   if (axios.isAxiosError(e)) {
@@ -40,7 +40,6 @@ interface UseSubscriptionStatusResult {
 
 export function useSubscriptionStatus(contractId: number | null): UseSubscriptionStatusResult {
   const { services } = useApp();
-  const { message } = App.useApp();
   const { t } = useTranslation();
   const k = (s: string) => `admin.contracts.subscription.${s}`;
 

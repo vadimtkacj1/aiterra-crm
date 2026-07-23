@@ -1,6 +1,9 @@
-import { FacebookOutlined, WalletOutlined } from "@ant-design/icons";
-import { Avatar, Button, Card, Flex, Tag, Typography } from "antd";
+import { Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { FacebookIcon } from "@/components/icons/brand";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import type { Account } from "@/services/accounts/IAccountService";
 
 function accountInitials(name: string): string {
@@ -19,47 +22,34 @@ export function AccountListItem({ account, onOpen }: Props) {
   const { t } = useTranslation();
 
   return (
-    <Card
-      className="ds-card-interactive"
-      onClick={onOpen}
-      style={{ width: "100%" }}
-      styles={{ body: { padding: "16px 20px" } }}
-    >
-      <Flex justify="space-between" align="center" gap={12} wrap="wrap">
-        <Flex align="center" gap={12} style={{ minWidth: 0, flex: 1 }}>
-          <Avatar
-            shape="square"
-            size={40}
-            style={{
-              flexShrink: 0,
-              background: "var(--ds-surface-2)",
-              color: "var(--ds-text-secondary)",
-              fontWeight: 600,
-              fontSize: 15,
-              borderRadius: 10,
-            }}
+    <Card className="ds-card-interactive w-full cursor-pointer" onClick={onOpen}>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span
+            className="flex size-10 shrink-0 items-center justify-center rounded-[10px] text-[15px] font-semibold"
+            style={{ background: "var(--ds-surface-2)", color: "var(--ds-text-secondary)" }}
+            aria-hidden="true"
           >
             {accountInitials(account.name)}
-          </Avatar>
-          <Flex vertical gap={2} style={{ minWidth: 0 }}>
-            <Typography.Text strong style={{ fontSize: 15 }}>
-              {account.name}
-            </Typography.Text>
+          </span>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate text-[15px] font-semibold">{account.name}</span>
             <div>
               {account.hasMeta ? (
-                <Tag icon={<FacebookOutlined />} color="blue" style={{ marginInlineEnd: 0 }}>
+                <Badge variant="primary">
+                  <FacebookIcon />
                   {t("accounts.badgeMeta")}
-                </Tag>
+                </Badge>
               ) : (
-                <Tag icon={<WalletOutlined />} style={{ marginInlineEnd: 0 }}>
+                <Badge>
+                  <Wallet />
                   {t("accounts.badgeNoMeta")}
-                </Tag>
+                </Badge>
               )}
             </div>
-          </Flex>
-        </Flex>
+          </div>
+        </div>
         <Button
-          type="primary"
           onClick={(e) => {
             e.stopPropagation();
             onOpen();
@@ -67,7 +57,7 @@ export function AccountListItem({ account, onOpen }: Props) {
         >
           {t("accounts.open")}
         </Button>
-      </Flex>
+      </div>
     </Card>
   );
 }

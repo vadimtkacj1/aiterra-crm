@@ -80,8 +80,8 @@ All formatting and helper functions are in `shared/utils/subscriptionUtils.ts`:
 - `formatMoney(amount, currency)` - Format currency
 - `formatDate(date)` - Format date
 - `formatDateTime(date)` - Format date + time
-- `getSubscriptionStatusColor(status)` - Get Ant Design color for status
-- `getPaymentStatusColor(status)` - Get Ant Design color for payment status
+- `getSubscriptionStatusColor(status)` - Get badge variant for status
+- `getPaymentStatusColor(status)` - Get badge variant for payment status
 
 ## Benefits
 
@@ -95,7 +95,6 @@ All formatting and helper functions are in `shared/utils/subscriptionUtils.ts`:
 
 ```tsx
 // features/user/pages/my-subscriptions/MySubscriptionsPage.tsx
-import { Space } from "antd";
 import { useTranslation } from "react-i18next";
 import { 
   SubscriptionOverview, 
@@ -108,7 +107,7 @@ export function MySubscriptionsPage() {
   const { status, loading } = useSubscriptionStatus(contractId);
 
   return (
-    <Space direction="vertical" size={20} style={{ width: "100%" }}>
+    <div className="flex w-full flex-col gap-5">
       {status && (
         <>
           <SubscriptionOverview status={status} t={t} />
@@ -119,7 +118,7 @@ export function MySubscriptionsPage() {
           />
         </>
       )}
-    </Space>
+    </div>
   );
 }
 ```

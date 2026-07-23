@@ -1,7 +1,9 @@
-import { FileTextOutlined, LoadingOutlined, ReloadOutlined, SyncOutlined, WalletOutlined } from "@ant-design/icons";
-import { Button, Flex, Popover, Typography, theme } from "antd";
+import { FileText, RefreshCw, RotateCw, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { PendingPaymentAction } from "@/services/billing/IBillingService";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Spinner } from "@/components/ui/spinner";
 import { appLocaleFromLanguage, billingShell, formatInvoiceMoney } from "./billingUtils";
 
 interface Props {
@@ -12,7 +14,6 @@ interface Props {
 
 export function PendingInvoicePanel({ payment, onRefresh, onCheckout }: Props) {
   const { t, i18n } = useTranslation();
-  const { token } = theme.useToken();
   const locale = appLocaleFromLanguage(i18n.language ?? "en");
   const isMonthly = payment.flow === "monthly";
   const lines = payment.lineItems ?? [];
@@ -20,88 +21,64 @@ export function PendingInvoicePanel({ payment, onRefresh, onCheckout }: Props) {
 
   const shell = isMonthly
     ? {
-        background: token.colorPrimaryBg,
-        border: `1px solid ${token.colorPrimaryBorder}`,
-        accent: token.colorPrimary,
-        iconBg: token.colorPrimaryBg,
-        iconBorder: `1px solid ${token.colorPrimaryBorder}`,
-        iconColor: token.colorPrimary,
-        FlowIcon: SyncOutlined,
+        background: "var(--ds-color-primary-surface)",
+        border: "1px solid var(--ds-color-primary-surface-muted)",
+        iconBg: "var(--ds-color-primary-surface)",
+        iconBorder: "1px solid var(--ds-color-primary-surface-muted)",
+        iconColor: "var(--ds-color-primary)",
+        FlowIcon: RotateCw,
       }
     : {
-        background: token.colorFillAlter,
-        border: `1px solid ${token.colorBorderSecondary}`,
-        accent: token.colorInfo,
-        iconBg: token.colorFillTertiary,
-        iconBorder: `1px solid ${token.colorBorderSecondary}`,
-        iconColor: token.colorInfo,
-        FlowIcon: FileTextOutlined,
+        background: "var(--ds-surface-1)",
+        border: "1px solid var(--ds-border-subtle)",
+        iconBg: "var(--ds-surface-2)",
+        iconBorder: "1px solid var(--ds-border-subtle)",
+        iconColor: "var(--ds-color-info)",
+        FlowIcon: FileText,
       };
 
   const lineItemsPopover = hasLines ? (
     <div style={{ minWidth: 260, maxWidth: 340 }}>
-      <Typography.Text
-        style={{
-          display: "block",
-          marginBottom: 10,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.07em",
-          textTransform: "uppercase",
-          color: token.colorTextTertiary,
-        }}
-      >
+      <span className="mb-2.5 block text-[11px] font-bold uppercase tracking-(--ds-letter-spacing-caps) text-(--ds-text-tertiary)">
         {t("billing.invoiceLinesHeading")}
-      </Typography.Text>
+      </span>
       {lines.map((li, idx) => (
-        <Flex
+        <div
           key={`${payment.id}-li-${idx}`}
-          justify="space-between"
-          align="center"
-          gap={16}
+          className="flex items-center justify-between gap-4"
           style={{
             padding: "7px 0",
-            borderTop: idx > 0 ? `1px solid ${token.colorBorderSecondary}` : undefined,
+            borderTop: idx > 0 ? "1px solid var(--ds-border-subtle)" : undefined,
           }}
         >
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <Typography.Text style={{ fontSize: 13 }} ellipsis>
-              {li.label}
-            </Typography.Text>
+          <div className="min-w-0 flex-1">
+            <span className="block truncate text-[13px]">{li.label}</span>
             {li.code ? (
-              <Typography.Text
-                type="secondary"
-                style={{ display: "block", fontSize: 11, fontFamily: billingShell.mono, marginTop: 1 }}
+              <span
+                className="mt-px block text-[11px] text-muted-foreground"
+                style={{ fontFamily: billingShell.mono }}
               >
                 {li.code}
-              </Typography.Text>
+              </span>
             ) : null}
           </div>
-          <Typography.Text
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              fontVariantNumeric: "tabular-nums",
-              fontFamily: billingShell.mono,
-            }}
+          <span
+            className="whitespace-nowrap text-[13px] font-semibold tabular-nums"
+            style={{ fontFamily: billingShell.mono }}
           >
             {formatInvoiceMoney(li.amount, payment.currency, locale)}
-          </Typography.Text>
-        </Flex>
+          </span>
+        </div>
       ))}
-      <Flex
-        justify="space-between"
-        align="center"
-        style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${token.colorBorderSecondary}` }}
+      <div
+        className="flex items-center justify-between"
+        style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--ds-border-subtle)" }}
       >
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          {t("billing.invoiceTotal")}
-        </Typography.Text>
-        <Typography.Text strong style={{ fontSize: 14, fontVariantNumeric: "tabular-nums", fontFamily: billingShell.mono }}>
+        <span className="text-xs text-muted-foreground">{t("billing.invoiceTotal")}</span>
+        <span className="text-sm font-semibold tabular-nums" style={{ fontFamily: billingShell.mono }}>
           {formatInvoiceMoney(payment.amount, payment.currency, locale)}
-        </Typography.Text>
-      </Flex>
+        </span>
+      </div>
     </div>
   ) : null;
 
@@ -117,130 +94,101 @@ export function PendingInvoicePanel({ payment, onRefresh, onCheckout }: Props) {
         boxShadow: billingShell.shadow,
       }}
     >
-      <Flex
-        align="center"
-        justify="space-between"
-        wrap="wrap"
-        gap={16}
-        style={{ padding: "14px 16px" }}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-4" style={{ padding: "14px 16px" }}>
         {/* Left: icon + info */}
-        <Flex align="center" gap={12} style={{ minWidth: 0, flex: "1 1 200px" }}>
+        <div className="flex min-w-0 flex-[1_1_200px] items-center gap-3">
           <div
+            className="flex size-10 shrink-0 items-center justify-center"
             style={{
-              width: 40,
-              height: 40,
               borderRadius: billingShell.radiusMd,
               background: shell.iconBg,
               border: shell.iconBorder,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
               color: shell.iconColor,
-              flexShrink: 0,
             }}
           >
-            <FlowIcon style={{ fontSize: 18 }} />
+            <FlowIcon aria-hidden="true" className="size-4.5" />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <Flex align="center" gap={8} wrap="wrap" style={{ marginBottom: 3 }}>
-              <Typography.Text strong ellipsis style={{ fontSize: 14 }}>
-                {payment.summary}
-              </Typography.Text>
+          <div className="min-w-0">
+            <div className="mb-0.5 flex flex-wrap items-center gap-2">
+              <span className="truncate text-sm font-semibold">{payment.summary}</span>
               <span
+                className="shrink-0 uppercase"
                 style={{
                   fontSize: 10,
                   fontWeight: 700,
                   letterSpacing: "0.06em",
                   padding: "3px 10px",
                   borderRadius: 6,
-                  background: isMonthly ? token.colorPrimary : token.colorFillSecondary,
-                  border: isMonthly ? `1px solid ${token.colorPrimary}` : `1px solid ${token.colorBorderSecondary}`,
-                  color: isMonthly ? token.colorTextLightSolid : token.colorTextSecondary,
-                  flexShrink: 0,
-                  textTransform: "uppercase",
+                  background: isMonthly ? "var(--ds-color-primary)" : "var(--ds-surface-2)",
+                  border: isMonthly
+                    ? "1px solid var(--ds-color-primary)"
+                    : "1px solid var(--ds-border-subtle)",
+                  color: isMonthly ? "var(--ds-text-inverse)" : "var(--ds-text-secondary)",
                 }}
               >
                 {isMonthly ? t("billing.flowMonthlyShort") : t("billing.flowOneTimeShort")}
               </span>
-            </Flex>
+            </div>
             {hasLines ? (
-              <Popover
-                title={null}
-                content={lineItemsPopover}
-                trigger="click"
-                placement="bottomLeft"
-                overlayInnerStyle={{ padding: "14px 16px" }}
-              >
-                <Typography.Link style={{ fontSize: 12 }}>
-                  {t("billing.pendingLineItemsTrigger", { count: lines.length })}
-                </Typography.Link>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="cursor-pointer border-0 bg-transparent p-0 text-xs text-(--ds-text-link) hover:text-(--ds-text-link-hover) hover:underline"
+                  >
+                    {t("billing.pendingLineItemsTrigger", { count: lines.length })}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-auto" style={{ padding: "14px 16px" }}>
+                  {lineItemsPopover}
+                </PopoverContent>
               </Popover>
             ) : payment.installmentMonths != null &&
               payment.installmentMonths >= 2 &&
               payment.installmentTotalAmount != null ? (
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              <span className="text-xs text-muted-foreground">
                 {t("billing.installmentPlanSubtitle", {
                   perMonth: formatInvoiceMoney(payment.amount, payment.currency, locale),
                   total: formatInvoiceMoney(payment.installmentTotalAmount, payment.currency, locale),
                   months: payment.installmentMonths,
                 })}
-              </Typography.Text>
+              </span>
             ) : (
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {t("billing.invoiceSubtitle")}
-              </Typography.Text>
+              <span className="text-xs text-muted-foreground">{t("billing.invoiceSubtitle")}</span>
             )}
           </div>
-        </Flex>
+        </div>
 
         {/* Right: amount + action */}
-        <Flex align="center" gap={12} wrap="wrap" justify="flex-end" style={{ flexShrink: 0 }}>
-          <Typography.Text
-            strong
-            style={{
-              fontSize: 18,
-              fontVariantNumeric: "tabular-nums",
-              fontFamily: billingShell.mono,
-              whiteSpace: "nowrap",
-              letterSpacing: "-0.01em",
-            }}
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+          <span
+            className="whitespace-nowrap text-lg font-semibold tabular-nums tracking-[-0.01em]"
+            style={{ fontFamily: billingShell.mono }}
           >
             {formatInvoiceMoney(payment.amount, payment.currency, locale)}
-          </Typography.Text>
+          </span>
 
           {payment.payUrl ? (
             <Button
-              type="primary"
-              icon={<WalletOutlined />}
               onClick={() => onCheckout("hosted")}
-              style={{
-                height: 38,
-                borderRadius: billingShell.radiusMd,
-                fontWeight: 600,
-                boxShadow: "none",
-                paddingInline: 18,
-              }}
+              className="h-9.5 rounded-xl px-4.5 font-semibold shadow-none"
             >
+              <Wallet aria-hidden="true" />
               {t("billing.payNow")}
             </Button>
           ) : (
-            <Flex align="center" gap={8}>
-              <LoadingOutlined style={{ fontSize: 16, color: token.colorTextSecondary }} spin />
+            <div className="flex items-center gap-2">
+              <Spinner size="sm" className="text-(--ds-text-secondary)" />
               {onRefresh ? (
-                <Button
-                  icon={<ReloadOutlined />}
-                  size="small"
-                  onClick={() => onRefresh()}
-                  style={{ borderRadius: billingShell.radius }}
-                >
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={() => onRefresh()}>
+                  <RefreshCw aria-hidden="true" />
                   {t("billing.refreshPaymentStatus")}
                 </Button>
               ) : null}
-            </Flex>
+            </div>
           )}
-        </Flex>
-      </Flex>
+        </div>
+      </div>
     </div>
   );
 }

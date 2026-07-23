@@ -1,7 +1,7 @@
-﻿import { Skeleton } from "antd";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useApp } from "@/app/AppProviders";
 import { useAccountLayoutOutlet } from "@/ui/layouts/accountLayoutContext";
 import { accountPath, Paths } from "@/ui/navigation/paths";
@@ -30,7 +30,11 @@ export function GoogleAnalyticsPage() {
   if (accountLoading) {
     return (
       <UserContentLayout>
-        <Skeleton active title paragraph={{ rows: 2 }} />
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
       </UserContentLayout>
     );
   }

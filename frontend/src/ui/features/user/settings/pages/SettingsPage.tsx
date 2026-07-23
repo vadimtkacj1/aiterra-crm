@@ -1,6 +1,6 @@
-import { MailOutlined, UserOutlined } from "@ant-design/icons";
-import { Card, Flex, Typography } from "antd";
+import { Mail, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApp } from "../../../../../app/AppProviders";
 import { LanguageSwitcher } from "../../../../shared/components/LanguageSwitcher";
 import { PageHeader } from "../../../../shared/components/PageHeader";
@@ -15,33 +15,43 @@ export function SettingsPage() {
     <UserContentLayout maxWidth={640} align="start">
       <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
-      <Flex vertical gap={24} style={{ width: "100%" }}>
+      <div className="flex w-full flex-col gap-6">
         {/* Profile card */}
         {session?.user && (
-          <Card title={t("settings.profileSectionTitle")} style={{ width: "100%" }}>
-            <Flex vertical gap={8}>
-              <Flex align="center" gap={8}>
-                <UserOutlined style={{ color: "var(--ds-text-tertiary)", width: 16 }} />
-                <Typography.Text>
-                  {session.user.displayName || t("settings.noDisplayName")}
-                </Typography.Text>
-              </Flex>
-              <Flex align="center" gap={8}>
-                <MailOutlined style={{ color: "var(--ds-text-tertiary)", width: 16 }} />
-                <Typography.Text type="secondary">{session.user.email}</Typography.Text>
-              </Flex>
-            </Flex>
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>{t("settings.profileSectionTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <User className="size-4 shrink-0" style={{ color: "var(--ds-text-tertiary)" }} />
+                  <span className="text-sm">
+                    {session.user.displayName || t("settings.noDisplayName")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="size-4 shrink-0" style={{ color: "var(--ds-text-tertiary)" }} />
+                  <span className="text-sm text-muted-foreground">{session.user.email}</span>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         )}
 
         {/* Language card */}
-        <Card title={t("settings.languageSectionTitle")} style={{ width: "100%" }}>
-          <LanguageSwitcher />
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>{t("settings.languageSectionTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LanguageSwitcher />
+          </CardContent>
         </Card>
 
         {/* Password card */}
         <ChangePasswordForm />
-      </Flex>
+      </div>
     </UserContentLayout>
   );
 }

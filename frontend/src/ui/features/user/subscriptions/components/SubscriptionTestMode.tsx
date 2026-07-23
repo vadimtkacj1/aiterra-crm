@@ -1,6 +1,8 @@
-import { ThunderboltOutlined } from "@ant-design/icons";
-import { Alert, Button } from "antd";
+import { Zap } from "lucide-react";
 import type { TFunction } from "i18next";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   onSimulate: () => void;
@@ -12,22 +14,17 @@ interface Props {
 export function SubscriptionTestMode({ onSimulate, loading, disabled, t }: Props) {
   return (
     <Alert
-      type="info"
-      showIcon
-      icon={<ThunderboltOutlined />}
-      message={t("admin.contracts.subscription.testMode")}
+      variant="info"
+      icon={<Zap aria-hidden="true" />}
+      title={t("admin.contracts.subscription.testMode")}
       description={t("admin.contracts.subscription.testModeDesc")}
-      action={
-        <Button
-          size="small"
-          type="primary"
-          loading={loading}
-          onClick={onSimulate}
-          disabled={disabled}
-        >
+    >
+      <div className="mt-2">
+        <Button size="sm" onClick={onSimulate} disabled={disabled || loading}>
+          {loading && <Spinner size="sm" className="text-current" aria-hidden="true" />}
           {t("admin.contracts.subscription.simulatePayment")}
         </Button>
-      }
-    />
+      </div>
+    </Alert>
   );
 }

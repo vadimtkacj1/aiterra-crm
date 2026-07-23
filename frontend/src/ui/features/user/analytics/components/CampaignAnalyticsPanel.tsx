@@ -1,24 +1,15 @@
-﻿import { ReloadOutlined } from "@ant-design/icons";
-import {
-  App,
-  Button,
-  Card,
-  Col,
-  Collapse,
-  ConfigProvider,
-  Flex,
-  Grid,
-  Row,
-  Skeleton,
-  Space,
-  Table,
-  Tag,
-  theme,
-  Typography,
-} from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
+import { useIsMobile } from "@/lib/use-media-query";
 import type { CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
@@ -27,7 +18,7 @@ import { CampaignSpendChart } from "./CampaignSpendChart";
 import { CampaignMetricsCharts } from "./CampaignMetricsChart";
 import { KpiStatCard } from "./KpiStatCard";
 
-/** Min width per column; sum + expand column must be ≤ scroll.x (Ant Design fixed columns). */
+/** Min width per column; sum must be ≤ table min-width (horizontal scroll). */
 const DESKTOP_COL_WIDTHS = [
   260, 120, 100, 96, 128, 116, 112, 104, 132, 132, 140, 128, 160, 116, 116, 152, 136, 136, 140, 140, 152,
 ] as const;
@@ -53,16 +44,9 @@ interface CampaignAnalyticsPanelProps {
 
 export function CampaignAnalyticsPanel({ title, description, load }: CampaignAnalyticsPanelProps) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
-  const { token } = theme.useToken();
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CampaignAnalyticsSnapshot | null>(null);
-  const messageRef = useRef(message);
-  const tRef = useRef(t);
-  messageRef.current = message;
-  tRef.current = t;
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -70,10 +54,12 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
       const snap = await load();
       setData(snap);
     } catch (e) {
-      messageRef.current.error(e instanceof Error ? e.message : tRef.current("analytics.loadError"));
+      message.error(e instanceof Error ? e.message : t("analytics.loadError"));
     } finally {
       setLoading(false);
     }
+    // t is stable enough for the error path; matching the previous ref-based behavior.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load]);
 
   useEffect(() => {
@@ -85,145 +71,146 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
 
   const currency = data?.currency ?? "";
 
-  const columns: ColumnsType<CampaignSummaryRow> = useMemo(() => {
+  const columns: DataTableColumn<CampaignSummaryRow>[] = useMemo(() => {
     const money = (v: number | undefined) => `${(v ?? 0).toFixed(4)} ${currency}`;
     const pct = (v: number | undefined) => (v ?? 0).toFixed(2);
     const int = (v: number | undefined) => (v ?? 0).toLocaleString();
     const [w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19, w20] =
       DESKTOP_COL_WIDTHS;
 
-    const sized = (width: number) => ({ width, minWidth: width });
-
     return [
       {
         title: t("analytics.table.campaign"),
         dataIndex: "campaignName",
         key: "name",
-        fixed: "left" as const,
-        ...sized(w0),
-        ellipsis: { showTitle: true },
+        width: w0,
+        render: (v) => (
+          <span className="block truncate" style={{ maxWidth: w0 }} title={String(v ?? "")}>
+            {v as string}
+          </span>
+        ),
       },
       {
         title: t("analytics.table.impressions"),
         dataIndex: "impressions",
         key: "impr",
-        ...sized(w1),
-        render: int,
+        width: w1,
+        render: (v) => int(v as number),
       },
-      { title: t("analytics.table.clicks"), dataIndex: "clicks", key: "clk", ...sized(w2), render: int },
+      { title: t("analytics.table.clicks"), dataIndex: "clicks", key: "clk", width: w2, render: (v) => int(v as number) },
       {
         title: t("analytics.table.ctr"),
         dataIndex: "ctr",
         key: "ctr",
-        ...sized(w3),
-        render: (v: number) => `${pct(v)}%`,
+        width: w3,
+        render: (v) => `${pct(v as number)}%`,
       },
       {
         title: t("analytics.table.spend"),
         dataIndex: "spend",
         key: "spend",
-        ...sized(w4),
-        render: (v: number) => `${v.toFixed(2)} ${currency}`,
+        width: w4,
+        render: (v) => `${(v as number).toFixed(2)} ${currency}`,
       },
-      { title: t("analytics.table.conversions"), dataIndex: "conversions", key: "conv", ...sized(w5), render: int },
-      { title: t("analytics.table.reach"), dataIndex: "reach", key: "reach", ...sized(w6), render: int },
+      { title: t("analytics.table.conversions"), dataIndex: "conversions", key: "conv", width: w5, render: (v) => int(v as number) },
+      { title: t("analytics.table.reach"), dataIndex: "reach", key: "reach", width: w6, render: (v) => int(v as number) },
       {
         title: t("analytics.table.frequency"),
         dataIndex: "frequency",
         key: "freq",
-        ...sized(w7),
-        render: (v: number | undefined) => pct(v),
+        width: w7,
+        render: (v) => pct(v as number | undefined),
       },
       {
         title: t("analytics.table.cpc"),
         dataIndex: "cpc",
         key: "cpc",
-        ...sized(w8),
-        render: (v: number | undefined) => money(v),
+        width: w8,
+        render: (v) => money(v as number | undefined),
       },
       {
         title: t("analytics.table.cpm"),
         dataIndex: "cpm",
         key: "cpm",
-        ...sized(w9),
-        render: (v: number | undefined) => money(v),
+        width: w9,
+        render: (v) => money(v as number | undefined),
       },
       {
         title: t("analytics.table.inlineLinkClicks"),
         dataIndex: "inlineLinkClicks",
         key: "ilc",
-        ...sized(w10),
-        render: int,
+        width: w10,
+        render: (v) => int(v as number | undefined),
       },
       {
         title: t("analytics.table.inlineLinkClickCtr"),
         dataIndex: "inlineLinkClickCtr",
         key: "ilctr",
-        ...sized(w11),
-        render: (v: number | undefined) => `${pct(v)}%`,
+        width: w11,
+        render: (v) => `${pct(v as number | undefined)}%`,
       },
       {
         title: t("analytics.table.costPerInlineLinkClick"),
         dataIndex: "costPerInlineLinkClick",
         key: "cpilc",
-        ...sized(w12),
-        render: money,
+        width: w12,
+        render: (v) => money(v as number | undefined),
       },
       {
         title: t("analytics.table.uniqueClicks"),
         dataIndex: "uniqueClicks",
         key: "uq",
-        ...sized(w13),
-        render: int,
+        width: w13,
+        render: (v) => int(v as number | undefined),
       },
       {
         title: t("analytics.table.uniqueCtr"),
         dataIndex: "uniqueCtr",
         key: "uqctr",
-        ...sized(w14),
-        render: (v: number | undefined) => `${pct(v)}%`,
+        width: w14,
+        render: (v) => `${pct(v as number | undefined)}%`,
       },
       {
         title: t("analytics.table.costPerUniqueClick"),
         dataIndex: "costPerUniqueClick",
         key: "cpuq",
-        ...sized(w15),
-        render: money,
+        width: w15,
+        render: (v) => money(v as number | undefined),
       },
       {
         title: t("analytics.table.outboundClicks"),
         dataIndex: "outboundClicks",
         key: "obc",
-        ...sized(w16),
-        render: int,
+        width: w16,
+        render: (v) => int(v as number | undefined),
       },
       {
         title: t("analytics.table.linkClicks"),
         dataIndex: "linkClicks",
         key: "lk",
-        ...sized(w17),
-        render: int,
+        width: w17,
+        render: (v) => int(v as number | undefined),
       },
       {
         title: t("analytics.table.landingPageViews"),
         dataIndex: "landingPageViews",
         key: "lpv",
-        ...sized(w18),
-        render: int,
+        width: w18,
+        render: (v) => int(v as number | undefined),
       },
       {
         title: t("analytics.table.postEngagement"),
         dataIndex: "postEngagement",
         key: "pe",
-        ...sized(w19),
-        render: int,
+        width: w19,
+        render: (v) => int(v as number | undefined),
       },
       {
         title: t("analytics.table.videoViews"),
         dataIndex: "videoViews",
         key: "vv",
-        ...sized(w20),
-        render: int,
+        width: w20,
+        render: (v) => int(v as number | undefined),
       },
     ];
   }, [t, currency]);
@@ -233,23 +220,23 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
       const actions = row.actionBreakdown ?? [];
       if (actions.length === 0) {
         return (
-          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+          <span className="text-[13px] text-muted-foreground">
             {t("analytics.table.noActionsDetail")}
-          </Typography.Text>
+          </span>
         );
       }
       return (
         <div>
-          <Typography.Text strong style={{ display: "block", marginBottom: 8, fontSize: 13 }}>
+          <span className="mb-2 block text-[13px] font-semibold">
             {t("analytics.table.actionsDetail")}
-          </Typography.Text>
-          <Space wrap size={[8, 8]}>
+          </span>
+          <div className="flex flex-wrap gap-2">
             {actions.map((a) => (
-              <Tag key={`${row.campaignId}-${a.actionType}`}>
+              <Badge key={`${row.campaignId}-${a.actionType}`} variant="default">
                 {a.actionType}: {a.value.toLocaleString()}
-              </Tag>
+              </Badge>
             ))}
-          </Space>
+          </div>
         </div>
       );
     },
@@ -257,32 +244,40 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
   );
 
   return (
-    <div style={{ width: "100%" }}>
+    <div className="w-full">
       <PageHeader
         title={title}
         subtitle={description}
         actions={
-          <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={loading}>
+          <Button variant="outline" onClick={() => void refresh()} disabled={loading}>
+            {loading
+              ? <Spinner size="sm" className="text-current" aria-hidden="true" />
+              : <RefreshCw aria-hidden="true" />}
             {t("common.reload")}
           </Button>
         }
       />
 
-      <Flex vertical gap={24} style={{ width: "100%" }}>
+      <div className="flex w-full flex-col gap-6">
       {loading && !data ? (
-        <Flex vertical gap={24} style={{ width: "100%" }}>
-          <Skeleton active title={false} paragraph={{ rows: 1 }} />
-          <Row gutter={[16, 16]}>
+        <div className="flex w-full flex-col gap-6">
+          <Skeleton className="h-4 w-1/2" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[0, 1, 2, 3].map((k) => (
-              <Col key={k} xs={24} sm={12} lg={6}>
-                <Card size="small">
-                  <Skeleton active title paragraph={{ rows: 1 }} />
-                </Card>
-              </Col>
+              <Card key={k} className="p-4">
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-7 w-1/2" />
+                </div>
+              </Card>
             ))}
-          </Row>
-          <Skeleton active paragraph={{ rows: 6 }} />
-        </Flex>
+          </div>
+          <div className="flex flex-col gap-3">
+            {[0, 1, 2, 3, 4, 5].map((k) => (
+              <Skeleton key={k} className="h-4 w-full" />
+            ))}
+          </div>
+        </div>
       ) : null}
 
       {data && isSnapshotEmpty(data) ? (
@@ -297,11 +292,8 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
 
       {data && !isSnapshotEmpty(data) ? (
         <>
-          <Flex vertical gap={8}>
-            <Typography.Text
-              type="secondary"
-              style={{ fontSize: 12, fontVariantNumeric: "tabular-nums" }}
-            >
+          <div className="flex flex-col gap-2">
+            <span className="text-xs text-muted-foreground tabular-nums">
               {periodText}
               {data.rows.length > 0 ? (
                 <>
@@ -309,142 +301,113 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
                   {t("analytics.table.rowCount", { count: data.rows.length })}
                 </>
               ) : null}
-            </Typography.Text>
+            </span>
 
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} lg={6}>
-                <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <KpiStatCard title={t("analytics.stats.clicks")} value={data.totals.clicks} />
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <KpiStatCard
-                  title={t("analytics.stats.spend")}
-                  value={data.totals.spend}
-                  suffix={data.currency}
-                  precision={2}
-                />
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <KpiStatCard title={t("analytics.stats.conversions")} value={data.totals.conversions} />
-              </Col>
-            </Row>
-          </Flex>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
+              <KpiStatCard title={t("analytics.stats.clicks")} value={data.totals.clicks} />
+              <KpiStatCard
+                title={t("analytics.stats.spend")}
+                value={data.totals.spend}
+                suffix={data.currency}
+                precision={2}
+              />
+              <KpiStatCard title={t("analytics.stats.conversions")} value={data.totals.conversions} />
+            </div>
+          </div>
 
-          <Collapse
-            bordered={false}
-            style={{ background: token.colorFillAlter, borderRadius: token.borderRadiusLG }}
-            expandIconPosition="end"
-            defaultActiveKey={isMobile ? [] : ["more"]}
-            items={[
-              {
-                key: "more",
-                label: <Typography.Text strong>{t("analytics.table.moreMetrics")}</Typography.Text>,
-                children: (
-                  <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard title={t("analytics.stats.reach")} value={data.totals.reach ?? 0} />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.frequency")}
-                        value={data.totals.frequency ?? 0}
-                        precision={2}
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.cpc")}
-                        value={data.totals.cpc ?? 0}
-                        suffix={data.currency}
-                        precision={4}
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.cpm")}
-                        value={data.totals.cpm ?? 0}
-                        suffix={data.currency}
-                        precision={4}
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.inlineLinkClicks")}
-                        value={data.totals.inlineLinkClicks ?? 0}
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.uniqueClicks")}
-                        value={data.totals.uniqueClicks ?? 0}
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.postEngagement")}
-                        value={data.totals.postEngagement ?? 0}
-                      />
-                    </Col>
-                    <Col xs={24} sm={12} lg={6}>
-                      <KpiStatCard
-                        title={t("analytics.stats.videoViews")}
-                        value={data.totals.videoViews ?? 0}
-                      />
-                    </Col>
-                  </Row>
-                ),
-              },
-            ]}
-          />
+          <Accordion
+            type="multiple"
+            defaultValue={isMobile ? [] : ["more"]}
+            className="rounded-xl bg-muted/60 px-4"
+          >
+            <AccordionItem value="more" className="border-b-0">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="font-semibold">{t("analytics.table.moreMetrics")}</span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <KpiStatCard title={t("analytics.stats.reach")} value={data.totals.reach ?? 0} />
+                  <KpiStatCard
+                    title={t("analytics.stats.frequency")}
+                    value={data.totals.frequency ?? 0}
+                    precision={2}
+                  />
+                  <KpiStatCard
+                    title={t("analytics.stats.cpc")}
+                    value={data.totals.cpc ?? 0}
+                    suffix={data.currency}
+                    precision={4}
+                  />
+                  <KpiStatCard
+                    title={t("analytics.stats.cpm")}
+                    value={data.totals.cpm ?? 0}
+                    suffix={data.currency}
+                    precision={4}
+                  />
+                  <KpiStatCard
+                    title={t("analytics.stats.inlineLinkClicks")}
+                    value={data.totals.inlineLinkClicks ?? 0}
+                  />
+                  <KpiStatCard
+                    title={t("analytics.stats.uniqueClicks")}
+                    value={data.totals.uniqueClicks ?? 0}
+                  />
+                  <KpiStatCard
+                    title={t("analytics.stats.postEngagement")}
+                    value={data.totals.postEngagement ?? 0}
+                  />
+                  <KpiStatCard
+                    title={t("analytics.stats.videoViews")}
+                    value={data.totals.videoViews ?? 0}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           {isMobile ? (
-            <Flex vertical gap={16}>
-              <Typography.Text strong style={{ fontSize: 14 }}>
+            <div className="flex flex-col gap-4">
+              <span className="text-sm font-semibold">
                 {t("analytics.table.campaigns")}
-              </Typography.Text>
+              </span>
               <CampaignCardList rows={data.rows} currency={data.currency} />
-            </Flex>
+            </div>
           ) : (
-            <ConfigProvider direction="ltr">
-              <Flex vertical gap={24} style={{ width: "100%" }}>
-                <CampaignSpendChart rows={data.rows} currency={data.currency} />
-                <CampaignMetricsCharts data={data} />
-                <Card
-                  title={t("analytics.table.campaigns")}
-                  size="small"
-                  styles={{ body: { padding: 0 } }}
-                >
-                  {/*
-                    RTL (Hebrew) breaks Ant Design Table fixed columns + horizontal scroll.
-                    ConfigProvider direction=ltr keeps column order and scroll math stable.
-                  */}
-                  <Table<CampaignSummaryRow>
-                    loading={loading}
-                    rowKey="campaignId"
-                    pagination={{
-                      pageSize: 50,
-                      showSizeChanger: true,
-                      pageSizeOptions: [25, 50, 100, 200],
-                      showTotal: (total) => t("analytics.table.rowCount", { count: total }),
-                    }}
-                    size="middle"
-                    scroll={{ x: TABLE_SCROLL_X }}
-                    dataSource={data.rows}
-                    columns={columns}
-                    expandable={{
-                      expandedRowRender,
-                      rowExpandable: () => true,
-                    }}
-                  />
-                </Card>
-              </Flex>
-            </ConfigProvider>
+            <div dir="ltr" className="flex w-full flex-col gap-6">
+              {/*
+                RTL (Hebrew) breaks fixed-width tables + horizontal scroll math for
+                the wide metrics table and charts; keep this region LTR like before.
+              */}
+              <CampaignSpendChart rows={data.rows} currency={data.currency} />
+              <CampaignMetricsCharts data={data} />
+              <Card>
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className="text-sm">{t("analytics.table.campaigns")}</CardTitle>
+                </CardHeader>
+                <DataTable<CampaignSummaryRow>
+                  loading={loading}
+                  rowKey="campaignId"
+                  size="middle"
+                  scroll={{ x: TABLE_SCROLL_X }}
+                  dataSource={data.rows}
+                  columns={columns}
+                  pagination={{
+                    pageSize: 50,
+                    showTotal: (total) => t("analytics.table.rowCount", { count: total }),
+                  }}
+                  expandable={{
+                    expandedRowRender,
+                    rowExpandable: () => true,
+                  }}
+                  className="[&_td]:tabular-nums"
+                />
+              </Card>
+            </div>
           )}
         </>
       ) : null}
-      </Flex>
+      </div>
     </div>
   );
 }

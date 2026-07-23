@@ -1,5 +1,5 @@
-import { Button, theme } from "antd";
 import type { TFunction } from "i18next";
+import { Button } from "@/components/ui/button";
 import { CheckoutTopBar } from "../components/CheckoutTopBar";
 import { tokens } from "@/styles/designSystem";
 
@@ -9,17 +9,15 @@ type Props = {
 };
 
 export function CheckoutSuccessScreen({ t, onBack }: Props) {
-  const { token } = theme.useToken();
-
   return (
-    <div style={{ minHeight: "100vh", background: token.colorBgLayout, display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", background: "var(--ds-surface-1)", display: "flex", flexDirection: "column" }}>
       <CheckoutTopBar onBack={onBack} />
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 24px" }}>
         <div
           style={{
-            background: token.colorBgContainer,
+            background: "var(--ds-surface-0)",
             borderRadius: tokens.radius.lg,
-            border: `1px solid ${token.colorBorderSecondary}`,
+            border: "1px solid var(--ds-border-subtle)",
             boxShadow: tokens.shadow.md,
             padding: "48px 40px",
             maxWidth: 440,
@@ -27,12 +25,14 @@ export function CheckoutSuccessScreen({ t, onBack }: Props) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 56, marginBottom: 16, color: token.colorSuccess }}>✓</div>
-          <p style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: token.colorText }}>
+          <div style={{ fontSize: 56, marginBottom: 16, color: "var(--ds-color-success)" }}>✓</div>
+          <p style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "var(--ds-text-primary)" }}>
             {t("billing.paymentSuccessTitle")}
           </p>
-          <p style={{ fontSize: 14, color: token.colorTextSecondary, margin: "0 0 28px" }}>{t("billing.paymentSuccessDesc")}</p>
-          <Button type="primary" size="large" onClick={onBack} style={{ width: "100%", fontWeight: 600, fontSize: 15 }}>
+          <p style={{ fontSize: 14, color: "var(--ds-text-secondary)", margin: "0 0 28px" }}>
+            {t("billing.paymentSuccessDesc")}
+          </p>
+          <Button size="lg" onClick={onBack} className="w-full text-[15px] font-semibold">
             {t("billing.paymentSuccessBack")}
           </Button>
         </div>

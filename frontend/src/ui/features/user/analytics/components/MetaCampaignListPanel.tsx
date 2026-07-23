@@ -1,37 +1,37 @@
-﻿import {
-  DownloadOutlined,
-  FilePdfOutlined,
-  FileTextOutlined,
-  ReloadOutlined,
-  RightOutlined,
-  SearchOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
 import {
-  App,
-  Button,
-  Card,
-  Col,
-  ConfigProvider,
-  DatePicker,
-  Dropdown,
-  Empty,
-  Flex,
-  Grid,
-  Input,
-  Row,
-  Select,
-  Skeleton,
-  Table,
-  Tag,
-  Typography,
-} from "antd";
-import type { ColumnsType } from "antd/es/table";
-import dayjs, { type Dayjs } from "dayjs";
+  ArrowDown,
+  ArrowUp,
+  ChevronRight,
+  ChevronsUpDown,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  RefreshCw,
+  Search,
+  X,
+} from "lucide-react";
 import type { TFunction } from "i18next";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
+import { MenuDropdown } from "@/components/ui/menu-compat";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
+import { useIsMobile } from "@/lib/use-media-query";
+import { cn } from "@/lib/utils";
 import type { CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { accountCampaignPath, Paths } from "@/ui/navigation/paths";
 import {
@@ -43,10 +43,9 @@ import {
 } from "../utils/campaignObjective";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { exportCampaignListCsv, exportCampaignListPdf } from "../utils/exportUtils";
+import { DateRangeControl, rangeParam, type DateRange } from "./DateRangeControl";
 import { KpiStatCard } from "./KpiStatCard";
 
-const { RangePicker } = DatePicker;
-type DateRange = [Dayjs | null, Dayjs | null] | null;
 type StatusFilter = "ALL" | "ACTIVE" | "PAUSED";
 
 function getTotalGoalLabel(data: CampaignAnalyticsSnapshot, t: TFunction): { label: string; value: string } {
@@ -88,7 +87,7 @@ function getTotalGoalLabel(data: CampaignAnalyticsSnapshot, t: TFunction): { lab
   }
 }
 
-function statusColor(status: string): string {
+function statusVariant(status: string): "success" | "warning" | "default" | "processing" {
   switch ((status ?? "").toUpperCase()) {
     case "ACTIVE": return "success";
     case "PAUSED": return "warning";
@@ -98,21 +97,52 @@ function statusColor(status: string): string {
   }
 }
 
-function goalKindColor(kind: CampaignGoalKind): string {
+function goalKindClass(kind: CampaignGoalKind): string {
   switch (kind) {
     case "leads":
-      return "blue";
+      return "border-blue-200 bg-blue-50 text-blue-700";
     case "sales":
-      return "green";
+      return "border-green-200 bg-green-50 text-green-700";
     case "engagement":
-      return "purple";
+      return "border-purple-200 bg-purple-50 text-purple-700";
     case "traffic":
-      return "cyan";
+      return "border-cyan-200 bg-cyan-50 text-cyan-700";
     default:
-      return "default";
+      return "";
   }
 }
 
+/* ── Client-side sorting (replaces the antd Table `sorter` behavior) ────── */
+type SortDir = "ascend" | "descend";
+interface SortState { key: string; dir: SortDir }
+
+function SortTitle({
+  label,
+  colKey,
+  sort,
+  onSort,
+}: {
+  label: React.ReactNode;
+  colKey: string;
+  sort: SortState | null;
+  onSort: (key: string) => void;
+}) {
+  const active = sort?.key === colKey;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(colKey)}
+      className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-foreground"
+    >
+      {label}
+      {active
+        ? sort!.dir === "ascend"
+          ? <ArrowUp aria-hidden="true" className="size-3" />
+          : <ArrowDown aria-hidden="true" className="size-3" />
+        : <ChevronsUpDown aria-hidden="true" className="size-3 opacity-40" />}
+    </button>
+  );
+}
 
 interface MetaCampaignListPanelProps {
   load: (since?: string, until?: string) => Promise<CampaignAnalyticsSnapshot>;
@@ -120,9 +150,7 @@ interface MetaCampaignListPanelProps {
 
 export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { accountId } = useParams<{ accountId: string }>();
 
@@ -131,28 +159,50 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ACTIVE");
   const [dateRange, setDateRange] = useState<DateRange>(null);
-
-  const messageRef = useRef(message);
-  messageRef.current = message;
+  const [sort, setSort] = useState<SortState | null>({ key: "spend", dir: "descend" });
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const snap = await load(
-        dateRange?.[0]?.format("YYYY-MM-DD"),
-        dateRange?.[1]?.format("YYYY-MM-DD"),
-      );
+      const snap = await load(rangeParam(dateRange?.[0]), rangeParam(dateRange?.[1]));
       setData(snap);
     } catch (e) {
-      messageRef.current.error(e instanceof Error ? e.message : t("analytics.loadError"));
+      message.error(e instanceof Error ? e.message : t("analytics.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [load, t, dateRange]);
+    // t only feeds the error path; matching the previous ref-based behavior.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load, dateRange]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const sorters = useMemo<Record<string, (a: CampaignSummaryRow, b: CampaignSummaryRow) => number>>(
+    () => ({
+      name: (a, b) => a.campaignName.localeCompare(b.campaignName),
+      goalKind: (a, b) => {
+        const ka = goalKindI18nKey(classifyCampaignObjective(a.objective));
+        const kb = goalKindI18nKey(classifyCampaignObjective(b.objective));
+        return ka.localeCompare(kb);
+      },
+      status: (a, b) => (a.status ?? "").localeCompare(b.status ?? ""),
+      spend: (a, b) => a.spend - b.spend,
+      result: (a, b) => primaryGoalSortValue(a) - primaryGoalSortValue(b),
+      impr: (a, b) => a.impressions - b.impressions,
+      ctr: (a, b) => a.ctr - b.ctr,
+    }),
+    [],
+  );
+
+  const toggleSort = useCallback((key: string) => {
+    setSort((prev) =>
+      prev?.key === key
+        ? { key, dir: prev.dir === "ascend" ? "descend" : "ascend" }
+        : { key, dir: "ascend" },
+    );
+  }, []);
 
   const filteredRows = useMemo(() => {
     if (!data) return [];
@@ -164,79 +214,93 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
     if (statusFilter !== "ALL") {
       rows = rows.filter((r) => (r.status ?? "ACTIVE").toUpperCase() === statusFilter);
     }
+    if (sort && sorters[sort.key]) {
+      rows = [...rows].sort(sorters[sort.key]);
+      if (sort.dir === "descend") rows.reverse();
+    }
     return rows;
-  }, [data, search, statusFilter]);
+  }, [data, search, statusFilter, sort, sorters]);
 
   const currency = data?.currency ?? "";
   const goalMetric = data ? getTotalGoalLabel(data, t) : null;
 
-  const columns: ColumnsType<CampaignSummaryRow> = useMemo(() => {
-    const actionCol: ColumnsType<CampaignSummaryRow>[number] = {
+  const columns: DataTableColumn<CampaignSummaryRow>[] = useMemo(() => {
+    const sortTitle = (label: React.ReactNode, key: string) => (
+      <SortTitle label={label} colKey={key} sort={sort} onSort={toggleSort} />
+    );
+
+    const actionCol: DataTableColumn<CampaignSummaryRow> = {
       title: "",
       key: "action",
       width: 40,
       render: (_: unknown, row: CampaignSummaryRow) => (
         <Button
-          type="text"
-          size="small"
-          icon={<RightOutlined />}
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          aria-label={t("meta.deepdive.backToCampaigns")}
           onClick={(e) => {
             e.stopPropagation();
             if (accountId) navigate(accountCampaignPath(accountId, row.campaignId));
           }}
-        />
+        >
+          <ChevronRight aria-hidden="true" className="size-4" />
+        </Button>
       ),
     };
 
     if (isMobile) {
       return [
         {
-          title: t("analytics.table.campaign"),
+          title: sortTitle(t("analytics.table.campaign"), "name"),
           dataIndex: "campaignName",
           key: "name",
-          sorter: (a, b) => a.campaignName.localeCompare(b.campaignName),
-          ellipsis: true,
-          render: (name: string, row: CampaignSummaryRow) => (
-            <Flex vertical gap={2}>
-              <Typography.Text strong style={{ fontSize: 13 }}>{name}</Typography.Text>
-              <Flex gap={4} wrap="wrap">
-                <Tag color={statusColor(row.status ?? "ACTIVE")} style={{ fontSize: 10, padding: "0 4px", lineHeight: "16px", margin: 0 }}>
+          render: (name: unknown, row: CampaignSummaryRow) => (
+            <div className="flex flex-col gap-0.5">
+              <span className="truncate text-[13px] font-semibold">{name as string}</span>
+              <div className="flex flex-wrap gap-1">
+                <Badge
+                  variant={statusVariant(row.status ?? "ACTIVE")}
+                  className="px-1 py-0 text-[10px] leading-4"
+                >
                   {(row.status ?? "ACTIVE").toUpperCase()}
-                </Tag>
+                </Badge>
                 {row.objective && (
-                  <Tag color={goalKindColor(classifyCampaignObjective(row.objective))} style={{ fontSize: 10, padding: "0 4px", lineHeight: "16px", margin: 0 }}>
+                  <Badge
+                    className={cn(
+                      "px-1 py-0 text-[10px] leading-4",
+                      goalKindClass(classifyCampaignObjective(row.objective)),
+                    )}
+                  >
                     {t(goalKindI18nKey(classifyCampaignObjective(row.objective)))}
-                  </Tag>
+                  </Badge>
                 )}
-              </Flex>
-            </Flex>
+              </div>
+            </div>
           ),
         },
         {
-          title: t("analytics.table.spend"),
+          title: sortTitle(t("analytics.table.spend"), "spend"),
           dataIndex: "spend",
           key: "spend",
           width: 90,
-          sorter: (a, b) => a.spend - b.spend,
-          defaultSortOrder: "descend",
-          render: (v: number) => (
-            <Typography.Text strong style={{ fontSize: 12 }}>{v.toFixed(0)} {currency}</Typography.Text>
+          render: (v: unknown) => (
+            <span className="text-xs font-semibold tabular-nums">{(v as number).toFixed(0)} {currency}</span>
           ),
         },
         {
-          title: t("meta.panel.result"),
+          title: sortTitle(t("meta.panel.result"), "result"),
           key: "result",
           width: 80,
           render: (_: unknown, row: CampaignSummaryRow) => {
             const m = getPrimaryGoalDisplay(row, t);
             return (
-              <Flex vertical gap={0}>
-                <Typography.Text strong style={{ fontSize: 13 }}>{m.value}</Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: 10 }}>{m.label}</Typography.Text>
-              </Flex>
+              <div className="flex flex-col">
+                <span className="text-[13px] font-semibold tabular-nums">{m.value}</span>
+                <span className="text-[10px] text-muted-foreground">{m.label}</span>
+              </div>
             );
           },
-          sorter: (a, b) => primaryGoalSortValue(a) - primaryGoalSortValue(b),
         },
         actionCol,
       ];
@@ -244,98 +308,87 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
 
     return [
       {
-        title: t("analytics.table.campaign"),
+        title: sortTitle(t("analytics.table.campaign"), "name"),
         dataIndex: "campaignName",
         key: "name",
-        sorter: (a, b) => a.campaignName.localeCompare(b.campaignName),
-        ellipsis: true,
-        render: (name: string, row: CampaignSummaryRow) => (
-          <Flex vertical gap={2}>
-            <Typography.Text strong>{name}</Typography.Text>
+        render: (name: unknown, row: CampaignSummaryRow) => (
+          <div className="flex flex-col gap-0.5">
+            <span className="truncate font-semibold">{name as string}</span>
             {row.objective && (
-              <Tag
-                color={goalKindColor(classifyCampaignObjective(row.objective))}
-                style={{ fontSize: 10, padding: "0 4px", lineHeight: "16px", width: "fit-content" }}
+              <Badge
+                className={cn(
+                  "w-fit px-1 py-0 text-[10px] leading-4",
+                  goalKindClass(classifyCampaignObjective(row.objective)),
+                )}
               >
                 {row.objective.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
-              </Tag>
+              </Badge>
             )}
-          </Flex>
+          </div>
         ),
       },
       {
-        title: t("meta.panel.goalType"),
+        title: sortTitle(t("meta.panel.goalType"), "goalKind"),
         key: "goalKind",
         width: 120,
         render: (_: unknown, row: CampaignSummaryRow) => {
           const kind = classifyCampaignObjective(row.objective);
           return (
-            <Tag color={goalKindColor(kind)} style={{ margin: 0 }}>
+            <Badge className={goalKindClass(kind)}>
               {t(goalKindI18nKey(kind))}
-            </Tag>
+            </Badge>
           );
-        },
-        sorter: (a, b) => {
-          const ka = goalKindI18nKey(classifyCampaignObjective(a.objective));
-          const kb = goalKindI18nKey(classifyCampaignObjective(b.objective));
-          return ka.localeCompare(kb);
         },
       },
       {
-        title: t("meta.panel.status"),
+        title: sortTitle(t("meta.panel.status"), "status"),
         dataIndex: "status",
         key: "status",
         width: 100,
-        render: (s: string) => (
-          <Tag color={statusColor(s)}>{(s ?? "-").toUpperCase()}</Tag>
+        render: (s: unknown) => (
+          <Badge variant={statusVariant(s as string)}>{((s as string) ?? "-").toUpperCase()}</Badge>
         ),
-        sorter: (a, b) => (a.status ?? "").localeCompare(b.status ?? ""),
       },
       {
-        title: t("analytics.table.spend"),
+        title: sortTitle(t("analytics.table.spend"), "spend"),
         dataIndex: "spend",
         key: "spend",
         width: 120,
-        sorter: (a, b) => a.spend - b.spend,
-        defaultSortOrder: "descend",
-        render: (v: number) => (
-          <Typography.Text strong>{v.toFixed(2)} {currency}</Typography.Text>
+        render: (v: unknown) => (
+          <span className="font-semibold tabular-nums">{(v as number).toFixed(2)} {currency}</span>
         ),
       },
       {
-        title: t("meta.panel.result"),
+        title: sortTitle(t("meta.panel.result"), "result"),
         key: "result",
         width: 200,
         render: (_: unknown, row: CampaignSummaryRow) => {
           const m = getPrimaryGoalDisplay(row, t);
           return (
-            <Flex vertical gap={0}>
-              <Typography.Text strong>{m.value}</Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: 11 }}>{m.label}</Typography.Text>
-            </Flex>
+            <div className="flex flex-col">
+              <span className="font-semibold tabular-nums">{m.value}</span>
+              <span className="text-[11px] text-muted-foreground">{m.label}</span>
+            </div>
           );
         },
-        sorter: (a, b) => primaryGoalSortValue(a) - primaryGoalSortValue(b),
       },
       {
-        title: t("analytics.table.impressions"),
+        title: sortTitle(t("analytics.table.impressions"), "impr"),
         dataIndex: "impressions",
         key: "impr",
         width: 120,
-        sorter: (a, b) => a.impressions - b.impressions,
-        render: (v: number) => v.toLocaleString(),
+        render: (v: unknown) => <span className="tabular-nums">{(v as number).toLocaleString()}</span>,
       },
       {
-        title: t("analytics.table.ctr"),
+        title: sortTitle(t("analytics.table.ctr"), "ctr"),
         dataIndex: "ctr",
         key: "ctr",
         width: 90,
-        sorter: (a, b) => a.ctr - b.ctr,
-        render: (v: number) => `${v.toFixed(2)}%`,
+        render: (v: unknown) => <span className="tabular-nums">{`${(v as number).toFixed(2)}%`}</span>,
       },
       actionCol,
     ];
-  }, [t, currency, accountId, navigate, isMobile]);
+  }, [t, currency, accountId, navigate, isMobile, sort, toggleSort]);
 
   const updatedAtText = data?.updatedAt
     ? new Date(data.updatedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
@@ -343,18 +396,23 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
 
   if (loading && !data) {
     return (
-      <Flex vertical gap={24} style={{ width: "100%" }}>
-        <Row gutter={[16, 16]}>
+      <div className="flex w-full flex-col gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2].map((k) => (
-            <Col key={k} xs={24} sm={12} lg={8}>
-              <Card size="small">
-                <Skeleton active title paragraph={{ rows: 1 }} />
-              </Card>
-            </Col>
+            <Card key={k} className="p-4">
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-7 w-1/2" />
+              </div>
+            </Card>
           ))}
-        </Row>
-        <Skeleton active paragraph={{ rows: 8 }} />
-      </Flex>
+        </div>
+        <div className="flex flex-col gap-3">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
+            <Skeleton key={k} className="h-4 w-full" />
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -371,119 +429,116 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
     );
   }
 
+  const exportDisabled = !data || filteredRows.length === 0;
+
   return (
-    <Flex vertical gap={24} style={{ width: "100%" }}>
+    <div className="flex w-full flex-col gap-6">
       {/* Top KPI bar */}
       {data && goalMetric && (
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <KpiStatCard
-              title={t("analytics.stats.spend")}
-              value={data.totals.spend}
-              suffix={currency}
-              precision={2}
-            />
-          </Col>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <KpiStatCard
+            title={t("analytics.stats.spend")}
+            value={data.totals.spend}
+            suffix={currency}
+            precision={2}
+          />
           {goalMetric.value !== "0" && (
-            <Col xs={24} sm={12} lg={8}>
-              <KpiStatCard title={goalMetric.label} value={goalMetric.value} />
-            </Col>
+            <KpiStatCard title={goalMetric.label} value={goalMetric.value} />
           )}
-          <Col xs={24} sm={12} lg={8}>
-            <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
-          </Col>
-        </Row>
+          <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
+        </div>
       )}
 
       {/* Campaign list: toolbar + table in one card */}
-      <Card styles={{ body: { padding: 16 } }}>
-        <Flex vertical gap={16}>
-          <Flex gap={8} wrap="wrap" align="center" justify="space-between">
-            <Flex gap={8} wrap="wrap" flex={1} style={{ minWidth: 0 }}>
-              <Input
-                prefix={<SearchOutlined />}
-                placeholder={t("meta.panel.searchPlaceholder")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                allowClear
-                style={{ width: isMobile ? "100%" : 220 }}
-              />
-              <Select<StatusFilter>
-                value={statusFilter}
-                onChange={setStatusFilter}
-                style={{ width: 130 }}
-                options={[
-                  { value: "ALL", label: t("meta.panel.filterAll") },
-                  { value: "ACTIVE", label: t("meta.panel.filterActive") },
-                  { value: "PAUSED", label: t("meta.panel.filterPaused") },
-                ]}
-              />
-              <ConfigProvider direction="ltr">
-                <RangePicker
-                  value={dateRange ? [dateRange[0], dateRange[1]] : null}
-                  onChange={(val) => setDateRange(val as DateRange)}
-                  presets={[
-                    { label: t("analytics.period.last7Days"), value: [dayjs().subtract(6, "day"), dayjs()] },
-                    { label: t("analytics.period.last30Days"), value: [dayjs().subtract(29, "day"), dayjs()] },
-                    { label: t("analytics.period.last90Days"), value: [dayjs().subtract(89, "day"), dayjs()] },
-                  ]}
-                  format="YYYY-MM-DD"
-                  style={{ width: isMobile ? "100%" : 240 }}
+      <Card className="p-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              <div className={cn("relative", isMobile ? "w-full" : "w-[220px]")}>
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                 />
-              </ConfigProvider>
-            </Flex>
-            <Flex gap={8} align="center">
+                <Input
+                  placeholder={t("meta.panel.searchPlaceholder")}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="ps-8 pe-8"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    aria-label={t("common.clear", { defaultValue: "Clear" })}
+                    onClick={() => setSearch("")}
+                    className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <X aria-hidden="true" className="size-3.5" />
+                  </button>
+                )}
+              </div>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">{t("meta.panel.filterAll")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("meta.panel.filterActive")}</SelectItem>
+                  <SelectItem value="PAUSED">{t("meta.panel.filterPaused")}</SelectItem>
+                </SelectContent>
+              </Select>
+              <DateRangeControl value={dateRange} onChange={setDateRange} className={isMobile ? "w-full" : undefined} />
+            </div>
+            <div className="flex items-center gap-2">
               {updatedAtText && (
-                <Typography.Text
-                  type="secondary"
-                  style={{ fontSize: 12, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}
-                >
-                  <SyncOutlined style={{ marginInlineEnd: 4 }} />
+                <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground tabular-nums">
+                  <RefreshCw aria-hidden="true" className="size-3" />
                   {t("meta.panel.updatedAt", { time: updatedAtText })}
-                </Typography.Text>
+                </span>
               )}
-              <Dropdown
-                disabled={!data || filteredRows.length === 0}
-                menu={{
-                  items: [
-                    {
-                      key: "csv",
-                      icon: <FileTextOutlined />,
-                      label: t("meta.panel.exportCsv"),
-                      onClick: () => data && exportCampaignListCsv(filteredRows, currency),
-                    },
-                    {
-                      key: "pdf",
-                      icon: <FilePdfOutlined />,
-                      label: t("meta.panel.exportPdf"),
-                      onClick: () => data && exportCampaignListPdf(filteredRows, currency, data.periodLabel),
-                    },
-                  ],
-                }}
+              <MenuDropdown
+                disabled={exportDisabled}
+                align="end"
+                items={[
+                  {
+                    key: "csv",
+                    icon: <FileSpreadsheet aria-hidden="true" className="size-4" />,
+                    label: t("meta.panel.exportCsv"),
+                    onClick: () => data && exportCampaignListCsv(filteredRows, currency),
+                  },
+                  {
+                    key: "pdf",
+                    icon: <FileText aria-hidden="true" className="size-4" />,
+                    label: t("meta.panel.exportPdf"),
+                    onClick: () => data && exportCampaignListPdf(filteredRows, currency, data.periodLabel),
+                  },
+                ]}
               >
-                <Button icon={<DownloadOutlined />} disabled={!data || filteredRows.length === 0}>
-                  {!isMobile && t("meta.panel.export")}{" "}
+                <Button variant="outline" disabled={exportDisabled}>
+                  <Download aria-hidden="true" />
+                  {!isMobile && t("meta.panel.export")}
                 </Button>
-              </Dropdown>
-              <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={loading}>
+              </MenuDropdown>
+              <Button variant="outline" onClick={() => void refresh()} disabled={loading}>
+                {loading
+                  ? <Spinner size="sm" className="text-current" aria-hidden="true" />
+                  : <RefreshCw aria-hidden="true" />}
                 {!isMobile && t("common.reload")}
               </Button>
-            </Flex>
-          </Flex>
+            </div>
+          </div>
 
-          <ConfigProvider direction="ltr">
-            <Table<CampaignSummaryRow>
+          <div dir="ltr">
+            <DataTable<CampaignSummaryRow>
               loading={loading}
               rowKey="campaignId"
               size="middle"
               dataSource={filteredRows}
               columns={columns}
-              pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: [10, 25, 50, 100] }}
+              pagination={{ pageSize: 25 }}
               locale={{
                 emptyText:
                   statusFilter !== "ALL" ? (
                     <EmptyState
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
                       title={t("meta.panel.noFilteredCampaigns")}
                       action={{
                         label: t("meta.panel.showAllStatuses"),
@@ -493,7 +548,7 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
                       style={{ padding: "24px 0" }}
                     />
                   ) : (
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("analytics.empty.title")} />
+                    <EmptyState title={t("analytics.empty.title")} style={{ padding: "24px 0" }} />
                   ),
               }}
               onRow={(row) => ({
@@ -503,9 +558,9 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
                 style: { cursor: "pointer" },
               })}
             />
-          </ConfigProvider>
-        </Flex>
+          </div>
+        </div>
       </Card>
-    </Flex>
+    </div>
   );
 }

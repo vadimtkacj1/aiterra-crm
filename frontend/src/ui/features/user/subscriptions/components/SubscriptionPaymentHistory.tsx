@@ -1,9 +1,8 @@
-import { Table, Typography } from "antd";
-import type { ColumnsType } from "antd/es/table";
 import type { TFunction } from "i18next";
 import type { SubscriptionPayment } from "@/services/admin/AdminService";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { formatDateTime, formatMoney, getPaymentStatusColor } from "@/ui/shared/utils/subscriptionUtils";
-import { Tag } from "antd";
 
 interface Props {
   payments: SubscriptionPayment[];
@@ -11,53 +10,51 @@ interface Props {
 }
 
 export function SubscriptionPaymentHistory({ payments, t }: Props) {
-  const columns: ColumnsType<SubscriptionPayment> = [
+  const columns: DataTableColumn<SubscriptionPayment>[] = [
     {
       title: "#",
       dataIndex: "payment_number",
       key: "payment_number",
       width: 60,
-      render: (num: number) => <Typography.Text strong>#{num}</Typography.Text>,
+      render: (num) => <span className="font-semibold tabular-nums">#{num as number}</span>,
     },
     {
       title: t("admin.contracts.subscription.amount"),
       key: "amount",
-      render: (_, r) => formatMoney(r.amount, r.currency),
+      render: (_, r) => <span className="tabular-nums">{formatMoney(r.amount, r.currency)}</span>,
     },
     {
       title: t("admin.contracts.subscription.status"),
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Tag color={getPaymentStatusColor(status)}>
-          {t(`admin.contracts.subscription.payState.${status}`, { defaultValue: status })}
-        </Tag>
+      render: (status) => (
+        <Badge variant={getPaymentStatusColor(status as string) as BadgeProps["variant"]}>
+          {t(`admin.contracts.subscription.payState.${status as string}`, { defaultValue: status as string })}
+        </Badge>
       ),
     },
     {
       title: t("admin.contracts.subscription.paidAt"),
       dataIndex: "paid_at",
       key: "paid_at",
-      render: (date: string) => formatDateTime(date),
+      render: (date) => <span className="tabular-nums">{formatDateTime(date as string)}</span>,
     },
     {
       title: t("admin.contracts.subscription.transactionId"),
       dataIndex: "zcredit_transaction_id",
       key: "zcredit_transaction_id",
-      render: (id: string | null) => (
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          {id || "-"}
-        </Typography.Text>
+      render: (id) => (
+        <span className="text-xs text-muted-foreground">{(id as string | null) || "-"}</span>
       ),
     },
   ];
 
   return (
     <div>
-      <Typography.Title level={5} style={{ marginBottom: 12 }}>
+      <h5 className="mb-3 mt-0 text-base font-semibold">
         {t("admin.contracts.subscription.paymentHistory")}
-      </Typography.Title>
-      <Table
+      </h5>
+      <DataTable<SubscriptionPayment>
         dataSource={payments}
         columns={columns}
         rowKey="id"

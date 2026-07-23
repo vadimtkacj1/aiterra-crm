@@ -1,11 +1,16 @@
-﻿import { ReloadOutlined } from "@ant-design/icons";
-import { App, Alert, Button, Card, Flex, Skeleton } from "antd";
+import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CheckoutLocationState } from "../checkout/checkoutTypes";
 import type { MetaAccountBilling } from "@/domain/CampaignAnalytics";
 import type { BillingOverview, PendingPaymentAction, UserBillingHistoryRow } from "@/services/billing/IBillingService";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { message } from "@/lib/toast";
 import { useApp } from "@/app/AppProviders";
 import { useAccountLayoutOutlet } from "@/ui/layouts/accountLayoutContext";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
@@ -14,15 +19,12 @@ import { BillingHistorySection } from "../components/BillingHistorySection";
 import { MetaBillingCard } from "../components/MetaBillingCard";
 import { PaymentsSection } from "../components/PaymentsSection";
 import { PendingInvoicePanel } from "../components/PendingInvoicePanel";
-import { appLocaleFromLanguage, billingShell } from "../components/billingUtils";
+import { appLocaleFromLanguage } from "../components/billingUtils";
 
 export function BillingPage() {
   const { t, i18n } = useTranslation();
   const { services, isAdmin } = useApp();
-  const { message } = App.useApp();
   const navigate = useNavigate();
-  const messageRef = useRef(message);
-  messageRef.current = message;
   const tRef = useRef(t);
   tRef.current = t;
   const { currentAccount } = useAccountLayoutOutlet();
@@ -41,7 +43,7 @@ export function BillingPage() {
       const data = await services.billing.fetchOverview(accountId ?? "0");
       setOverview(data);
     } catch (e) {
-      messageRef.current.error(e instanceof Error ? e.message : tRef.current("billing.loadError"));
+      message.error(e instanceof Error ? e.message : tRef.current("billing.loadError"));
     } finally {
       setLoading(false);
     }
@@ -93,51 +95,41 @@ export function BillingPage() {
     void loadMetaBilling();
   };
 
+  const reloading = (isAdmin ? false : loading) || metaLoading;
+
   return (
     <UserContentLayout>
       <PageHeader
         title={t("billing.title")}
         subtitle={isAdmin ? undefined : t("billing.subtitle")}
         extra={
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={reloadAll}
-            loading={(isAdmin ? false : loading) || metaLoading}
-          >
+          <Button variant="outline" onClick={reloadAll} disabled={reloading}>
+            {reloading ? (
+              <Spinner size="sm" className="text-current" aria-hidden="true" />
+            ) : (
+              <RefreshCw aria-hidden="true" />
+            )}
             {t("common.reload")}
           </Button>
         }
       />
-      <Flex vertical gap={24}>
+      <div className="flex flex-col gap-6">
         {!isAdmin && currentAccount && !currentAccount.hasMeta ? (
           <Alert
-            type="info"
-            showIcon
-            message={t("billing.noMetaBannerTitle")}
+            variant="info"
+            title={t("billing.noMetaBannerTitle")}
             description={t("billing.noMetaBannerDesc")}
           />
         ) : null}
 
         {!isAdmin && !loading && overview?.pendingPayments && overview.pendingPayments.length > 0 ? (
-          <Card
-            title={
-              <span style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.01em" }}>
+          <Card className="rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
+            <div className="flex min-h-11 items-center border-b border-(--ds-border-subtle) px-4 pb-2.5 pt-3">
+              <span className="text-[15px] font-semibold tracking-[-0.01em]">
                 {t("billing.pendingPaymentsTitle")}
               </span>
-            }
-            size="small"
-            variant="borderless"
-            styles={{
-              header: { borderBottom: `1px solid ${billingShell.borderInner}`, paddingBottom: 10, minHeight: 44 },
-              body: { paddingTop: 16, paddingBottom: 16 },
-            }}
-            style={{
-              borderRadius: billingShell.radiusMd,
-              boxShadow: billingShell.shadow,
-              border: `1px solid ${billingShell.borderInner}`,
-            }}
-          >
-            <Flex vertical gap={10}>
+            </div>
+            <div className="flex flex-col gap-2.5 px-4 py-4">
               {overview.pendingPayments.map((p, idx) => (
                 <PendingInvoicePanel
                   key={`${p.id}-${idx}`}
@@ -146,7 +138,7 @@ export function BillingPage() {
                   onCheckout={(intent) => goToCheckout(p, intent)}
                 />
               ))}
-            </Flex>
+            </div>
           </Card>
         ) : null}
 
@@ -154,7 +146,15 @@ export function BillingPage() {
 
         {!isAdmin && (
           loading
-            ? <Skeleton active paragraph={{ rows: 4 }} style={{ padding: "16px 0" }} />
+            ? (
+              <div className="space-y-3 py-4">
+                <Skeleton className="h-4 w-2/5" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/5" />
+              </div>
+            )
             : <PaymentsSection
                 overview={overview}
                 loading={loading}
@@ -169,7 +169,7 @@ export function BillingPage() {
           appLocale={appLocale}
           accountId={accountId ?? "0"}
         />
-      </Flex>
+      </div>
     </UserContentLayout>
   );
 }

@@ -1,9 +1,13 @@
-import { CodeOutlined, CopyOutlined, LinkOutlined, ReloadOutlined, SendOutlined } from "@ant-design/icons";
-import { App, Button, Card, Input, Popconfirm, Space, Tag, Typography } from "antd";
+import { Code, Copy, Link, RefreshCw, Send } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
-const { Text, Paragraph } = Typography;
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { confirm } from "@/lib/confirm";
+import { message } from "@/lib/toast";
 
 interface Props {
   accountId: string;
@@ -16,7 +20,6 @@ interface Props {
 
 export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onTokenRegenerated, regenerateToken, sendTestNotification }: Props) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const [regenerating, setRegenerating] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [testSending, setTestSending] = useState(false);
@@ -39,7 +42,7 @@ export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onToke
 
   function copyToClipboard(text: string, key: string) {
     void navigator.clipboard.writeText(text).then(() => {
-      void message.success(t(`site.integration.copied.${key}`));
+      message.success(t(`site.integration.copied.${key}`));
     });
   }
 
@@ -49,10 +52,10 @@ export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onToke
       const config = await regenerateToken(accountId);
       if (config.publicToken) {
         onTokenRegenerated(config.publicToken);
-        void message.success(t("site.integration.regenerated"));
+        message.success(t("site.integration.regenerated"));
       }
     } catch {
-      void message.error(t("site.integration.regenerateError"));
+      message.error(t("site.integration.regenerateError"));
     } finally {
       setRegenerating(false);
     }
@@ -63,127 +66,117 @@ export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onToke
     setTestSending(true);
     try {
       await sendTestNotification(accountId, testEmail);
-      void message.success(t("site.integration.testSent"));
+      message.success(t("site.integration.testSent"));
     } catch {
-      void message.error(t("site.integration.testError"));
+      message.error(t("site.integration.testError"));
     } finally {
       setTestSending(false);
     }
   }
 
   return (
-    <Card
-      title={
-        <>
-          <CodeOutlined style={{ marginRight: 8 }} />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Code className="size-4" />
           {t("site.integration.title")}
-        </>
-      }
-    >
-      <Space direction="vertical" size={20} style={{ width: "100%" }}>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
         <div>
-          <Text type="secondary" style={{ display: "block", marginBottom: 6 }}>
+          <span className="mb-1.5 block text-sm text-muted-foreground">
             {t("site.integration.tokenLabel")}
-          </Text>
-          <Space wrap>
-            <Tag color="blue" style={{ fontSize: 13, padding: "2px 10px", fontFamily: "monospace" }}>
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="primary" className="px-2.5 py-0.5 font-mono text-[13px]">
               {token}
-            </Tag>
-            <Button
-              size="small"
-              icon={<CopyOutlined />}
-              onClick={() => copyToClipboard(token, "token")}
-            >
+            </Badge>
+            <Button variant="outline" size="sm" onClick={() => copyToClipboard(token, "token")}>
+              <Copy />
               {t("site.integration.copy")}
             </Button>
-            <Popconfirm
-              title={t("site.integration.regenerateConfirm")}
-              onConfirm={() => void handleRegenerate()}
-              okText={t("site.integration.regenerateOk")}
-              cancelText={t("site.integration.regenerateCancel")}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={regenerating}
+              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() =>
+                confirm({
+                  title: t("site.integration.regenerateConfirm"),
+                  okText: t("site.integration.regenerateOk"),
+                  cancelText: t("site.integration.regenerateCancel"),
+                  danger: true,
+                  onOk: () => void handleRegenerate(),
+                })
+              }
             >
-              <Button size="small" icon={<ReloadOutlined />} loading={regenerating} danger>
-                {t("site.integration.regenerateBtn")}
-              </Button>
-            </Popconfirm>
-          </Space>
-          <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: 12 }}>
+              {regenerating ? <Spinner size="sm" className="text-current" /> : <RefreshCw />}
+              {t("site.integration.regenerateBtn")}
+            </Button>
+          </div>
+          <span className="mt-1 block text-xs text-muted-foreground">
             {t("site.integration.tokenHint")}
-          </Text>
+          </span>
         </div>
 
         <div>
-          <Text type="secondary" style={{ display: "block", marginBottom: 6 }}>
+          <span className="mb-1.5 block text-sm text-muted-foreground">
             {t("site.integration.endpointLabel")}
-          </Text>
-          <Space>
-            <Tag icon={<LinkOutlined />} style={{ fontSize: 12, padding: "2px 8px" }}>
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="px-2 py-0.5 text-xs" dir="ltr">
+              <Link />
               POST {endpoint}
-            </Tag>
-            <Button
-              size="small"
-              icon={<CopyOutlined />}
-              onClick={() => copyToClipboard(endpoint, "endpoint")}
-            >
+            </Badge>
+            <Button variant="outline" size="sm" onClick={() => copyToClipboard(endpoint, "endpoint")}>
+              <Copy />
               {t("site.integration.copy")}
             </Button>
-          </Space>
+          </div>
         </div>
 
         <div>
-          <Space style={{ marginBottom: 6 }}>
-            <Text type="secondary">{t("site.integration.snippetLabel")}</Text>
-            <Button
-              size="small"
-              icon={<CopyOutlined />}
-              onClick={() => copyToClipboard(snippet, "snippet")}
-            >
+          <div className="mb-1.5 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{t("site.integration.snippetLabel")}</span>
+            <Button variant="outline" size="sm" onClick={() => copyToClipboard(snippet, "snippet")}>
+              <Copy />
               {t("site.integration.copy")}
             </Button>
-          </Space>
-          <Paragraph
-            style={{
-              background: "#1a1a2e",
-              color: "#a8dadc",
-              padding: "12px 16px",
-              borderRadius: 6,
-              fontFamily: "monospace",
-              fontSize: 12,
-              whiteSpace: "pre",
-              overflowX: "auto",
-              margin: 0,
-            }}
+          </div>
+          <pre
+            dir="ltr"
+            className="m-0 overflow-x-auto rounded-md px-4 py-3 font-mono text-xs whitespace-pre"
+            style={{ background: "#1a1a2e", color: "#a8dadc" }}
           >
             {snippet}
-          </Paragraph>
+          </pre>
         </div>
 
         {sendTestNotification && (
           <div>
-            <Text type="secondary" style={{ display: "block", marginBottom: 6 }}>
+            <span className="mb-1.5 block text-sm text-muted-foreground">
               {t("site.integration.testLabel")}
-            </Text>
-            <Space>
+            </span>
+            <div className="flex items-center gap-2">
               <Input
-                size="small"
                 placeholder="email@example.com"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                style={{ width: 220 }}
+                className="h-8 w-[220px] text-xs"
               />
               <Button
-                size="small"
-                icon={<SendOutlined />}
-                loading={testSending}
-                disabled={!testEmail}
+                variant="outline"
+                size="sm"
+                disabled={testSending || !testEmail}
                 onClick={() => void handleSendTest()}
               >
+                {testSending ? <Spinner size="sm" className="text-current" /> : <Send />}
                 {t("site.integration.testBtn")}
               </Button>
-            </Space>
+            </div>
           </div>
         )}
-      </Space>
+      </CardContent>
     </Card>
   );
 }

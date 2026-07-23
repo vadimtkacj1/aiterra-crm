@@ -1,98 +1,49 @@
-﻿import { GlobalOutlined } from "@ant-design/icons";
-import { Card, Grid, Select, Typography } from "antd";
+import { Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import logoUrl from "@/assets/logo-black.svg";
 import { defaultLanguage } from "@/i18n";
 import { Paths } from "@/ui/navigation/paths";
-import { tokens } from "@/styles/designSystem";
+import { Card } from "@/components/ui/card";
 import { LoginForm } from "../components/LoginForm";
 
 export function LoginPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.sm;
 
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? Paths.accounts;
   const currentLang = i18n.language.startsWith("he") ? "he" : "en";
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: isMobile ? 16 : 24,
-        position: "relative",
-        background: tokens.colors.surface1,
-      }}
-    >
-      {/* Language switcher — fixed so it's always visible regardless of scroll */}
-      <div
-        style={{
-          position: "fixed",
-          top: 16,
-          right: 16,
-          zIndex: 200,
-          background: "#ffffff",
-          borderRadius: 8,
-          boxShadow: tokens.shadow.sm,
-          padding: "2px",
-        }}
-      >
-        <Select
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-muted p-4 sm:p-6">
+      {/* Language switcher — fixed so it's always visible */}
+      <div className="fixed end-4 top-4 z-50 flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 shadow-sm">
+        <Globe className="size-4 text-muted-foreground" />
+        <select
           value={currentLang}
-          style={{ minWidth: 130 }}
-          variant="borderless"
-          suffixIcon={<GlobalOutlined style={{ color: tokens.colors.textTertiary }} />}
+          onChange={(e) => void i18n.changeLanguage(e.target.value || defaultLanguage)}
           aria-label={t("common.language")}
-          options={[
-            { value: "en", label: t("common.english") },
-            { value: "he", label: t("common.hebrew") },
-          ]}
-          onChange={(lng: string) => void i18n.changeLanguage(lng ?? defaultLanguage)}
-        />
+          className="cursor-pointer bg-transparent text-sm text-foreground outline-none"
+        >
+          <option value="he">{t("common.hebrew")}</option>
+          <option value="en">{t("common.english")}</option>
+        </select>
       </div>
 
-      <Card
-        style={{
-          width: "100%",
-          maxWidth: 420,
-          borderRadius: 12,
-          border: "none",
-          boxShadow: tokens.shadow.lg,
-          background: "#ffffff",
-        }}
-        styles={{ body: { padding: isMobile ? 24 : 36 } }}
-      >
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-          <img
-            src={logoUrl}
-            alt={t("layout.brand")}
-            width={isMobile ? 72 : 88}
-            height={isMobile ? 72 : 88}
-            style={{ display: "block" }}
-          />
+      <Card className="w-full max-w-[420px] p-8 shadow-lg sm:p-9">
+        <div className="mb-6 flex justify-center">
+          <img src={logoUrl} alt={t("layout.brand")} className="size-20 sm:size-24" />
         </div>
 
-        <Typography.Title
-          level={isMobile ? 4 : 3}
-          style={{ textAlign: "center", marginBottom: 6, fontWeight: 700, color: tokens.colors.textPrimary }}
-        >
+        <h1 className="mb-1.5 text-center text-2xl font-bold tracking-tight text-foreground">
           {t("login.title")}
-        </Typography.Title>
-
-        <Typography.Paragraph
-          style={{ textAlign: "center", color: tokens.colors.textSecondary, fontSize: 14, margin: "0 0 28px" }}
-        >
+        </h1>
+        <p className="mb-7 text-center text-sm text-muted-foreground">
           {t("login.hint")}
-        </Typography.Paragraph>
+        </p>
 
-        <LoginForm isMobile={isMobile} onSuccess={() => navigate(from, { replace: true })} />
+        <LoginForm onSuccess={() => navigate(from, { replace: true })} />
       </Card>
     </div>
   );

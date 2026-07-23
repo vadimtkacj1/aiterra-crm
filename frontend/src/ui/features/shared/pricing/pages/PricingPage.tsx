@@ -50,7 +50,7 @@ function PlanCard({
         <ul className="mb-6 grid gap-2 text-start text-sm">
           {features.map((f) => (
             <li key={f} className="flex items-start gap-2">
-              <Check className="mt-0.5 size-4 shrink-0 text-[color:var(--success)]" />
+              <Check className="mt-0.5 size-4 shrink-0 text-success" />
               <span>{f}</span>
             </li>
           ))}

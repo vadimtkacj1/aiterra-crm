@@ -1,19 +1,20 @@
-import { CheckCircleFilled, LockOutlined } from "@ant-design/icons";
-import { Button, Card, Form, Input, Typography, App } from "antd";
-import { useState } from "react";
+import { Check, Lock } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SiteFooter } from "@/ui/shared/components/SiteFooter";
 import { Paths } from "@/ui/navigation/paths";
-import { tokens } from "@/styles/designSystem";
-
-const { Title, Paragraph, Text } = Typography;
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
 
 const PRODUCT = {
   title: "דף נחיתה מקצועי — מנוי ל‑12 חודשים",
   priceLabel: "₪2,400",
-  vatNote: "כולל מע\"מ · חיוב חד‑פעמי ל‑12 חודשים",
+  vatNote: 'כולל מע"מ · חיוב חד‑פעמי ל‑12 חודשים',
   features: [
     "עיצוב ובניית דף נחיתה מותאם אישית",
     "אחסון, דומיין ותחזוקה ל‑12 חודשים",
@@ -22,19 +23,20 @@ const PRODUCT = {
   ],
 };
 
-type FormValues = { name: string; email: string };
-
 export function BuyLandingPage() {
-  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: FormValues) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/public/landing-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: values.name.trim(), email: values.email.trim() }),
+        body: JSON.stringify({ name, email }),
       });
       if (!res.ok) {
         const detail = await res.json().catch(() => null);
@@ -43,11 +45,10 @@ export function BuyLandingPage() {
       const data = (await res.json()) as { paymentUrl?: string };
       const url = (data.paymentUrl || "").trim();
       if (!url) throw new Error("no_payment_url");
-      // Hand off to the secure Z-Credit hosted payment page
-      window.location.assign(url);
-    } catch (e) {
-      void message.error(
-        e instanceof Error && e.message === "zcredit_not_configured"
+      window.location.assign(url); // hand off to Z-Credit hosted payment page
+    } catch (err) {
+      toast.error(
+        err instanceof Error && err.message === "zcredit_not_configured"
           ? "התשלום אינו זמין כרגע. נסו שוב מאוחר יותר."
           : "אירעה שגיאה בפתיחת עמוד התשלום. נסו שוב.",
       );
@@ -56,67 +57,53 @@ export function BuyLandingPage() {
   };
 
   return (
-    <div dir="rtl" style={{ minHeight: "100vh", background: tokens.colors.surface1, display: "flex", flexDirection: "column" }}>
+    <div dir="rtl" className="flex min-h-screen flex-col bg-muted">
       {/* Header */}
-      <div style={{ background: tokens.colors.primaryDark, padding: "16px 40px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link to={Paths.root} style={{ color: "#fff", fontSize: 18, fontWeight: 700 }}>
-          Aiterra CRM
-        </Link>
-        <Link to={Paths.login} style={{ color: "rgba(255,255,255,0.75)", fontSize: 14 }}>
-          כניסה / הרשמה
-        </Link>
+      <div className="flex items-center justify-between bg-[#2e1fa3] px-6 py-4 sm:px-10">
+        <Link to={Paths.root} className="text-lg font-bold text-white">Aiterra CRM</Link>
+        <Link to={Paths.login} className="text-sm text-white/75 hover:text-white">כניסה / הרשמה</Link>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px" }}>
-        <Card
-          style={{ width: "100%", maxWidth: 520, borderRadius: 16, boxShadow: tokens.shadow.lg, border: "none" }}
-          styles={{ body: { padding: 32 } }}
-        >
-          <Title level={3} style={{ marginBottom: 4 }}>{PRODUCT.title}</Title>
+      <div className="flex flex-1 items-start justify-center px-4 py-10">
+        <Card className="w-full max-w-[520px] p-8 shadow-lg">
+          <h1 className="text-2xl font-bold tracking-tight">{PRODUCT.title}</h1>
 
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "12px 0 4px" }}>
-            <Text style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
-              {PRODUCT.priceLabel}
-            </Text>
+          <div className="mb-1 mt-3">
+            <span className="text-4xl font-extrabold tabular-nums tracking-tight">{PRODUCT.priceLabel}</span>
           </div>
-          <Paragraph type="secondary" style={{ marginBottom: 20 }}>{PRODUCT.vatNote}</Paragraph>
+          <p className="mb-5 text-sm text-muted-foreground">{PRODUCT.vatNote}</p>
 
-          <div style={{ display: "grid", gap: 10, paddingBottom: 20, marginBottom: 20, borderBottom: "1px solid var(--ds-border-subtle)" }}>
+          <div className="mb-5 grid gap-2.5 border-b border-border pb-5">
             {PRODUCT.features.map((f) => (
-              <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                <CheckCircleFilled style={{ color: tokens.colors.success, marginTop: 3 }} />
-                <Text>{f}</Text>
+              <div key={f} className="flex items-start gap-2.5">
+                <Check className="mt-0.5 size-4 shrink-0 text-success" />
+                <span className="text-sm">{f}</span>
               </div>
             ))}
           </div>
 
-          <Form layout="vertical" onFinish={onFinish} requiredMark={false}>
-            <Form.Item
-              name="name"
-              label="שם מלא"
-              rules={[{ required: true, min: 2, message: "נא להזין שם מלא" }]}
-            >
-              <Input size="large" placeholder="ישראל ישראלי" autoComplete="name" />
-            </Form.Item>
-            <Form.Item
-              name="email"
-              label="אימייל"
-              rules={[{ required: true, type: "email", message: "נא להזין כתובת אימייל תקינה" }]}
-            >
-              <Input size="large" placeholder="you@company.co.il" autoComplete="email" inputMode="email" />
-            </Form.Item>
-
-            <Button type="primary" size="large" htmlType="submit" block loading={loading} icon={<LockOutlined />}>
+          <form onSubmit={onSubmit} noValidate className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name">שם מלא</Label>
+              <Input id="name" name="name" required minLength={2} placeholder="ישראל ישראלי" autoComplete="name" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email">אימייל</Label>
+              <Input id="email" name="email" type="email" required placeholder="you@company.co.il" autoComplete="email" inputMode="email" />
+            </div>
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              <Lock className="size-4" />
               המשך לתשלום מאובטח · {PRODUCT.priceLabel}
             </Button>
-          </Form>
+          </form>
 
-          <Paragraph type="secondary" style={{ fontSize: 12, textAlign: "center", marginTop: 16, marginBottom: 0 }}>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
             התשלום מתבצע בעמוד מאובטח (Z‑Credit). בלחיצה על המשך אתם מאשרים את{" "}
-            <Link to={Paths.terms}>התקנון</Link>, <Link to={Paths.cancelPolicy}>מדיניות הביטולים</Link> ו
-            <Link to={Paths.privacyPolicy}>מדיניות הפרטיות</Link>.
-          </Paragraph>
+            <Link to={Paths.terms} className="text-primary hover:underline">התקנון</Link>,{" "}
+            <Link to={Paths.cancelPolicy} className="text-primary hover:underline">מדיניות הביטולים</Link> ו
+            <Link to={Paths.privacyPolicy} className="text-primary hover:underline">מדיניות הפרטיות</Link>.
+          </p>
         </Card>
       </div>
 

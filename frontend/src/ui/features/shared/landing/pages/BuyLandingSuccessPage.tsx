@@ -1,28 +1,23 @@
-import { CheckCircleFilled } from "@ant-design/icons";
-import { Button, Card, Typography } from "antd";
+import { CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { SiteFooter } from "@/ui/shared/components/SiteFooter";
 import { Paths } from "@/ui/navigation/paths";
-import { tokens } from "@/styles/designSystem";
-
-const { Title, Paragraph } = Typography;
 
 export function BuyLandingSuccessPage() {
   return (
-    <div dir="rtl" style={{ minHeight: "100vh", background: tokens.colors.surface1, display: "flex", flexDirection: "column" }}>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
-        <Card
-          style={{ width: "100%", maxWidth: 460, borderRadius: 16, boxShadow: tokens.shadow.lg, border: "none", textAlign: "center" }}
-          styles={{ body: { padding: 40 } }}
-        >
-          <CheckCircleFilled style={{ fontSize: 56, color: tokens.colors.success }} />
-          <Title level={3} style={{ marginTop: 20, marginBottom: 8 }}>התשלום התקבל, תודה!</Title>
-          <Paragraph type="secondary" style={{ marginBottom: 24 }}>
+    <div dir="rtl" className="flex min-h-screen flex-col bg-muted">
+      <div className="flex flex-1 items-center justify-center px-4 py-10">
+        <Card className="w-full max-w-[460px] p-10 text-center shadow-lg">
+          <CheckCircle2 className="mx-auto size-14 text-success" />
+          <h1 className="mb-2 mt-5 text-2xl font-bold tracking-tight">התשלום התקבל, תודה!</h1>
+          <p className="mb-6 text-sm text-muted-foreground">
             קיבלנו את ההזמנה לדף הנחיתה. צוות Aiterra יצור אתכם קשר במייל בהקדם עם הפרטים והשלבים הבאים.
-          </Paragraph>
-          <Link to={Paths.root}>
-            <Button type="primary" size="large">חזרה לאתר</Button>
-          </Link>
+          </p>
+          <Button asChild size="lg">
+            <Link to={Paths.root}>חזרה לאתר</Link>
+          </Button>
         </Card>
       </div>
       <SiteFooter />

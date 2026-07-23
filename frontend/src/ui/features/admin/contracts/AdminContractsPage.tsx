@@ -148,6 +148,8 @@ export function AdminContractsPage() {
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const [splitTotal, setSplitTotal] = useState<number | null>(null);
   const [splitParts, setSplitParts] = useState<number>(2);
+  /** Equal-split helper is an advanced utility — hidden until requested. */
+  const [splitOpen, setSplitOpen] = useState(false);
   const [form] = Form.useForm<FormValues>();
 
   const reload = () => {
@@ -866,57 +868,60 @@ export function AdminContractsPage() {
                     {/* ── One-time / Installments ───────────────────── */}
                     {!isSubscription && (
                       <div>
-                        {/* Subheader anchoring the split tool + payment rows as one group */}
-                        <Typography.Text
-                          strong
-                          style={{ display: "block", fontSize: 13, marginBottom: 10 }}
-                        >
-                          {t("admin.contracts.form.scheduleTitle")}
-                        </Typography.Text>
-                        {/* Quick equal-split tool — fills the payment rows below */}
-                        <Flex
-                          align={isMobile ? "stretch" : "center"}
-                          gap={8}
-                          wrap="wrap"
-                          vertical={isMobile}
-                          style={{
-                            marginBottom: 14,
-                          }}
-                        >
-                          <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: isMobile ? "normal" : "nowrap" }}>
-                            {t("admin.contracts.form.equalSplitTitle")}
+                        {/* Subheader; the equal-split helper hides behind a toggle (advanced) */}
+                        <Flex align="center" justify="space-between" gap={8} wrap="wrap" style={{ marginBottom: 10 }}>
+                          <Typography.Text strong style={{ fontSize: 13 }}>
+                            {t("admin.contracts.form.scheduleTitle")}
                           </Typography.Text>
-                          <Flex gap={8} align="center" style={{ width: isMobile ? "100%" : "auto" }}>
-                            <InputNumber
-                              size="small"
-                              min={0.01}
-                              value={splitTotal ?? undefined}
-                              onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
-                              placeholder={t("admin.contracts.form.equalSplitTotal")}
-                              style={{ width: isMobile ? "100%" : 120, flex: isMobile ? 1 : undefined }}
-                            />
-                            <Typography.Text type="secondary">÷</Typography.Text>
-                            <InputNumber
-                              size="small"
-                              min={2}
-                              max={60}
-                              precision={0}
-                              value={splitParts}
-                              onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
-                              style={{ width: 60 }}
-                            />
-                          </Flex>
                           <Button
+                            type="link"
                             size="small"
-                            type="primary"
-                            ghost
-                            onClick={applyEqualSplit}
-                            block={isMobile}
-                            disabled={!splitTotal || splitTotal <= 0}
+                            style={{ padding: 0, fontSize: 12 }}
+                            onClick={() => setSplitOpen((v) => !v)}
                           >
-                            {t("admin.contracts.form.equalSplitApply")}
+                            ÷ {t("admin.contracts.form.equalSplitTitle")}
                           </Button>
                         </Flex>
+                        {splitOpen && (
+                          <Flex
+                            align={isMobile ? "stretch" : "center"}
+                            gap={8}
+                            wrap="wrap"
+                            vertical={isMobile}
+                            style={{ marginBottom: 14 }}
+                          >
+                            <Flex gap={8} align="center" style={{ width: isMobile ? "100%" : "auto" }}>
+                              <InputNumber
+                                size="small"
+                                min={0.01}
+                                value={splitTotal ?? undefined}
+                                onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
+                                placeholder={t("admin.contracts.form.equalSplitTotal")}
+                                style={{ width: isMobile ? "100%" : 140, flex: isMobile ? 1 : undefined }}
+                              />
+                              <Typography.Text type="secondary">÷</Typography.Text>
+                              <InputNumber
+                                size="small"
+                                min={2}
+                                max={60}
+                                precision={0}
+                                value={splitParts}
+                                onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
+                                style={{ width: 60 }}
+                              />
+                            </Flex>
+                            <Button
+                              size="small"
+                              type="primary"
+                              ghost
+                              onClick={applyEqualSplit}
+                              block={isMobile}
+                              disabled={!splitTotal || splitTotal <= 0}
+                            >
+                              {t("admin.contracts.form.equalSplitApply")}
+                            </Button>
+                          </Flex>
+                        )}
 
                         {/* Stage list */}
                         <Form.List name="stages">
@@ -935,16 +940,19 @@ export function AdminContractsPage() {
                                         : undefined,
                                   }}
                                 >
-                                  <div style={{
-                                    width: 20, height: 20, borderRadius: "50%",
-                                    background: "var(--ds-color-primary-surface-deep)",
-                                    color: "var(--ds-color-primary)",
-                                    fontSize: 11, fontWeight: 600,
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    flexShrink: 0,
-                                  }}>
-                                    {index + 1}
-                                  </div>
+                                  {/* Row number only matters once there are several payments */}
+                                  {fields.length > 1 && (
+                                    <div style={{
+                                      width: 20, height: 20, borderRadius: "50%",
+                                      background: "var(--ds-color-primary-surface-deep)",
+                                      color: "var(--ds-color-primary)",
+                                      fontSize: 11, fontWeight: 600,
+                                      display: "flex", alignItems: "center", justifyContent: "center",
+                                      flexShrink: 0,
+                                    }}>
+                                      {index + 1}
+                                    </div>
+                                  )}
                                   <Form.Item
                                     {...rest}
                                     name={[name, "description"]}
@@ -961,16 +969,18 @@ export function AdminContractsPage() {
                                   >
                                     <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
                                   </Form.Item>
-                                  <Tooltip title={t("common.remove")}>
-                                    <Button
-                                      type="text"
-                                      danger
-                                      icon={<MinusCircleOutlined />}
-                                      onClick={() => remove(name)}
-                                      disabled={fields.length === 1}
-                                      style={{ flexShrink: 0 }}
-                                    />
-                                  </Tooltip>
+                                  {/* Can't remove the only payment — hide instead of a dead button */}
+                                  {fields.length > 1 && (
+                                    <Tooltip title={t("common.remove")}>
+                                      <Button
+                                        type="text"
+                                        danger
+                                        icon={<MinusCircleOutlined />}
+                                        onClick={() => remove(name)}
+                                        style={{ flexShrink: 0 }}
+                                      />
+                                    </Tooltip>
+                                  )}
                                 </Flex>
                               ))}
 

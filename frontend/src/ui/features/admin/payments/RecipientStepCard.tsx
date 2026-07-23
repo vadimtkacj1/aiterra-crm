@@ -9,14 +9,10 @@ import { FormItem } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
 import type { User } from "@/domain/User";
 import type { AccountBillingInstruction, UserBusinessMeta } from "@/services/admin/AdminService";
-import type { AdminPaymentsTokenLike } from "./adminPaymentsPageUi";
 import type { AdminPaymentsFormValues } from "./types";
 
 type Props = {
   t: TFunction;
-  token: AdminPaymentsTokenLike;
-  shellRadius: number;
-  shellShadow: string;
   loadingUsers: boolean;
   users: User[];
   onUserChange: (userId: string) => void | Promise<void>;
@@ -30,9 +26,6 @@ type Props = {
 
 export function RecipientStepCard({
   t,
-  token,
-  shellRadius,
-  shellShadow,
   loadingUsers,
   users,
   onUserChange,
@@ -44,18 +37,10 @@ export function RecipientStepCard({
   importLiveBillingIntoForm,
 }: Props) {
   return (
-    <Card
-      className="p-6"
-      style={{
-        borderRadius: shellRadius,
-        border: `1px solid ${token.colorBorderSecondary}`,
-        boxShadow: shellShadow,
-        background: token.colorBgContainer,
-      }}
-    >
+    <Card className="p-6">
       <div className="flex w-full flex-col gap-5">
         {/* User Selection — label omitted: the placeholder already names it */}
-        <FormItem<AdminPaymentsFormValues, "userId"> name="userId">
+        <FormItem<AdminPaymentsFormValues, "userId"> name="userId" className="max-w-160">
           {(field) => (
             <Combobox
               value={field.value || null}

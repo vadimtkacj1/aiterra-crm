@@ -85,6 +85,7 @@ export function AdminPaymentsTemplatesPanel({
       title: t("admin.payments.historyColAmount"),
       key: "amount",
       width: 120,
+      align: "end",
       render: (_, r) => (
         <div>
           <span className="font-semibold tabular-nums">{formatMoney(r.amount, r.currency)}</span>
@@ -100,7 +101,11 @@ export function AdminPaymentsTemplatesPanel({
       title: t("admin.payments.templatesColCreated"),
       dataIndex: "createdAt",
       width: 150,
-      render: (v) => formatHistoryDate(v as string),
+      render: (v) => (
+        <span className="text-muted-foreground tabular-nums">
+          {formatHistoryDate(v as string)}
+        </span>
+      ),
     },
     {
       title: t("admin.payments.historyColActions"),

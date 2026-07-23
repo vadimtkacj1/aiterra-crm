@@ -31,7 +31,7 @@ export function LoginPage() {
         </select>
       </div>
 
-      <Card className="w-full max-w-[420px] p-8 shadow-lg sm:p-9">
+      <Card className="w-full max-w-[420px] p-8">
         <div className="mb-6 flex justify-center">
           <img src={logoUrl} alt={t("layout.brand")} className="size-20 sm:size-24" />
         </div>
@@ -39,7 +39,7 @@ export function LoginPage() {
         <h1 className="mb-1.5 text-center text-2xl font-bold tracking-tight text-foreground">
           {t("login.title")}
         </h1>
-        <p className="mb-7 text-center text-sm text-muted-foreground">
+        <p className="mb-6 text-center text-sm text-muted-foreground">
           {t("login.hint")}
         </p>
 

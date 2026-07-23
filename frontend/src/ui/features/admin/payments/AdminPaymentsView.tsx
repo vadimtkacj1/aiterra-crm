@@ -32,37 +32,24 @@ export function AdminPaymentsPage() {
       <div className="mx-auto max-w-300 pb-10">
         <AdminPaymentsPageHeader
           t={p.t}
-          token={p.token}
-          shellRadius={p.shellRadius}
-          shellShadow={p.shellShadow}
           loadingUsers={p.loadingUsers}
           onOpenLibrary={() => p.setLibraryOpen(true)}
         />
 
         {p.users.length === 0 && !p.loadingUsers ? (
-          <Card
-            className="mt-6"
-            style={{
-              borderRadius: p.shellRadius,
-              border: `1px solid ${p.token.colorBorderSecondary}`,
-              boxShadow: p.shellShadow,
-            }}
-          >
+          <Card>
             <EmptyBox title={p.t("admin.payments.noUsersAtAll")} />
           </Card>
         ) : (
           <>
             <Form
               form={p.form}
-              className="mt-6 space-y-0"
+              className="space-y-0"
               onFinish={(values) => void p.onFormFinish(values)}
             >
               {/* Recipient */}
               <RecipientStepCard
                 t={p.t}
-                token={p.token}
-                shellRadius={p.shellRadius}
-                shellShadow={p.shellShadow}
                 loadingUsers={p.loadingUsers}
                 users={p.users}
                 onUserChange={p.onUserChange}
@@ -80,9 +67,6 @@ export function AdminPaymentsPage() {
                   <div className="mt-6">
                     <InvoiceComposerCard
                       t={p.t}
-                      token={p.token}
-                      shellRadius={p.shellRadius}
-                      shellShadow={p.shellShadow}
                       form={p.form}
                       chargeTypeW={p.chargeTypeW}
                       useBreakdownW={Boolean(p.useBreakdownW)}
@@ -111,19 +95,12 @@ export function AdminPaymentsPage() {
             </Form>
 
             {/* Payment History */}
-            <Card
-              className="mt-6 overflow-hidden"
-              style={{
-                borderRadius: p.shellRadius,
-                border: `1px solid ${p.token.colorBorderSecondary}`,
-                boxShadow: p.shellShadow,
-              }}
-            >
+            <Card className="mt-6 overflow-hidden">
               <div
                 className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3"
                 style={{ borderBottomColor: "var(--ds-border-subtle)" }}
               >
-                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-base font-semibold text-foreground">
                   <span>{p.t("admin.payments.historyTitle")}</span>
                   {p.userMeta?.accountId ? (
                     <Badge variant="primary">
@@ -169,7 +146,7 @@ export function AdminPaymentsPage() {
               confirmLoading={p.savingTemplate}
               onOk={() => void p.onSaveTemplateOk()}
             >
-              <p className="text-sm text-muted-foreground" style={{ marginBottom: "var(--ds-space-3)" }}>
+              <p className="mb-3 text-sm text-muted-foreground">
                 {p.t("admin.payments.saveTemplateHint")}
               </p>
               <Input

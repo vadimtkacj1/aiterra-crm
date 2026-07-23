@@ -19,18 +19,15 @@ function SectionCard({
 }) {
   return (
     <Card className="h-full">
-      <CardContent className="px-5 py-[18px]">
+      <CardContent className="p-5">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2.5">
-            <span
-              className="inline-flex items-center text-lg [&_svg]:size-[18px]"
-              style={{ color: "var(--ds-text-tertiary)" }}
-            >
+            <span className="inline-flex items-center text-(--ds-text-tertiary) [&_svg]:size-4.5">
               {icon}
             </span>
-            <h5 className="m-0 text-[15px] font-semibold">{title}</h5>
+            <h2 className="m-0 text-[15px] font-semibold">{title}</h2>
           </div>
-          <p className="m-0 text-sm leading-[1.65]" style={{ color: "var(--ds-text-secondary)" }}>
+          <p className="m-0 text-sm leading-[1.65] text-(--ds-text-secondary)">
             {body}
           </p>
         </div>

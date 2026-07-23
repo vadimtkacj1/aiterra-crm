@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -98,7 +99,7 @@ export function AdminLeadsPage() {
       key: "account",
       width: 160,
       render: (_, r) => (
-        <span className="font-semibold">{r.accountName}</span>
+        <span className="font-medium">{r.accountName}</span>
       ),
     },
     {
@@ -111,14 +112,14 @@ export function AdminLeadsPage() {
       title: t("admin.leads.colPhone"),
       dataIndex: "phone",
       key: "phone",
-      render: (v) => (v ? <Ltr>{v as string}</Ltr> : "—"),
+      render: (v) => (v ? <Ltr>{v as string}</Ltr> : <span className="text-muted-foreground">—</span>),
       width: 130,
     },
     {
       title: t("admin.leads.colEmail"),
       dataIndex: "email",
       key: "email",
-      render: (v) => (v ? <Ltr>{v as string}</Ltr> : "—"),
+      render: (v) => (v ? <Ltr>{v as string}</Ltr> : <span className="text-muted-foreground">—</span>),
       width: 200,
       responsive: ["xl"],
     },
@@ -140,14 +141,18 @@ export function AdminLeadsPage() {
             </Tooltip>
           </TooltipProvider>
         ) : (
-          "—"
+          <span className="text-muted-foreground">—</span>
         ),
     },
     {
       title: t("admin.leads.colDate"),
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (v) => <Ltr>{new Date(v as string).toLocaleString()}</Ltr>,
+      render: (v) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          <Ltr>{new Date(v as string).toLocaleString()}</Ltr>
+        </span>
+      ),
       width: 155,
     },
   ];
@@ -169,10 +174,20 @@ export function AdminLeadsPage() {
       <PageHeader
         title={t("admin.leads.title")}
         subtitle={t("admin.leads.subtitle")}
+        actions={
+          <Button variant="outline" onClick={() => void load(filterAccountId)} disabled={loading}>
+            {loading ? (
+              <Spinner size="sm" className="text-current" aria-hidden="true" />
+            ) : (
+              <RefreshCw aria-hidden="true" />
+            )}
+            {!isMobile && t("common.reload")}
+          </Button>
+        }
       />
       <Card className={isMobile ? "p-3" : "p-4"}>
         <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Select
               value={filterAccountId != null ? String(filterAccountId) : ALL_ACCOUNTS}
               onValueChange={(v) => onAccountFilter(v === ALL_ACCOUNTS ? undefined : Number(v))}
@@ -189,22 +204,6 @@ export function AdminLeadsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label={t("common.reload")}
-                    disabled={loading}
-                    onClick={() => void load(filterAccountId)}
-                  >
-                    <RefreshCw className={loading ? "size-4 animate-spin" : "size-4"} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t("common.reload")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
           {isMobile ? (
             <ResponsiveCardView

@@ -27,6 +27,68 @@ Call log:
 
 ```
 
+```yaml
+- link "Skip to main content":
+  - /url: "#main-content"
+- complementary:
+  - img "Aiterra CRM"
+  - menu:
+    - text: Overview
+    - group:
+      - menuitem "bar-chart System Statistics":
+        - img "bar-chart"
+        - text: System Statistics
+      - menuitem "safety-certificate Audit & security":
+        - img "safety-certificate"
+        - text: Audit & security
+    - text: Clients
+    - group:
+      - menuitem "team All users":
+        - img "team"
+        - text: All users
+      - menuitem "form Landing page leads":
+        - img "form"
+        - text: Landing page leads
+    - text: Billing
+    - group:
+      - menuitem "file-text Create Invoice":
+        - img "file-text"
+        - text: Create Invoice
+      - menuitem "container Contracts":
+        - img "container"
+        - text: Contracts
+      - menuitem "dollar Invoices & Subscriptions":
+        - img "dollar"
+        - text: Invoices & Subscriptions
+      - menuitem "credit-card Meta Ad Budget":
+        - img "credit-card"
+        - text: Meta Ad Budget
+    - text: Connections
+    - group:
+      - menuitem "whats-app WhatsApp connections":
+        - img "whats-app"
+        - text: WhatsApp connections
+    - menuitem "question-circle Help & CRM guide":
+      - img "question-circle"
+      - text: Help & CRM guide
+- banner:
+  - button "Admin User":
+    - text: A Admin User
+    - img "down"
+- main:
+  - heading "System Statistics" [level=2]
+  - text: Users, businesses, and revenue across the whole system.
+  - button "download Export" [disabled]:
+    - img "download"
+    - text: Export
+  - list:
+    - listitem
+    - listitem
+    - listitem
+    - listitem
+- region "Notifications alt+T"
+```
+
 # Test source
 
 ```ts
@@ -76,44 +138,46 @@ Call log:
   43 |     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 8000 });
   44 |   });
   45 | 
-  46 |   test('opens reset password modal on lock button click', async ({ page }) => {
+  46 |   test('opens reset password modal from row overflow menu', async ({ page }) => {
   47 |     await mockAdminUsersWithData(page);
   48 | 
   49 |     const usersPage = new AdminUsersPage(page);
   50 |     await usersPage.goto();
   51 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-  52 |     await usersPage.resetPasswordButton().click();
-  53 | 
-  54 |     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-  55 |     await expect(page.locator('input[type="password"]')).toBeVisible();
-  56 |   });
-  57 | 
-  58 |   test('delete button triggers confirmation dialog', async ({ page }) => {
-  59 |     await mockAdminUserDelete(page, mockAdminUserEntry.id);
-  60 |     await mockAdminUsersWithData(page);
-  61 | 
-  62 |     const usersPage = new AdminUsersPage(page);
-  63 |     await usersPage.goto();
-  64 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-  65 |     await usersPage.deleteButton().click();
-  66 | 
-  67 |     await expect(
-  68 |       page.getByRole('button', { name: 'OK' }).or(page.getByRole('button', { name: 'Yes' })).first(),
-  69 |     ).toBeVisible({ timeout: 8000 });
-  70 |   });
-  71 | 
-  72 |   test('table shows no user rows when no users exist', async ({ page }) => {
-  73 |     await page.route('/api/admin/users', (route) =>
-  74 |       route.fulfill({ json: [] }),
-  75 |     );
-  76 | 
-  77 |     const usersPage = new AdminUsersPage(page);
-  78 |     await usersPage.goto();
-  79 | 
-  80 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-  81 |     // Verify the mocked user email is absent (no data rows rendered)
-  82 |     await expect(page.getByText(mockAdminUserEntry.email)).not.toBeVisible();
-  83 |   });
-  84 | });
-  85 | 
+  52 |     await usersPage.overflowButton().click();
+  53 |     await usersPage.resetPasswordMenuItem().click();
+  54 | 
+  55 |     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+  56 |     await expect(page.locator('input[type="password"]')).toBeVisible();
+  57 |   });
+  58 | 
+  59 |   test('delete via row overflow menu triggers confirmation dialog', async ({ page }) => {
+  60 |     await mockAdminUserDelete(page, mockAdminUserEntry.id);
+  61 |     await mockAdminUsersWithData(page);
+  62 | 
+  63 |     const usersPage = new AdminUsersPage(page);
+  64 |     await usersPage.goto();
+  65 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
+  66 |     await usersPage.overflowButton().click();
+  67 |     await usersPage.deleteMenuItem().click();
+  68 | 
+  69 |     await expect(
+  70 |       page.getByRole('button', { name: 'OK' }).or(page.getByRole('button', { name: 'Yes' })).first(),
+  71 |     ).toBeVisible({ timeout: 8000 });
+  72 |   });
+  73 | 
+  74 |   test('table shows no user rows when no users exist', async ({ page }) => {
+  75 |     await page.route('/api/admin/users', (route) =>
+  76 |       route.fulfill({ json: [] }),
+  77 |     );
+  78 | 
+  79 |     const usersPage = new AdminUsersPage(page);
+  80 |     await usersPage.goto();
+  81 | 
+  82 |     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
+  83 |     // Verify the mocked user email is absent (no data rows rendered)
+  84 |     await expect(page.getByText(mockAdminUserEntry.email)).not.toBeVisible();
+  85 |   });
+  86 | });
+  87 | 
 ```

@@ -8,12 +8,7 @@ import {
   buildInvoiceTemplatePayload,
   parseBillingInstructionFromSubmit,
 } from "./adminPaymentsFormModel";
-import {
-  ADMIN_PAYMENTS_SHELL_RADIUS,
-  ADMIN_PAYMENTS_SHELL_SHADOW,
-  ADMIN_PAYMENTS_TOKEN,
-  showAdminPaymentsFormMessage,
-} from "./adminPaymentsPageUi";
+import { showAdminPaymentsFormMessage } from "./adminPaymentsPageUi";
 import type { AdminPaymentsLibraryDrawerModel } from "./adminPaymentsLibraryTypes";
 import type { AdminPaymentsFormValues } from "./types";
 import { ADMIN_PAYMENTS_FORM_DEFAULTS, useAdminPaymentsComposerSession } from "./useAdminPaymentsComposerSession";
@@ -204,7 +199,6 @@ export function useAdminPaymentsPage() {
 
   return {
     t,
-    token: ADMIN_PAYMENTS_TOKEN,
     message,
     services,
     users,
@@ -252,8 +246,6 @@ export function useAdminPaymentsPage() {
     downloadRowPdf,
     onFormFinish,
     onSaveTemplateOk,
-    shellRadius: ADMIN_PAYMENTS_SHELL_RADIUS,
-    shellShadow: ADMIN_PAYMENTS_SHELL_SHADOW,
     libraryDrawer,
   };
 }

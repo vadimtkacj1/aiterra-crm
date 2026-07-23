@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CheckoutTopBar } from "../components/CheckoutTopBar";
 import { tokens } from "@/styles/designSystem";
@@ -25,7 +26,12 @@ export function CheckoutSuccessScreen({ t, onBack }: Props) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 56, marginBottom: 16, color: "var(--ds-color-success)" }}>✓</div>
+          <CircleCheck
+            aria-hidden="true"
+            className="mx-auto mb-4 size-14"
+            strokeWidth={1.5}
+            style={{ color: "var(--ds-color-success)" }}
+          />
           <p style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "var(--ds-text-primary)" }}>
             {t("billing.paymentSuccessTitle")}
           </p>

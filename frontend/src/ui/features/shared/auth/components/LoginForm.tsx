@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,8 @@ export function LoginForm({ onSuccess }: Props) {
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-        {submitting ? `${t("login.submit")}…` : t("login.submit")}
+        {submitting && <Loader2 className="animate-spin" />}
+        {t("login.submit")}
       </Button>
     </form>
   );

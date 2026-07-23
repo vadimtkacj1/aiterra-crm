@@ -1,6 +1,7 @@
 import { Search, Trash2, UserPlus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { TFunction } from "i18next";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -86,15 +87,7 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
           </Button>
         </div>
         {selectedRowKeys.length > 0 && (
-          <div
-            className="flex items-center justify-between"
-            style={{
-              padding: "8px 12px",
-              background: "var(--ds-color-primary-surface)",
-              border: "1px solid var(--ds-color-primary-surface-deep)",
-              borderRadius: "var(--ds-radius-md)",
-            }}
-          >
+          <div className="flex items-center justify-between rounded-(--ds-radius-md) border border-(--ds-color-primary-surface-deep) bg-(--ds-color-primary-surface) px-3 py-2">
             <span className="text-[13px]">
               {t("table.selectedCount", { count: selectedRowKeys.length })}
             </span>
@@ -133,7 +126,7 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
               id: u.id,
               title: u.displayName || u.email,
               subtitle: u.email,
-              tags: [{ label: t(`admin.roles.${u.role}`), color: u.role === "admin" ? "red" : "blue" }],
+              tags: [{ label: t(`admin.roles.${u.role}`), color: u.role === "admin" ? "purple" : undefined }],
               actions: [
                 { label: t("admin.table.edit"), onClick: () => onEdit(u), type: "default" as const },
               ],
@@ -158,14 +151,29 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
               onChange: setSelectedRowKeys,
             }}
             columns={[
-              { title: t("admin.table.email"), dataIndex: "email", key: "email" },
-              { title: t("admin.table.displayName"), dataIndex: "displayName", key: "displayName" },
+              {
+                title: t("admin.table.email"),
+                dataIndex: "email",
+                key: "email",
+                render: (v) => <span className="font-medium">{v as string}</span>,
+              },
+              {
+                title: t("admin.table.displayName"),
+                dataIndex: "displayName",
+                key: "displayName",
+                render: (v) =>
+                  (v as string) || <span className="text-muted-foreground">—</span>,
+              },
               {
                 title: t("admin.table.role"),
                 dataIndex: "role",
                 key: "role",
-                width: 100,
-                render: (role) => t(`admin.roles.${role as UserRole}`),
+                width: 120,
+                render: (role) => (
+                  <Badge variant={role === "admin" ? "primary" : "default"}>
+                    {t(`admin.roles.${role as UserRole}`)}
+                  </Badge>
+                ),
               },
               {
                 title: t("admin.table.actions"),

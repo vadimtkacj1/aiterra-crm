@@ -171,12 +171,12 @@ export function MetaBillingCard({ metaBilling, metaLoading, appLocale }: Props) 
             </div>
           </div>
 
-          <div className="-mx-3 border-t border-(--ds-border-subtle)">
-            <span className="block px-3 pb-1 pt-3 text-[13px] font-semibold">
+          <div className="-mx-4 border-t border-(--ds-border-subtle)">
+            <span className="block px-4 pb-1 pt-3 text-[13px] font-semibold">
               {t("billing.metaTransactions")}
             </span>
             {metaBilling.transactions.length === 0 ? (
-              <span className="block p-3 text-sm text-muted-foreground">
+              <span className="block px-4 py-3 text-sm text-muted-foreground">
                 {t("billing.metaNoTransactions")}
               </span>
             ) : (

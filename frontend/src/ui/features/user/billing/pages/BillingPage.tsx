@@ -124,12 +124,12 @@ export function BillingPage() {
 
         {!isAdmin && !loading && overview?.pendingPayments && overview.pendingPayments.length > 0 ? (
           <Card className="rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
-            <div className="flex min-h-11 items-center border-b border-(--ds-border-subtle) px-4 pb-2.5 pt-3">
-              <span className="text-[15px] font-semibold tracking-[-0.01em]">
+            <div className="flex items-center border-b border-(--ds-border-subtle) px-4 py-3">
+              <span className="text-[15px] font-semibold">
                 {t("billing.pendingPaymentsTitle")}
               </span>
             </div>
-            <div className="flex flex-col gap-2.5 px-4 py-4">
+            <div className="flex flex-col gap-3 p-4">
               {overview.pendingPayments.map((p, idx) => (
                 <PendingInvoicePanel
                   key={`${p.id}-${idx}`}

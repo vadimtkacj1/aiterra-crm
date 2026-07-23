@@ -19,6 +19,7 @@
       "thisYear": "השנה",
       "views": "פעילות חשבוניות",
       "categoryProportion": "הכנסות לפי מטבע",
+      "chartEmptyHint": "לא נרשמו תשלומים בתקופה שנבחרה.",
       "downloadExecutivePdf": "דוח PDF למנהלים",
       "exportUsersCsv": "ייצוא משתמשים (CSV)",
       "exportBillingCsv": "ייצוא חיובים (CSV)",

@@ -19,6 +19,7 @@
       "thisYear": "This Year",
       "views": "Invoice Activity",
       "categoryProportion": "Revenue by Currency",
+      "chartEmptyHint": "No payments were recorded for the selected period.",
       "downloadExecutivePdf": "Executive PDF",
       "exportUsersCsv": "Export users (CSV)",
       "exportBillingCsv": "Export billing (CSV)",

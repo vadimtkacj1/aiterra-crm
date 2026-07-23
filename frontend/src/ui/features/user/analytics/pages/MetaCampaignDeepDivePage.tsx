@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import type { ReactNode } from "react";
 import {
   ArrowLeft,
@@ -31,6 +32,7 @@ import { useIsMobile } from "@/lib/use-media-query";
 import type { CampaignAdsData, CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { useApp } from "@/app/AppProviders";
 import { accountPath } from "@/ui/navigation/paths";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { CampaignCreativeGallery } from "../components/CampaignCreativeGallery";
 import { DateRangeControl, rangeParam, type DateRange } from "../components/DateRangeControl";
@@ -54,6 +56,22 @@ const ALL_COLUMNS = [
 type MetricCol = typeof ALL_COLUMNS[number];
 
 const FALLBACK_COLUMNS: MetricCol[] = ["impressions", "clicks", "ctr", "spend", "leads", "purchases", "roas", "reach"];
+
+/** Localized display title for a metric column (shared by table + manage-columns sheet). */
+function metricColTitle(col: MetricCol, t: TFunction): string {
+  switch (col) {
+    case "leads":
+      return t("meta.deepdive.leads");
+    case "purchases":
+      return t("meta.deepdive.purchases");
+    case "purchaseValue":
+      return t("meta.deepdive.purchaseValue");
+    case "roas":
+      return "ROAS";
+    default:
+      return t(`analytics.table.${col}`);
+  }
+}
 
 function defaultColumnsForKind(kind: CampaignGoalKind): MetricCol[] {
   const base: MetricCol[] = ["impressions", "clicks", "ctr", "spend", "reach"];
@@ -289,9 +307,9 @@ export function MetaCampaignDeepDivePage() {
         {/* ── Creatives section (prominent, right after KPIs) ── */}
         <Separator />
         <div className="flex flex-col gap-4">
-          <h5 className="m-0 text-base font-semibold">
+          <h3 className="m-0 text-base font-semibold">
             {t("meta.deepdive.creativesTitle")}
-          </h5>
+          </h3>
           <CampaignCreativeGallery
             ads={adsData?.ads ?? []}
             currency={adsData?.currency ?? currency}
@@ -304,7 +322,7 @@ export function MetaCampaignDeepDivePage() {
         <Separator />
         <Card>
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm">{t("meta.deepdive.metricsTitle")}</CardTitle>
+            <CardTitle className="text-[15px]">{t("meta.deepdive.metricsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="flex flex-col gap-4">
@@ -373,7 +391,9 @@ export function MetaCampaignDeepDivePage() {
                   columns={metricsColumns}
                   pagination={false}
                   scroll={{ x: "max-content" }}
-                  locale={{ emptyText: t("common.noData") }}
+                  locale={{
+                    emptyText: <EmptyState title={t("analytics.empty.title")} style={{ padding: "24px 0" }} />,
+                  }}
                 />
               </div>
             </div>
@@ -401,7 +421,7 @@ export function MetaCampaignDeepDivePage() {
                     }
                   }}
                 />
-                {col.replace(/([A-Z])/g, " $1").trim()}
+                {metricColTitle(col, t)}
               </label>
             ))}
           </div>

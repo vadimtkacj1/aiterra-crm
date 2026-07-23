@@ -115,7 +115,10 @@ function AdminPhonesSection() {
 
       <div className="flex flex-wrap gap-2">
         {!loading && phones.length === 0 && (
-          <span className="text-[13px] text-muted-foreground">{t("admin.whatsapp.admin.empty")}</span>
+          <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            <MessageCircle aria-hidden="true" className="size-4 text-(--ds-text-tertiary)" />
+            {t("admin.whatsapp.admin.empty")}
+          </span>
         )}
         {phones.map((p) => (
           <span
@@ -136,7 +139,7 @@ function AdminPhonesSection() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-destructive hover:text-destructive"
+              className="size-7 text-muted-foreground hover:text-destructive"
               aria-label={t("admin.whatsapp.deleteBtn")}
               disabled={deletingId === p.id}
               onClick={() =>
@@ -159,10 +162,10 @@ function AdminPhonesSection() {
 
       {showForm && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <div className="relative w-[200px]">
+          <div className="relative w-50">
             <MessageCircle
               aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-(--ds-text-tertiary)"
+              className="pointer-events-none absolute inset-y-0 inset-s-3 my-auto size-4 text-(--ds-text-tertiary)"
             />
             <Input
               className="ps-9"
@@ -173,7 +176,7 @@ function AdminPhonesSection() {
             />
           </div>
           <Input
-            className="w-[160px]"
+            className="w-40"
             placeholder={t("admin.whatsapp.admin.labelPlaceholder")}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
@@ -398,7 +401,7 @@ export function AdminWhatsAppPage() {
             <div className="relative w-[260px] max-w-full">
               <Search
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground"
+                className="pointer-events-none absolute inset-y-0 inset-s-3 my-auto size-4 text-muted-foreground"
               />
               <Input
                 className="ps-9 pe-8"
@@ -411,7 +414,7 @@ export function AdminWhatsAppPage() {
                   type="button"
                   aria-label={t("common.cancel")}
                   onClick={() => setSearch("")}
-                  className="absolute inset-y-0 end-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="absolute inset-y-0 inset-e-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   <X className="size-3.5" />
                 </button>

@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Search,
   Wallet,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm, type DefaultValues } from "react-hook-form";
@@ -524,7 +525,7 @@ export function AdminContractsPage() {
     {
       title: "",
       key: "actions",
-      width: 185,
+      width: 100,
       render: (_, r) => (
         <ContractRowActions
           contract={r}
@@ -574,19 +575,29 @@ export function AdminContractsPage() {
         subtitle={t("admin.contracts.subtitle")}
       />
 
-      <Card className={isMobile ? "p-3" : "p-4"}>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="relative" style={{ width: isMobile ? 160 : 280 }}>
+      <Card className={isMobile ? "p-4" : "p-6"}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className={cn("relative max-w-full", isMobile ? "w-40" : "w-70")}>
             <Search
               aria-hidden="true"
-              className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute inset-y-0 inset-s-3 my-auto size-4 text-muted-foreground"
             />
             <Input
-              className="ps-9"
+              className="ps-9 pe-8"
               placeholder={t("common.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {search && (
+              <button
+                type="button"
+                aria-label={t("common.cancel")}
+                onClick={() => setSearch("")}
+                className="absolute inset-y-0 inset-e-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </div>
           <Button onClick={() => setCreateOpen(true)}>
             <Plus aria-hidden="true" />

@@ -34,6 +34,8 @@
     "title": "הגדרות",
     "subtitle": "אבטחת חשבון והעדפות.",
     "profileSectionTitle": "הפרופיל שלך",
+    "profileNameLabel": "שם",
+    "profileEmailLabel": "אימייל",
     "noDisplayName": "לא הוגדר שם תצוגה",
     "languageSectionTitle": "שפה",
     "passwordSectionTitle": "שינוי סיסמה",

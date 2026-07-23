@@ -69,7 +69,7 @@ export function AdminAuditPage() {
       key: "createdAt",
       width: 180,
       render: (v) => (
-        <span className="whitespace-nowrap tabular-nums">
+        <span dir="ltr" className="whitespace-nowrap tabular-nums text-muted-foreground">
           {new Date(String(v)).toLocaleString()}
         </span>
       ),
@@ -78,22 +78,35 @@ export function AdminAuditPage() {
       title: t("admin.audit.columns.admin"),
       key: "admin",
       width: 220,
-      render: (_, r) => r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-"),
+      render: (_, r) =>
+        r.adminEmail ||
+        (r.adminUserId != null ? `#${r.adminUserId}` : <span className="text-muted-foreground">—</span>),
     },
-    { title: t("admin.audit.columns.action"), dataIndex: "action", key: "action", width: 200 },
+    {
+      title: t("admin.audit.columns.action"),
+      dataIndex: "action",
+      key: "action",
+      width: 200,
+      render: (v) => <span className="font-medium">{v as string}</span>,
+    },
     {
       title: t("admin.audit.columns.resource"),
       key: "resource",
       width: 180,
-      render: (_, r) => r.resourceType || "-",
+      render: (_, r) => (
+        <span className="text-muted-foreground">{r.resourceType || "—"}</span>
+      ),
     },
     {
       title: t("admin.audit.columns.detail"),
       dataIndex: "detail",
       key: "detail",
-      render: (v) => (
-        <span className="block max-w-[360px] truncate">{(v as string) || ""}</span>
-      ),
+      render: (v) =>
+        v ? (
+          <span dir="ltr" className="block max-w-[260px] truncate font-mono text-xs text-muted-foreground">
+            {v as string}
+          </span>
+        ) : null,
     },
   ];
 
@@ -114,77 +127,89 @@ export function AdminAuditPage() {
         }
       />
       <Card className={cn(isMobile ? "p-3" : "p-4")}>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <div className={cn("relative", isMobile ? "w-full" : "w-[280px]")}>
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground"
-            />
-            <Input
-              className="ps-9 pe-8"
-              placeholder={t("admin.audit.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                type="button"
-                aria-label={t("admin.audit.clearSearch")}
-                onClick={() => setSearch("")}
-                className="absolute inset-y-0 end-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className={cn("relative", isMobile ? "w-full" : "w-[280px]")}>
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground"
+              />
+              <Input
+                className="ps-9 pe-8"
+                placeholder={t("admin.audit.searchPlaceholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  aria-label={t("admin.audit.clearSearch")}
+                  onClick={() => setSearch("")}
+                  className="absolute inset-y-0 end-2 my-auto flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
           </div>
+          {isMobile ? (
+            <ResponsiveCardView
+              items={filtered.map((r) => ({
+                id: String(r.id),
+                title: r.action,
+                subtitle: r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-"),
+                description: new Date(r.createdAt).toLocaleString(),
+                tags: r.resourceType ? [{ label: `${r.resourceType} ${r.resourceId || ""}`.trim(), color: "blue" }] : [],
+                extra: r.detail ? (
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {r.detail}
+                  </div>
+                ) : undefined,
+              }))}
+              loading={loading}
+              emptyText={t("common.noData")}
+            />
+          ) : (
+            <DataTable<AdminAuditLogRow>
+              rowKey="id"
+              loading={loading}
+              size="middle"
+              pagination={{ pageSize: 25 }}
+              dataSource={filtered}
+              scroll={{ x: 900 }}
+              locale={{ emptyText: emptyState }}
+              columns={columns}
+              expandable={{
+                rowExpandable: (r) => Boolean(r.resourceId || r.detail),
+                expandedRowRender: (r) => (
+                  <div className="flex flex-col gap-3 py-1">
+                    {r.resourceId ? (
+                      <div>
+                        <span className="block text-xs text-muted-foreground">
+                          {t("admin.audit.columns.resource")}
+                        </span>
+                        <span>{[r.resourceType, r.resourceId].filter(Boolean).join(" ")}</span>
+                      </div>
+                    ) : null}
+                    {r.detail ? (
+                      <div>
+                        <span className="block text-xs text-muted-foreground">
+                          {t("admin.audit.columns.detail")}
+                        </span>
+                        <span
+                          dir="ltr"
+                          className="block whitespace-pre-wrap font-mono text-xs [overflow-wrap:anywhere]"
+                        >
+                          {r.detail}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                ),
+              }}
+            />
+          )}
         </div>
-        {isMobile ? (
-          <ResponsiveCardView
-            items={filtered.map((r) => ({
-              id: String(r.id),
-              title: r.action,
-              subtitle: r.adminEmail || (r.adminUserId != null ? `#${r.adminUserId}` : "-"),
-              description: new Date(r.createdAt).toLocaleString(),
-              tags: r.resourceType ? [{ label: `${r.resourceType} ${r.resourceId || ""}`.trim(), color: "blue" }] : [],
-              extra: r.detail ? (
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {r.detail}
-                </div>
-              ) : undefined,
-            }))}
-            loading={loading}
-            emptyText={t("common.noData")}
-          />
-        ) : (
-          <DataTable<AdminAuditLogRow>
-            rowKey="id"
-            loading={loading}
-            size="middle"
-            pagination={{ pageSize: 25 }}
-            dataSource={filtered}
-            scroll={{ x: 900 }}
-            locale={{ emptyText: emptyState }}
-            columns={columns}
-            expandable={{
-              rowExpandable: (r) => Boolean(r.resourceId || r.detail),
-              expandedRowRender: (r) => (
-                <div className="flex flex-col gap-1">
-                  {r.resourceId ? (
-                    <span>
-                      <strong>{t("admin.audit.columns.resource")}:</strong>{" "}
-                      {[r.resourceType, r.resourceId].filter(Boolean).join(" ")}
-                    </span>
-                  ) : null}
-                  {r.detail ? (
-                    <span className="whitespace-pre-wrap [overflow-wrap:anywhere]">
-                      <strong>{t("admin.audit.columns.detail")}:</strong> {r.detail}
-                    </span>
-                  ) : null}
-                </div>
-              ),
-            }}
-          />
-        )}
       </Card>
     </PageContainer>
   );

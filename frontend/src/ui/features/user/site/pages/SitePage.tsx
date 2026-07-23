@@ -373,6 +373,7 @@ export function SitePage() {
                           </span>
                         </div>
                         <Button
+                          variant="outline"
                           disabled={waConnecting}
                           onClick={async () => {
                             setWaConnecting(true);
@@ -473,7 +474,7 @@ export function SitePage() {
                 showTotal: (total, range) => `${range[0]}-${range[1]} / ${total}`,
               }}
               locale={{
-                emptyText: <EmptyState description={t("site.leads.empty")} style={{ padding: "24px 0" }} />,
+                emptyText: <EmptyState title={t("site.leads.empty")} style={{ padding: "24px 0" }} />,
               }}
             />
           </CardContent>

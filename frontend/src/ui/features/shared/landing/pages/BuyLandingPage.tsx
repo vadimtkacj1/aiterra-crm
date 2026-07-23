@@ -66,7 +66,7 @@ export function BuyLandingPage() {
 
       {/* Content */}
       <div className="flex flex-1 items-start justify-center px-4 py-10">
-        <Card className="w-full max-w-[520px] p-8 shadow-lg">
+        <Card className="w-full max-w-[520px] p-6 sm:p-8">
           <h1 className="text-2xl font-bold tracking-tight">{PRODUCT.title}</h1>
 
           <div className="mb-1 mt-3">

@@ -102,7 +102,7 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
       width: 200,
       render: (_, r) => (
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" className="rounded-lg" onClick={() => downloadPaymentPdf(r)}>
+          <Button variant="outline" size="sm" className="rounded-lg" onClick={() => downloadPaymentPdf(r)}>
             <Download aria-hidden="true" />
             PDF
           </Button>
@@ -155,7 +155,7 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
                     label: "PDF",
                     onClick: () => downloadPaymentPdf(r),
                     icon: <Download aria-hidden="true" />,
-                    type: "primary" as const,
+                    type: "default" as const,
                   },
                   {
                     label: t("billing.view"),

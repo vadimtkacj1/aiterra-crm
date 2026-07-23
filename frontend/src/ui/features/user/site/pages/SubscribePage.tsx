@@ -64,7 +64,7 @@ export function SubscribePage() {
 
   if (done) {
     return (
-      <div style={wrapStyle}>
+      <div className={wrapClass}>
         <div className="flex flex-col items-center gap-3 p-8 text-center">
           <CheckCircle2 className="size-16" style={{ color: "var(--ds-color-success)" }} aria-hidden="true" />
           <h2 className="m-0 text-2xl font-semibold">{t("subscribe.successTitle")}</h2>
@@ -75,15 +75,15 @@ export function SubscribePage() {
   }
 
   return (
-    <div style={wrapStyle}>
+    <div className={wrapClass}>
       <div className="relative w-full" style={{ maxWidth: 420 }}>
         {submitting && (
           <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60">
             <Spinner size="lg" label={t("subscribe.submitBtn")} />
           </div>
         )}
-        <div style={cardStyle}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div className="w-full rounded-xl border border-(--ds-border-subtle) bg-card px-7 py-8 shadow-sm">
+          <div className="mb-7 text-center">
             <MessageCircle
               className="mx-auto mb-2 size-9"
               style={{ color: "#25d366" }}
@@ -94,7 +94,7 @@ export function SubscribePage() {
           </div>
 
           {error && (
-            <div style={{ color: "var(--ds-color-error)", marginBottom: 16, textAlign: "center" }}>
+            <div className="mb-4 text-center text-sm text-(--ds-color-error)">
               {error}
             </div>
           )}
@@ -145,19 +145,4 @@ export function SubscribePage() {
   );
 }
 
-const wrapStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "var(--ds-surface-2)",
-  padding: 16,
-};
-
-const cardStyle: React.CSSProperties = {
-  background: "#fff",
-  borderRadius: 12,
-  padding: "32px 28px",
-  width: "100%",
-  boxShadow: "0 2px 16px rgba(0,0,0,0.09)",
-};
+const wrapClass = "flex min-h-screen items-center justify-center bg-(--ds-surface-2) p-4";

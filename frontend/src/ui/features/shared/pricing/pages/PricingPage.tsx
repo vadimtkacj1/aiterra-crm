@@ -32,22 +32,25 @@ const FEATURES = [
 function PlanCard({
   name, audience, price, features, highlight = false, cta,
 }: { name: string; audience: string; price: string; features: string[]; highlight?: boolean; cta: string }) {
+  const hasNumericPrice = /\d/.test(price);
   return (
-    <Card className={highlight ? "text-center shadow-lg ring-1 ring-primary/15" : "text-center"}>
-      <div className="p-6">
-        {highlight && (
-          <span className="mb-2 inline-block rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-            הכי פופולרי
-          </span>
-        )}
+    <Card className={highlight ? "relative border-primary/50 text-center" : "text-center"}>
+      {highlight && (
+        <span className="absolute -top-3 inset-x-0 mx-auto w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+          הכי פופולרי
+        </span>
+      )}
+      <div className="flex h-full flex-col p-6">
         <h3 className="text-lg font-semibold">{name}</h3>
         <p className="text-sm text-muted-foreground">{audience}</p>
         <div className="my-4">
-          <span className="text-4xl font-extrabold tracking-tight tabular-nums">{displayPrice(price)}</span>
-          {/\d/.test(price) && <span className="text-sm text-muted-foreground"> / חודש</span>}
+          <span className={hasNumericPrice ? "text-4xl font-extrabold tracking-tight tabular-nums" : "text-3xl font-bold tracking-tight"}>
+            {displayPrice(price)}
+          </span>
+          {hasNumericPrice && <span className="text-sm text-muted-foreground"> / חודש</span>}
         </div>
         <div className="my-5 h-px bg-border" />
-        <ul className="mb-6 grid gap-2 text-start text-sm">
+        <ul className="mb-6 grid flex-1 content-start gap-2 text-start text-sm">
           {features.map((f) => (
             <li key={f} className="flex items-start gap-2">
               <Check className="mt-0.5 size-4 shrink-0 text-success" />
@@ -76,7 +79,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
           <a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white">
             <Mail className="size-4" /> {CONTACT_EMAIL}
           </a>
-          <Button asChild variant="outline" className="hover:bg-white/10" style={{ background: "transparent", color: "#fff", borderColor: "rgba(255,255,255,0.6)" }}>
+          <Button asChild variant="outline" className="border-white/40 bg-transparent text-white shadow-none hover:bg-white/10 hover:text-white">
             <Link to={Paths.login}>כניסה / הרשמה</Link>
           </Button>
         </div>
@@ -97,7 +100,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
           ))}
         </div>
         <div className="mt-7">
-          <Button asChild size="lg" className="shadow-sm hover:opacity-90" style={{ background: "#ffffff", color: "#2e1fa3" }}>
+          <Button asChild size="lg" className="bg-white text-[#2e1fa3] shadow-sm hover:bg-white/90">
             <Link to={Paths.buyLanding}>רכישת דף נחיתה</Link>
           </Button>
         </div>
@@ -105,16 +108,18 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
 
       {/* Features */}
       <div className="mx-auto max-w-5xl px-6 py-14">
-        <h2 className="mb-10 text-center text-2xl font-bold tracking-tight">מה כוללת המערכת</h2>
+        <h2 className="mb-10 text-center text-2xl font-semibold tracking-tight">מה כוללת המערכת</h2>
         <div className="grid gap-6 sm:grid-cols-2">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <Card key={title} className="h-full shadow-sm">
-              <div className="flex items-start justify-between gap-4 p-6">
+            <Card key={title} className="h-full">
+              <div className="flex items-start gap-4 p-6">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Icon className="size-5 text-primary" />
+                </div>
                 <div>
-                  <h3 className="mb-2 text-base font-semibold">{title}</h3>
+                  <h3 className="mb-1.5 text-base font-semibold">{title}</h3>
                   <p className="text-sm text-muted-foreground">{desc}</p>
                 </div>
-                <Icon className="size-8 shrink-0 text-primary" />
               </div>
             </Card>
           ))}
@@ -124,27 +129,18 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
       {/* Pricing (hidden on the public root landing) */}
       {!hidePlans && (
         <div className="mx-auto max-w-5xl px-6 py-14">
-          <h2 className="mb-2 text-center text-2xl font-bold tracking-tight">תוכניות מחיר</h2>
+          <h2 className="mb-2 text-center text-2xl font-semibold tracking-tight">תוכניות מחיר</h2>
           <p className="mb-10 text-center text-muted-foreground">מחיר חודשי קבוע, ללא עמלות הפתעה. ביטול בכל עת.</p>
           <div className="grid gap-6 md:grid-cols-3">
             <PlanCard name="Basic" audience="לעסקים קטנים" price={PLAN_PRICE_BASIC} features={FEATURES_BASIC} cta="התחל עכשיו" />
             <PlanCard name="Pro" audience="לסוכנויות בצמיחה" price={PLAN_PRICE_PRO} features={FEATURES_PRO} highlight cta="התחל עכשיו" />
             <PlanCard name="Enterprise" audience="לחברות גדולות" price={PLAN_PRICE_ENTERPRISE} features={FEATURES_ENTERPRISE} cta="צור קשר" />
           </div>
-          <p className="mt-6 text-center text-[13px] text-muted-foreground">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
             כל המחירים כוללים מע"מ. תשלום בכרטיס אשראי בלבד. ניתן לשדרג / לשנמך את התוכנית בכל עת.
           </p>
         </div>
       )}
-
-      {/* Policy links */}
-      <div className="mx-auto max-w-3xl px-6 py-10 text-center text-sm text-muted-foreground">
-        <Link to={Paths.terms} className="text-primary hover:underline">תקנון ותנאי שימוש</Link>
-        {" · "}
-        <Link to={Paths.cancelPolicy} className="text-primary hover:underline">מדיניות ביטולים</Link>
-        {" · "}
-        <Link to={Paths.privacyPolicy} className="text-primary hover:underline">מדיניות פרטיות</Link>
-      </div>
 
       <SiteFooter />
     </div>

@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { i18n } from "@/i18n";
+
+/** App locale for dates/money — follows the UI language, not the browser locale. */
+function appLocale(): string {
+  return (i18n.language ?? "en").startsWith("he") ? "he-IL" : "en-US";
+}
 
 const PAYMENT_STATUS_MAP: Record<string, { color: string; labelKey: string }> = {
   paid: { color: "success", labelKey: "admin.payments.payStatePaid" },
@@ -20,7 +26,7 @@ export function paymentStatusBadge(t: (key: string) => string, status: string): 
 
 export function formatHistoryDateTime(iso: string): string {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString(appLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -34,7 +40,7 @@ export function formatHistoryDateTime(iso: string): string {
 
 export function formatHistoryDate(iso: string): string {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString(appLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -47,7 +53,7 @@ export function formatHistoryDate(iso: string): string {
 export function formatMoney(amount: number, currency: string): string {
   const cur = (currency || "USD").toUpperCase();
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(appLocale(), {
       style: "currency",
       currency: cur.length === 3 ? cur : "USD",
       minimumFractionDigits: 2,

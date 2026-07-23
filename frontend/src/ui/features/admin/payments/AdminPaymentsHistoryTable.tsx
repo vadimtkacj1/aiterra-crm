@@ -10,6 +10,7 @@ import type {
   BillingHistoryWithAccountRow,
   UserBusinessMeta,
 } from "@/services/admin/AdminService";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { TableActionButton } from "@/ui/shared/components/TableActionButton";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 import { billingHistoryDeleteErrorMessage } from "./adminPaymentsHistoryDeleteError";
@@ -167,7 +168,11 @@ export function AdminPaymentsHistoryTable({
       title: t("admin.payments.historyColCreated"),
       dataIndex: "createdAt",
       width: 132,
-      render: (v) => <span className="tabular-nums">{formatHistoryDateTime(v as string)}</span>,
+      render: (v) => (
+        <span className="text-muted-foreground tabular-nums">
+          {formatHistoryDateTime(v as string)}
+        </span>
+      ),
     },
     {
       title: t("admin.payments.colBusiness"),
@@ -196,6 +201,7 @@ export function AdminPaymentsHistoryTable({
       title: t("admin.payments.historyColAmount"),
       key: "amount",
       width: 132,
+      align: "end",
       render: (_, r) => {
         if (r.amount == null) return "-";
         const main = formatMoney(r.amount, r.currency);
@@ -291,10 +297,21 @@ export function AdminPaymentsHistoryTable({
       size="small"
       pagination={{
         pageSize: 12,
-        showTotal: (total, range) => `${range[0]}-${range[1]} / ${total}`,
+        showTotal: (total, range) => (
+          <span dir="ltr" className="tabular-nums">
+            {range[0]}–{range[1]} / {total}
+          </span>
+        ),
       }}
       scroll={{ x: 900 }}
-      locale={{ emptyText: t("admin.payments.historyEmpty") }}
+      locale={{
+        emptyText: (
+          <EmptyState
+            title={t("admin.payments.historyEmpty")}
+            style={{ padding: "24px 16px" }}
+          />
+        ),
+      }}
       dataSource={rows}
       columns={columns}
     />

@@ -15,6 +15,12 @@ import type { AdminAccountRow, MetaTopupRecord } from "@/services/admin/AdminSer
 import { useApp } from "../../../../app/AppProviders";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
+import { formatMoney } from "../payments/billingUi";
+
+/** "2026-07-23T14:22:31" → "2026-07-23 14:22" — seconds add noise, not information. */
+function fmtDate(iso: string | null | undefined) {
+  return iso ? String(iso).slice(0, 16).replace("T", " ") : "-";
+}
 
 interface MetaPaymentPanelProps {
   /** Bump to trigger a reload from outside (e.g. the page-header reload button). */
@@ -69,16 +75,16 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
     status === "sent_to_meta" ? "success" : status === "failed" ? "error" : "processing";
 
   return (
-    <Card className={cn(isMobile ? "p-3" : "p-4")}>
+    <Card className={cn(isMobile ? "p-4" : "p-6")}>
       {isMobile ? (
         <ResponsiveCardView
           items={topups.map((r) => ({
             id: r.id,
             title: accountName(r.accountId),
-            subtitle: r.createdAt ? r.createdAt.slice(0, 19).replace("T", " ") : "-",
+            subtitle: fmtDate(r.createdAt),
             description: r.metaError || undefined,
             tags: [
-              { label: `${r.amount} ${r.currency}` },
+              { label: formatMoney(r.amount, r.currency) },
               { label: getStatusLabel(r.status), color: getStatusColor(r.status) },
             ],
           }))}
@@ -105,10 +111,10 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
               title: t("admin.topup.colDate"),
               dataIndex: "createdAt",
               key: "createdAt",
-              width: 180,
+              width: 160,
               render: (s) => (
-                <span className="whitespace-nowrap tabular-nums">
-                  {s ? String(s).slice(0, 19).replace("T", " ") : "-"}
+                <span className="whitespace-nowrap tabular-nums text-muted-foreground">
+                  {fmtDate(s as string | null)}
                 </span>
               ),
             },
@@ -116,14 +122,15 @@ export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaym
               title: t("admin.topup.colAccount"),
               dataIndex: "accountId",
               key: "account",
-              render: (id) => accountName(id as number),
+              render: (id) => <span className="font-medium">{accountName(id as number)}</span>,
             },
             {
               title: t("admin.topup.colAmount"),
               key: "amt",
               width: 120,
+              align: "end",
               render: (_, r) => (
-                <span className="tabular-nums">{`${r.amount} ${r.currency}`}</span>
+                <span className="font-medium tabular-nums">{formatMoney(r.amount, r.currency)}</span>
               ),
             },
             {

@@ -1,4 +1,3 @@
-import { Mail, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApp } from "../../../../../app/AppProviders";
@@ -23,18 +22,22 @@ export function SettingsPage() {
               <CardTitle>{t("settings.profileSectionTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <User className="size-4 shrink-0" style={{ color: "var(--ds-text-tertiary)" }} />
-                  <span className="text-sm">
+              <dl className="m-0 flex flex-col gap-4">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-(--ds-letter-spacing-caps) text-muted-foreground">
+                    {t("settings.profileNameLabel")}
+                  </dt>
+                  <dd className="m-0 mt-1 text-sm">
                     {session.user.displayName || t("settings.noDisplayName")}
-                  </span>
+                  </dd>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="size-4 shrink-0" style={{ color: "var(--ds-text-tertiary)" }} />
-                  <span className="text-sm text-muted-foreground">{session.user.email}</span>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-(--ds-letter-spacing-caps) text-muted-foreground">
+                    {t("settings.profileEmailLabel")}
+                  </dt>
+                  <dd className="m-0 mt-1 text-sm">{session.user.email}</dd>
                 </div>
-              </div>
+              </dl>
             </CardContent>
           </Card>
         )}

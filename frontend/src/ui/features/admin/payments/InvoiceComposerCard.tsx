@@ -10,6 +10,7 @@ import {
 import type { TFunction } from "i18next";
 import { useFieldArray, type UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,16 +39,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { AdminPaymentsTokenLike } from "./adminPaymentsPageUi";
 import { formatMoney } from "./billingUi";
 import type { AdminPaymentsFormValues, BillingSchedule } from "./types";
 import { BILLING_CURRENCIES } from "./types";
 
 type Props = {
   t: TFunction;
-  token: AdminPaymentsTokenLike;
-  shellRadius: number;
-  shellShadow: string;
   form: UseFormReturn<AdminPaymentsFormValues>;
   chargeTypeW: "none" | "one_time" | "monthly" | undefined;
   useBreakdownW: boolean | undefined;
@@ -138,9 +135,6 @@ const CLEAR_DAY = "__none__";
 
 export function InvoiceComposerCard({
   t,
-  token,
-  shellRadius,
-  shellShadow,
   form,
   chargeTypeW,
   useBreakdownW,
@@ -166,17 +160,11 @@ export function InvoiceComposerCard({
 
   const sectionClass = "mt-5 border-t pt-5";
   const sectionStyle = { borderTopColor: "var(--ds-border-subtle)" };
+  const sectionLabelClass =
+    "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 
   return (
-    <div
-      style={{
-        borderRadius: shellRadius,
-        border: `1px solid ${token.colorBorderSecondary}`,
-        boxShadow: shellShadow,
-        background: token.colorBgContainer,
-        padding: "20px 20px 24px",
-      }}
-    >
+    <Card className="p-6">
       {/* Rare actions behind disclosure: templates & presets */}
       <div className="mb-2 flex justify-end">
         <DropdownMenu>
@@ -208,19 +196,17 @@ export function InvoiceComposerCard({
       </div>
 
       {/* Charge type selection — stored string values preserved ("one_time" | "monthly") */}
-      <div className="mb-5">
-        <ChargeTypePicker
-          value={chargeTypeW}
-          onChange={(v) => form.setValue("chargeType", v as AdminPaymentsFormValues["chargeType"])}
-          t={t}
-        />
-      </div>
+      <ChargeTypePicker
+        value={chargeTypeW}
+        onChange={(v) => form.setValue("chargeType", v as AdminPaymentsFormValues["chargeType"])}
+        t={t}
+      />
 
-      <Separator className="mb-4 mt-5" />
+      <Separator className="my-5" />
 
       {/* Pricing mode toggle */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[13px] font-semibold text-foreground">
+        <span className={sectionLabelClass}>
           {t("admin.payments.sectionAmounts")}
         </span>
         <Segmented
@@ -324,7 +310,7 @@ export function InvoiceComposerCard({
       {/* Billing schedule — monthly only, shown regardless of itemized/single-total */}
       {chargeTypeW === "monthly" ? (
         <div className={sectionClass} style={sectionStyle}>
-          <span className="mb-2.5 block text-[13px] font-semibold text-foreground">
+          <span className={`mb-2.5 block ${sectionLabelClass}`}>
             {t("admin.payments.billingScheduleLabel")}
           </span>
           <RadioGroup
@@ -410,7 +396,7 @@ export function InvoiceComposerCard({
       {/* Itemized line items */}
       {useBreakdownW ? (
         <div className={`${sectionClass} mb-4`} style={sectionStyle}>
-          <span className="mb-3 block text-xs text-muted-foreground">
+          <span className={`mb-3 block ${sectionLabelClass}`}>
             {t("admin.payments.linesHeading")}
           </span>
 
@@ -537,6 +523,6 @@ export function InvoiceComposerCard({
           </FormItem>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

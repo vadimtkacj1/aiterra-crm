@@ -383,7 +383,7 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
               <CampaignMetricsCharts data={data} />
               <Card>
                 <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-sm">{t("analytics.table.campaigns")}</CardTitle>
+                  <CardTitle className="text-[15px]">{t("analytics.table.campaigns")}</CardTitle>
                 </CardHeader>
                 <DataTable<CampaignSummaryRow>
                   loading={loading}

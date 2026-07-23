@@ -69,7 +69,7 @@ function ChargeTypePicker({ value, onChange, t }: ChargeTypePickerProps) {
       icon: <FileText aria-hidden="true" className="size-6" />,
       label: t("admin.payments.chargeOneShort"),
       desc: t("admin.payments.chargeOneDesc"),
-      color: "#1890ff",
+      color: "#3b28cc", // brand violet — used in `${color}10` alpha concat below, must stay a literal hex
     },
     {
       value: "monthly",

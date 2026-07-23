@@ -146,7 +146,7 @@ export function SiteIntegrationCard({ accountId, publicToken, apiBaseUrl, onToke
           <pre
             dir="ltr"
             className="m-0 overflow-x-auto rounded-md px-4 py-3 font-mono text-xs whitespace-pre"
-            style={{ background: "#1a1a2e", color: "#a8dadc" }}
+            style={{ background: "var(--color-slate-900)", color: "var(--color-violet-300)" }}
           >
             {snippet}
           </pre>

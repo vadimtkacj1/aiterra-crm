@@ -59,7 +59,7 @@ export function BuyLandingPage() {
   return (
     <div dir="rtl" className="flex min-h-screen flex-col bg-muted">
       {/* Header */}
-      <div className="flex items-center justify-between bg-[#2e1fa3] px-6 py-4 sm:px-10">
+      <div className="flex items-center justify-between bg-[#2e1fa3] [background-image:var(--ds-gradient-brand-deep)] px-6 py-4 sm:px-10">
         <Link to={Paths.root} className="text-lg font-bold text-white">Aiterra CRM</Link>
         <Link to={Paths.login} className="text-sm text-white/75 hover:text-white">כניסה / הרשמה</Link>
       </div>

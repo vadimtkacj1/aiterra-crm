@@ -31,7 +31,9 @@ export function LoginPage() {
         </select>
       </div>
 
-      <Card className="w-full max-w-[420px] p-8">
+      <Card className="relative w-full max-w-[420px] overflow-hidden p-8">
+        {/* Brand accent — gradient hairline along the card top */}
+        <div aria-hidden className="absolute inset-x-0 top-0 h-1 [background-image:var(--ds-gradient-brand)]" />
         <div className="mb-6 flex justify-center">
           <img src={logoUrl} alt={t("layout.brand")} className="size-20 sm:size-24" />
         </div>

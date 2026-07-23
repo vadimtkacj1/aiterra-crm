@@ -52,16 +52,16 @@
   --radius: 0.5rem; /* 8px — matches the app control radius */
 
   --background: #ffffff;
-  --foreground: #0f0a2e;
+  --foreground: #0a0a12;
   --card: #ffffff;
-  --card-foreground: #0f0a2e;
+  --card-foreground: #0a0a12;
   --popover: #ffffff;
-  --popover-foreground: #0f0a2e;
+  --popover-foreground: #0a0a12;
 
   --primary: #3b28cc;            /* brand violet 700 */
   --primary-foreground: #ffffff;
   --secondary: #eef1f5;          /* surface-2 */
-  --secondary-foreground: #0f0a2e;
+  --secondary-foreground: #0a0a12;
   --muted: #f6f7f9;              /* surface-1 */
   --muted-foreground: #475569;   /* text-secondary */
   --accent: #f5f3ff;             /* primary-surface */

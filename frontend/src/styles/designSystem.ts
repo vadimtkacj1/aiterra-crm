@@ -71,7 +71,7 @@ export const tokens = {
     surface3: "#e9e6fd",     // selected / active (brand tint — reserved for real selection)
 
     // Text hierarchy
-    textPrimary:   "#0f0a2e",
+    textPrimary:   "#0a0a12",   // near-ink, matches aiterra.co.il brutalist black
     textSecondary: palette.slate[600],
     textTertiary:  palette.slate[400],
     textDisabled:  palette.slate[300],

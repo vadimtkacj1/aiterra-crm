@@ -8,8 +8,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 focus-visible:ring-destructive/40",
+        /* Sheen via arbitrary background-image: tailwind-merge treats bg-gradient-to-*
+           as conflicting with bg-primary and drops the color — this form does not. */
+        default:
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 [background-image:linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0))]",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 focus-visible:ring-destructive/40 [background-image:linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0))]",
         outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",

@@ -41,6 +41,11 @@
   --ds-color-primary-surface-deep:  #ece9fd;
   --ds-color-primary-surface-muted: #d9d4fb;
 
+  /* ── Brand gradient (aiterra.co.il indigo→purple) ────── */
+  --ds-color-brand-purple:  #6d28d9;
+  --ds-gradient-brand:      linear-gradient(135deg, #3b28cc 0%, #6d28d9 100%);
+  --ds-gradient-brand-deep: linear-gradient(135deg, #2e1fa3 0%, #530fad 100%);
+
   /* ── Status colors ───────────────────────────────────── */
   --ds-color-success:         #16a34a;
   --ds-color-success-surface: #dcfce7;
@@ -61,7 +66,7 @@
   --ds-surface-3:  #e9e6fd;     /* selected, active cell (brand tint) */
 
   /* ── Text hierarchy ──────────────────────────────────── */
-  --ds-text-primary:   #0f0a2e;
+  --ds-text-primary:   #0a0a12;   /* near-ink, matches aiterra.co.il brutalist black */
   --ds-text-secondary: #475569;
   --ds-text-tertiary:  #94a3b8;
   --ds-text-disabled:  #cbd5e1;

@@ -310,7 +310,7 @@ export function ContractSignPage() {
   const stageCount = contract.stages.length;
   const termsLinkStyle: CSSProperties = {
     fontWeight: 600,
-    color: "#2563eb",
+    color: "var(--ds-text-link)",
     textDecoration: "underline",
     textUnderlineOffset: 2,
   };
@@ -339,8 +339,8 @@ export function ContractSignPage() {
               width: 36,
               height: 36,
               borderRadius: 10,
-              background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
-              color: "#1d4ed8",
+              background: "linear-gradient(135deg, var(--ds-color-primary-surface-deep) 0%, var(--ds-color-primary-surface-muted) 100%)",
+              color: "var(--ds-color-primary)",
             }}
           >
             <ShieldCheck aria-hidden="true" className="size-4.5" />
@@ -441,15 +441,15 @@ export function ContractSignPage() {
                       style={{
                         width: "100%",
                         padding: "20px 16px",
-                        border: "2px dashed rgba(37,99,235,0.35)",
+                        border: "2px dashed rgba(59,40,204,0.35)",
                         borderRadius: 12,
-                        background: "linear-gradient(135deg,#eff6ff,#eef2ff)",
+                        background: "linear-gradient(135deg,var(--ds-color-primary-surface),var(--ds-color-primary-surface-deep))",
                         cursor: "pointer",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
                         gap: 8,
-                        color: "#1d4ed8",
+                        color: "var(--ds-color-primary)",
                         fontSize: 15,
                         fontWeight: 600,
                       }}
@@ -523,8 +523,8 @@ export function ContractSignPage() {
                           width: 28,
                           height: 28,
                           borderRadius: "50%",
-                          background: "#e0e7ff",
-                          color: "#3730a3",
+                          background: "var(--ds-color-primary-surface-muted)",
+                          color: "var(--ds-color-primary-dark)",
                           fontSize: 13,
                           fontWeight: 700,
                           display: "inline-flex",
@@ -587,8 +587,8 @@ export function ContractSignPage() {
               style={{
                 padding: "16px 18px",
                 borderRadius: 12,
-                background: "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
-                border: "1px solid rgba(37, 99, 235, 0.15)",
+                background: "linear-gradient(135deg, var(--ds-color-primary-surface) 0%, var(--ds-color-primary-surface-deep) 100%)",
+                border: "1px solid rgba(59, 40, 204, 0.15)",
               }}
             >
               <span className="mb-1 block text-xs text-muted-foreground">
@@ -655,7 +655,7 @@ export function ContractSignPage() {
                 ref={wrapRef}
                 style={{
                   borderRadius: 12,
-                  border: `2px dashed ${hasSignature ? "rgba(37, 99, 235, 0.35)" : "rgba(15,23,42,.18)"}`,
+                  border: `2px dashed ${hasSignature ? "rgba(59, 40, 204, 0.35)" : "rgba(15,23,42,.18)"}`,
                   background: "var(--ds-surface-1)",
                   width: "100%",
                   transition: "border-color 0.2s ease",
@@ -732,7 +732,7 @@ export function ContractSignPage() {
               onClick={() => void handleSign()}
               className="h-12.5 w-full rounded-xl text-base font-bold"
               style={{
-                boxShadow: canSubmit ? "0 4px 14px rgba(37, 99, 235, 0.35)" : undefined,
+                boxShadow: canSubmit ? "0 4px 14px rgba(59, 40, 204, 0.35)" : undefined,
               }}
             >
               {submitting ? (

@@ -53,7 +53,7 @@ function NavItem({
         {selected && (
           <span
             aria-hidden="true"
-            className="absolute inset-s-0 top-1.75 bottom-1.75 w-0.75 rounded-e-full bg-primary"
+            className="absolute inset-s-0 top-1.75 bottom-1.75 w-0.75 rounded-e-full bg-primary [background-image:var(--ds-gradient-brand)]"
           />
         )}
         <span

@@ -67,42 +67,45 @@ function PlanCard({
 export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {}) {
   return (
     <div dir="rtl" className="min-h-screen bg-muted">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-[#2e1fa3] px-6 py-4 sm:px-10">
-        <span className="text-lg font-bold text-white">Aiterra CRM</span>
-        <div className="flex flex-wrap items-center gap-4">
-          {hasContactPhone && (
-            <a href={`tel:${CONTACT_PHONE}`} className="inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white">
-              <Phone className="size-4" /> <span dir="ltr">{CONTACT_PHONE}</span>
+      {/* Header + Hero — one continuous brand-gradient band */}
+      <div className="bg-[#2e1fa3] [background-image:var(--ds-gradient-brand-deep)]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 sm:px-10">
+          <span className="text-lg font-bold text-white">Aiterra CRM</span>
+          <div className="flex flex-wrap items-center gap-4">
+            {hasContactPhone && (
+              <a href={`tel:${CONTACT_PHONE}`} className="inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white">
+                <Phone className="size-4" /> <span dir="ltr">{CONTACT_PHONE}</span>
+              </a>
+            )}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white">
+              <Mail className="size-4" /> {CONTACT_EMAIL}
             </a>
-          )}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white">
-            <Mail className="size-4" /> {CONTACT_EMAIL}
-          </a>
-          <Button asChild variant="outline" className="border-white/40 bg-transparent text-white shadow-none hover:bg-white/10 hover:text-white">
-            <Link to={Paths.login}>כניסה / הרשמה</Link>
-          </Button>
+            <Button asChild variant="outline" className="border-white/40 bg-transparent text-white shadow-none hover:bg-white/10 hover:text-white">
+              <Link to={Paths.login}>כניסה / הרשמה</Link>
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Hero */}
-      <div className="bg-[#2e1fa3] px-6 py-16 text-center sm:px-10">
-        <h1 className="mx-auto mb-4 max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          מערכת CRM לניהול קמפיינים פרסומיים
-        </h1>
-        <p className="mx-auto mb-8 max-w-2xl text-lg text-white/65">
-          Aiterra CRM מאפשרת לסוכנויות פרסום ועסקים לנהל קמפיינים ב-Meta ו-Google Ads,
-          לנתח ביצועים בזמן אמת ולנהל חיוב לקוחות. הכול במקום אחד.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {["SaaS", "עברית ואנגלית", "מנוי חודשי"].map((label) => (
-            <span key={label} className="rounded-md bg-white/15 px-3 py-1 text-sm text-white">{label}</span>
-          ))}
-        </div>
-        <div className="mt-7">
-          <Button asChild size="lg" className="bg-white text-[#2e1fa3] shadow-sm hover:bg-white/90">
-            <Link to={Paths.buyLanding}>רכישת דף נחיתה</Link>
-          </Button>
+        {/* Hero */}
+        <div className="px-6 py-16 text-center sm:px-10">
+          <h1 className="mx-auto mb-4 max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            מערכת CRM לניהול קמפיינים פרסומיים
+          </h1>
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-white/65">
+            Aiterra CRM מאפשרת לסוכנויות פרסום ועסקים לנהל קמפיינים ב-Meta ו-Google Ads,
+            לנתח ביצועים בזמן אמת ולנהל חיוב לקוחות. הכול במקום אחד.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {["SaaS", "עברית ואנגלית", "מנוי חודשי"].map((label) => (
+              <span key={label} className="rounded-md bg-white/15 px-3 py-1 text-sm text-white">{label}</span>
+            ))}
+          </div>
+          <div className="mt-7">
+            <Button asChild size="lg" className="bg-white text-[#3b28cc] shadow-sm hover:bg-white/90">
+              <Link to={Paths.buyLanding}>רכישת דף נחיתה</Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -113,7 +116,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <Card key={title} className="h-full">
               <div className="flex items-start gap-4 p-6">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/10 [background-image:linear-gradient(135deg,#ede9fe,#ffffff)]">
                   <Icon className="size-5 text-primary" />
                 </div>
                 <div>

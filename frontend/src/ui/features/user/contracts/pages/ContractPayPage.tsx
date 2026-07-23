@@ -157,7 +157,7 @@ export function ContractPayPage() {
           <span style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             width: 36, height: 36, borderRadius: 10,
-            background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)", color: "#1d4ed8",
+            background: "linear-gradient(135deg, var(--ds-color-primary-surface-deep) 0%, var(--ds-color-primary-surface-muted) 100%)", color: "var(--ds-color-primary)",
           }}>
             <ShieldCheck aria-hidden="true" className="size-4.5" />
           </span>
@@ -191,8 +191,8 @@ export function ContractPayPage() {
             <div style={{
               padding: "18px 20px",
               borderRadius: 14,
-              background: "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
-              border: "1px solid rgba(37, 99, 235, 0.15)",
+              background: "linear-gradient(135deg, var(--ds-color-primary-surface) 0%, var(--ds-color-primary-surface-deep) 100%)",
+              border: "1px solid rgba(59, 40, 204, 0.15)",
               marginBottom: 24,
             }}>
               <span className="mb-3 block text-xs text-muted-foreground">
@@ -205,19 +205,19 @@ export function ContractPayPage() {
                   style={{
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     padding: "8px 0",
-                    borderBottom: i < pending.length - 1 ? "1px solid rgba(37,99,235,0.1)" : undefined,
+                    borderBottom: i < pending.length - 1 ? "1px solid rgba(59,40,204,0.1)" : undefined,
                   }}
                 >
                   <span className="text-sm" style={{ color: "#334155" }}>
                     {s.description || t("contracts.sign.stage")}
                   </span>
-                  <span className="text-sm font-semibold tabular-nums" style={{ color: "#1e3a8a" }}>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--ds-color-primary-dark)" }}>
                     {fmtMoney(s.amount, currency)}
                   </span>
                 </div>
               ))}
 
-              <Separator style={{ margin: "12px 0 10px", background: "rgba(37,99,235,0.2)" }} />
+              <Separator style={{ margin: "12px 0 10px", background: "rgba(59,40,204,0.2)" }} />
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span className="text-sm font-semibold" style={{ color: "var(--ds-text-primary)" }}>
@@ -235,8 +235,8 @@ export function ContractPayPage() {
             /* Single stage — original simple layout */
             <div style={{
               padding: "20px 22px", borderRadius: 14,
-              background: "linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)",
-              border: "1px solid rgba(37, 99, 235, 0.15)", marginBottom: 28,
+              background: "linear-gradient(135deg, var(--ds-color-primary-surface) 0%, var(--ds-color-primary-surface-deep) 100%)",
+              border: "1px solid rgba(59, 40, 204, 0.15)", marginBottom: 28,
             }}>
               <span className="mb-1 block text-xs text-muted-foreground">
                 {t("contracts.pay.amountDue")}
@@ -261,7 +261,7 @@ export function ContractPayPage() {
             disabled={paying}
             onClick={() => void handlePay(isMultiple)}
             className="mb-3 h-13 w-full rounded-xl text-[17px] font-bold"
-            style={{ boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)" }}
+            style={{ boxShadow: "0 4px 14px rgba(59, 40, 204, 0.35)" }}
           >
             {paying ? (
               <Spinner size="sm" className="text-current" aria-hidden="true" />

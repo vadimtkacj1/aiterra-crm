@@ -1,42 +1,68 @@
-import { Form } from "antd";
-import type { App } from "antd";
 import type { TFunction } from "i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useForm, type FieldPath } from "react-hook-form";
 import type { AccountBillingInstruction, AdminService, InvoiceTemplateRow, UserBusinessMeta } from "@/services/admin/AdminService";
 import type { User } from "@/domain/User";
 import { formPatchFromBillingInstruction, formPatchFromInvoiceTemplate, linesRunningTotalFromWatch } from "./adminPaymentsFormBinding";
+import type { AdminPaymentsMessageLike } from "./adminPaymentsLibraryTypes";
 import type { AdminPaymentsFormValues } from "./types";
 
-type MessageApi = ReturnType<typeof App.useApp>["message"];
+/** Mirrors the antd `<Form initialValues>` this page shipped with (RHF needs defined defaults). */
+export const ADMIN_PAYMENTS_FORM_DEFAULTS: AdminPaymentsFormValues = {
+  userId: "",
+  chargeType: "one_time",
+  amount: null,
+  currency: "ILS",
+  description: "",
+  useBreakdown: false,
+  lineItems: [],
+  splitAcrossMonths: undefined,
+  billingSchedule: undefined,
+  billingDay: undefined,
+  billingWeekDay: undefined,
+  testIntervalMinutes: undefined,
+};
 
 export function useAdminPaymentsComposerSession(
   t: TFunction,
   admin: AdminService,
-  message: MessageApi,
+  message: AdminPaymentsMessageLike,
   users: User[],
 ) {
-  const [form] = Form.useForm<AdminPaymentsFormValues>();
+  const form = useForm<AdminPaymentsFormValues>({ defaultValues: ADMIN_PAYMENTS_FORM_DEFAULTS });
   const [userMeta, setUserMeta] = useState<UserBusinessMeta | null>(null);
   const [metaLoading, setMetaLoading] = useState(false);
   const [clientLiveBilling, setClientLiveBilling] = useState<AccountBillingInstruction | null>(null);
 
-  const userIdW = Form.useWatch("userId", form);
-  const lineItemsW = Form.useWatch("lineItems", form);
-  const useBreakdownW = Form.useWatch("useBreakdown", form);
-  const chargeTypeW = Form.useWatch("chargeType", form);
-  const splitAcrossMonthsW = Form.useWatch("splitAcrossMonths", form);
-  const currencyW = Form.useWatch("currency", form) ?? "USD";
+  const userIdW = form.watch("userId");
+  const lineItemsW = form.watch("lineItems");
+  const useBreakdownW = form.watch("useBreakdown");
+  const chargeTypeW = form.watch("chargeType");
+  const splitAcrossMonthsW = form.watch("splitAcrossMonths");
+  const currencyW = form.watch("currency") ?? "USD";
+
+  /** antd `form.setFieldsValue` equivalent: partial patch on top of current values. */
+  const patchForm = useCallback(
+    (patch: Partial<AdminPaymentsFormValues>) => {
+      for (const [key, value] of Object.entries(patch) as [FieldPath<AdminPaymentsFormValues>, never][]) {
+        form.setValue(key, value);
+      }
+    },
+    [form],
+  );
 
   useEffect(() => {
     if (chargeTypeW !== "monthly") {
-      form.setFieldsValue({ splitAcrossMonths: undefined, billingDay: undefined });
+      form.setValue("splitAcrossMonths", undefined);
+      form.setValue("billingDay", undefined);
     }
   }, [chargeTypeW, form]);
 
   useEffect(() => {
     const n = typeof splitAcrossMonthsW === "number" ? splitAcrossMonthsW : 0;
     if (chargeTypeW === "monthly" && n >= 2 && useBreakdownW) {
-      form.setFieldsValue({ useBreakdown: false, lineItems: [] });
+      form.setValue("useBreakdown", false);
+      form.setValue("lineItems", []);
     }
   }, [chargeTypeW, splitAcrossMonthsW, useBreakdownW, form]);
 
@@ -45,12 +71,12 @@ export function useAdminPaymentsComposerSession(
       try {
         const bi = await admin.getAccountBillingInstruction(accountId);
         setClientLiveBilling(bi);
-        form.setFieldsValue(formPatchFromBillingInstruction(bi));
+        patchForm(formPatchFromBillingInstruction(bi));
       } catch {
         /* ignore */
       }
     },
-    [admin, form],
+    [admin, patchForm],
   );
 
   const onUserChange = useCallback(
@@ -81,20 +107,20 @@ export function useAdminPaymentsComposerSession(
 
   const importLiveBillingIntoForm = useCallback(() => {
     if (!clientLiveBilling) return;
-    form.setFieldsValue(formPatchFromBillingInstruction(clientLiveBilling));
+    patchForm(formPatchFromBillingInstruction(clientLiveBilling));
     message.success(t("admin.payments.importClientBillingOk"));
-  }, [clientLiveBilling, form, message, t]);
+  }, [clientLiveBilling, patchForm, message, t]);
 
   const loadTemplateIntoForm = useCallback(
     (tpl: InvoiceTemplateRow) => {
-      form.setFieldsValue(formPatchFromInvoiceTemplate(tpl));
+      patchForm(formPatchFromInvoiceTemplate(tpl));
       message.success(t("admin.payments.templateLoaded"));
     },
-    [form, message, t],
+    [patchForm, message, t],
   );
 
   const presetBundle = useCallback(() => {
-    form.setFieldsValue({
+    patchForm({
       useBreakdown: true,
       lineItems: [
         { code: "server", label: t("admin.payments.lineServer"), amount: undefined },
@@ -102,19 +128,17 @@ export function useAdminPaymentsComposerSession(
         { code: "tokens", label: t("admin.payments.lineTokens"), amount: undefined },
       ],
     });
-  }, [form, t]);
+  }, [patchForm, t]);
 
   const presetServerOnly = useCallback(() => {
-    form.setFieldsValue({
+    patchForm({
       useBreakdown: true,
       lineItems: [{ code: "server", label: t("admin.payments.lineServer"), amount: undefined }],
     });
-  }, [form, t]);
+  }, [patchForm, t]);
 
-  const linesRunningTotal = useMemo(
-    () => linesRunningTotalFromWatch(lineItemsW, useBreakdownW),
-    [lineItemsW, useBreakdownW],
-  );
+  // No useMemo: `form.watch` returns mutable live references, so memo deps would go stale.
+  const linesRunningTotal = linesRunningTotalFromWatch(lineItemsW, useBreakdownW);
 
   const selectedUser = users.find((u) => String(u.id) === userIdW);
   const selectedIsAdmin = selectedUser?.role === "admin";

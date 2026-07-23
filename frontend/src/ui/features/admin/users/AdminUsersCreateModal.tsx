@@ -1,10 +1,19 @@
-import { ApiOutlined, ReloadOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Button, Collapse, Form, Input, Radio, Space, Typography } from "antd";
-import { AppModal } from "@/ui/shared/components/AppModal";
-import type { FormInstance } from "antd/es/form";
+import { Plug, RefreshCw, UserPlus } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
 import type { TFunction } from "i18next";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Form, FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AppModal } from "@/ui/shared/components/AppModal";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
-import type { AdminCreateUserFormValues } from "./adminUsersTypes";
+import type { AdminCreateUserFormValues, AdminUserLinkFormValues } from "./adminUsersTypes";
 import { AdminUsersGoogleLinkFields } from "./AdminUsersGoogleLinkFields";
 import { AdminUsersMetaLinkFields } from "./AdminUsersMetaLinkFields";
 import { AdminUsersSiteLinkFields } from "./AdminUsersSiteLinkFields";
@@ -12,7 +21,7 @@ import { AdminUsersSiteLinkFields } from "./AdminUsersSiteLinkFields";
 type Props = {
   t: TFunction;
   open: boolean;
-  form: FormInstance<AdminCreateUserFormValues>;
+  form: UseFormReturn<AdminCreateUserFormValues>;
   metaCampaigns: MetaCampaignOption[];
   metaCampaignsLoading: boolean;
   /** Emails already in the system — used for inline duplicate validation. */
@@ -20,6 +29,8 @@ type Props = {
   onFinish: (values: AdminCreateUserFormValues) => Promise<void>;
   onCancel: () => void;
 };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Crypto-random password: 12 chars, unambiguous alphabet (no 0/O/1/l/I). */
 function generatePassword(): string {
@@ -32,121 +43,132 @@ function generatePassword(): string {
 export function AdminUsersCreateModal({
   t, open, form, metaCampaigns, metaCampaignsLoading, existingEmails = [], onFinish, onCancel,
 }: Props) {
-  const handleOk = async () => {
-    const values = await form.validateFields();
-    await onFinish(values);
-  };
+  /* The shared link-field components are typed against the common subset of
+     both the create and edit forms — structurally safe cast. */
+  const linkForm = form as unknown as UseFormReturn<AdminUserLinkFormValues>;
+
+  const handleOk = () =>
+    form.handleSubmit(async (values) => {
+      await onFinish(values);
+    })();
 
   const emailSet = new Set(existingEmails.map((e) => e.trim().toLowerCase()));
 
   const fillGeneratedPassword = () => {
-    form.setFieldsValue({ password: generatePassword() } as Partial<AdminCreateUserFormValues>);
-    void form.validateFields(["password"]);
+    form.setValue("password", generatePassword(), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   const roleOption = (value: string, title: string, desc: string) => (
-    <Radio value={value}>
-      <span style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>
-        <Typography.Text strong>{title}</Typography.Text>
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>{desc}</Typography.Text>
+    <label className="flex cursor-pointer items-start gap-2">
+      <RadioGroupItem value={value} className="mt-0.5" />
+      <span className="inline-flex flex-col gap-0.5">
+        <span className="text-sm font-semibold">{title}</span>
+        <span className="text-xs text-muted-foreground">{desc}</span>
       </span>
-    </Radio>
+    </label>
   );
 
   return (
     <AppModal
-      title={<span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><UserAddOutlined />{t("admin.form.createTitle")}</span>}
+      title={
+        <span className="inline-flex items-center gap-2">
+          <UserPlus className="size-4" />
+          {t("admin.form.createTitle")}
+        </span>
+      }
       open={open}
       onCancel={onCancel}
       okText={t("admin.form.submit")}
-      onOk={handleOk}
+      onOk={() => void handleOk()}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{ role: "user", linkMeta: "without", linkGoogle: "without", linkSite: false }}
-        style={{ marginTop: 8 }}
-      >
-        <Form.Item
+      <Form form={form} className="mt-2">
+        <FormItem<AdminCreateUserFormValues, "email">
           name="email"
           label={t("admin.form.email")}
-          validateFirst
-          rules={[
-            { required: true, type: "email" },
-            {
-              validator: async (_, value: string) => {
-                if (value && emailSet.has(value.trim().toLowerCase())) {
-                  throw new Error(t("admin.form.emailTaken"));
-                }
-              },
-            },
-          ]}
+          rules={{
+            required: t("form.validation.emailRequired"),
+            pattern: { value: EMAIL_RE, message: t("form.validation.emailInvalid") },
+            validate: (value) =>
+              !value || !emailSet.has(value.trim().toLowerCase()) || t("admin.form.emailTaken"),
+          }}
         >
-          <Input autoFocus />
-        </Form.Item>
+          {(field) => <Input {...field} type="email" dir="ltr" autoFocus />}
+        </FormItem>
 
-        <Form.Item label={t("admin.form.password")} extra={t("admin.form.passwordHint")} required style={{ marginBottom: 20 }}>
-          <Space.Compact block>
-            <Form.Item name="password" noStyle rules={[{ required: true, min: 8, message: t("admin.form.passwordHint") }]}>
-              <Input.Password />
-            </Form.Item>
-            <Button icon={<ReloadOutlined />} onClick={fillGeneratedPassword}>
-              {t("admin.form.generatePassword")}
-            </Button>
-          </Space.Compact>
-        </Form.Item>
+        <FormItem<AdminCreateUserFormValues, "password">
+          name="password"
+          label={t("admin.form.password")}
+          hint={t("admin.form.passwordHint")}
+          rules={{
+            required: t("admin.form.passwordHint"),
+            minLength: { value: 8, message: t("admin.form.passwordHint") },
+          }}
+          className="mb-5"
+        >
+          {(field) => (
+            <div className="flex gap-2">
+              <Input {...field} type="password" autoComplete="new-password" dir="ltr" className="flex-1" />
+              <Button type="button" variant="outline" onClick={fillGeneratedPassword}>
+                <RefreshCw />
+                {t("admin.form.generatePassword")}
+              </Button>
+            </div>
+          )}
+        </FormItem>
 
-        <Form.Item name="displayName" label={t("admin.form.displayName")} rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item name="phone" label={t("admin.form.phone")}>
-          <Input placeholder="+972-50-000-0000" />
-        </Form.Item>
+        <FormItem<AdminCreateUserFormValues, "displayName">
+          name="displayName"
+          label={t("admin.form.displayName")}
+          rules={{ required: t("form.validation.required") }}
+        >
+          {(field) => <Input {...field} />}
+        </FormItem>
+        <FormItem<AdminCreateUserFormValues, "phone"> name="phone" label={t("admin.form.phone")}>
+          {(field) => <Input {...field} value={field.value ?? ""} placeholder="+972-50-000-0000" dir="ltr" />}
+        </FormItem>
 
         {/* Role — two radio cards with consequences spelled out (always has a value) */}
-        <Form.Item name="role" label={t("admin.form.role")}>
-          <Radio.Group>
-            <Space direction="vertical" size={12}>
+        <FormItem<AdminCreateUserFormValues, "role"> name="role" label={t("admin.form.role")}>
+          {(field) => (
+            <RadioGroup value={field.value} onValueChange={field.onChange} className="gap-3">
               {roleOption("user", t("admin.roles.user"), t("admin.roles.userDesc"))}
               {roleOption("admin", t("admin.roles.admin"), t("admin.roles.adminDesc"))}
-            </Space>
-          </Radio.Group>
-        </Form.Item>
+            </RadioGroup>
+          )}
+        </FormItem>
 
-        <Collapse
-          ghost
-          style={{ marginTop: 4 }}
-          items={[
-            {
-              key: "integrations",
-              label: (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <ApiOutlined />
-                  <Typography.Text>{t("admin.form.integrationsSection")}</Typography.Text>
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    — {t("admin.form.integrationsSectionHint")}
-                  </Typography.Text>
+        <Accordion type="single" collapsible className="mt-1">
+          <AccordionItem value="integrations" className="border-b-0">
+            <AccordionTrigger className="py-2 hover:no-underline">
+              <span className="inline-flex items-center gap-1.5 font-normal">
+                <Plug className="size-4" />
+                <span>{t("admin.form.integrationsSection")}</span>
+                <span className="text-xs text-muted-foreground">
+                  — {t("admin.form.integrationsSectionHint")}
                 </span>
-              ),
-              children: (
-                <>
-                  <AdminUsersMetaLinkFields
-                    t={t}
-                    metaCampaigns={metaCampaigns}
-                    metaCampaignsLoading={metaCampaignsLoading}
-                    showLinkMetaExtra
-                  />
-                  <div style={{ borderTop: "1px solid var(--ds-border-subtle)", marginTop: "var(--ds-space-5)", paddingTop: "var(--ds-space-5)" }}>
-                    <AdminUsersGoogleLinkFields t={t} mode="create" />
-                  </div>
-                  <div style={{ borderTop: "1px solid var(--ds-border-subtle)", marginTop: "var(--ds-space-5)", paddingTop: "var(--ds-space-5)" }}>
-                    <AdminUsersSiteLinkFields t={t} />
-                  </div>
-                </>
-              ),
-            },
-          ]}
-        />
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <AdminUsersMetaLinkFields
+                t={t}
+                form={linkForm}
+                metaCampaigns={metaCampaigns}
+                metaCampaignsLoading={metaCampaignsLoading}
+                showLinkMetaExtra
+              />
+              <div style={{ borderTop: "1px solid var(--ds-border-subtle)", marginTop: "var(--ds-space-5)", paddingTop: "var(--ds-space-5)" }}>
+                <AdminUsersGoogleLinkFields t={t} form={linkForm} mode="create" />
+              </div>
+              <div style={{ borderTop: "1px solid var(--ds-border-subtle)", marginTop: "var(--ds-space-5)", paddingTop: "var(--ds-space-5)" }}>
+                <AdminUsersSiteLinkFields t={t} form={linkForm} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </Form>
     </AppModal>
   );

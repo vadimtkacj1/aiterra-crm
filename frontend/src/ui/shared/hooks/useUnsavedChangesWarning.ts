@@ -1,10 +1,10 @@
-import { App } from "antd";
 import { useContext, useEffect } from "react";
 import { UNSAFE_DataRouterContext, useBlocker } from "react-router-dom";
+import { confirm } from "@/lib/confirm";
 
 /**
  * Warns the user when they try to leave a page with unsaved form changes.
- * Handles both in-app navigation (React Router blocker + Modal.confirm)
+ * Handles both in-app navigation (React Router blocker + imperative confirm)
  * and browser close/refresh (beforeunload).
  *
  * `useBlocker` requires a data router; under the app's <BrowserRouter> it throws.
@@ -21,7 +21,6 @@ export function useUnsavedChangesWarning(
   const okText = opts?.okText ?? "Leave";
   const cancelText = opts?.cancelText ?? "Stay";
 
-  const { modal } = App.useApp();
   const hasDataRouter = useContext(UNSAFE_DataRouterContext) != null;
 
   const blocker = hasDataRouter
@@ -34,16 +33,16 @@ export function useUnsavedChangesWarning(
 
   useEffect(() => {
     if (!blocker || blocker.state !== "blocked") return;
-    modal.confirm({
+    confirm({
       title,
       content,
       okText,
       cancelText,
-      okButtonProps: { danger: true },
+      danger: true,
       onOk: () => blocker.proceed(),
       onCancel: () => blocker.reset(),
     });
-  }, [blocker, title, content, okText, cancelText, modal]);
+  }, [blocker, title, content, okText, cancelText]);
 
   // Browser close / hard refresh
   useEffect(() => {

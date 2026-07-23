@@ -1,26 +1,34 @@
-import { App, Form } from "antd";
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/app/AppProviders";
+import { confirm } from "@/lib/confirm";
+import { message } from "@/lib/toast";
 import type { BillingLineItem } from "@/services/admin/AdminService";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
 import type { CreateUserInput } from "@/services/auth/IAuthService";
 import type { User } from "@/domain/User";
 import type { UserBusinessMeta, UserBusinessSite } from "@/services/admin/AdminService";
-import type { AdminCreateUserFormValues, AdminEditUserFormValues } from "./adminUsersTypes";
+import {
+  ADMIN_CREATE_USER_DEFAULTS,
+  ADMIN_EDIT_USER_DEFAULTS,
+  type AdminCreateUserFormValues,
+  type AdminEditUserFormValues,
+} from "./adminUsersTypes";
 import { submitAdminUserEdit } from "./adminUsersEditSave";
 
 export function useAdminUsersPage() {
   const { t } = useTranslation();
-  const { message, modal } = App.useApp();
-  const messageRef = useRef(message);
   const tRef = useRef(t);
-  messageRef.current = message;
   tRef.current = t;
 
   const { services, users, usersLoading: loading, createUser, updateUser, resetPassword, refreshUsers } = useApp();
-  const [form] = Form.useForm<AdminCreateUserFormValues>();
+  const form = useForm<AdminCreateUserFormValues>({ defaultValues: { ...ADMIN_CREATE_USER_DEFAULTS } });
+  const editForm = useForm<AdminEditUserFormValues>({ defaultValues: { ...ADMIN_EDIT_USER_DEFAULTS } });
+  const pwdForm = useForm<{ password: string }>({ defaultValues: { password: "" } });
+  /* Read during render so RHF tracks dirty state for the guarded close. */
+  const createFormDirty = form.formState.isDirty;
   const [metaCampaigns, setMetaCampaigns] = useState<MetaCampaignOption[]>([]);
   const [metaCampaignsLoading, setMetaCampaignsLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -32,8 +40,6 @@ export function useAdminUsersPage() {
   const [editMetaInfo, setEditMetaInfo] = useState<UserBusinessMeta | null>(null);
   const [editGoogleHasCredentials, setEditGoogleHasCredentials] = useState(false);
   const [editSiteInfo, setEditSiteInfo] = useState<UserBusinessSite | null>(null);
-  const [editForm] = Form.useForm<AdminEditUserFormValues>();
-  const [pwdForm] = Form.useForm<{ password: string }>();
   const [resetUser, setResetUser] = useState<User | null>(null);
   const preservedBillingLinesRef = useRef<BillingLineItem[] | undefined>(undefined);
 
@@ -44,7 +50,7 @@ export function useAdminUsersPage() {
       setMetaCampaigns(rows);
     } catch {
       setMetaCampaigns([]);
-      messageRef.current.warning(tRef.current("admin.form.metaCampaignsLoadWarning"));
+      message.warning(tRef.current("admin.form.metaCampaignsLoadWarning"));
     } finally {
       setMetaCampaignsLoading(false);
     }
@@ -59,19 +65,12 @@ export function useAdminUsersPage() {
     setEditUser(u);
     setEditMetaInfo(null);
     setEditGoogleHasCredentials(false);
-    editForm.resetFields();
-    editForm.setFieldsValue({
+    /* Same effect as antd's resetFields + setFieldsValue: everything back to
+       defaults, then the known user fields prefilled synchronously. */
+    editForm.reset({
+      ...ADMIN_EDIT_USER_DEFAULTS,
       displayName: u.displayName,
       role: u.role,
-      linkMeta: "without",
-      metaCampaignId: undefined,
-      linkGoogle: "without",
-      googleCustomerId: undefined,
-      googleDeveloperToken: undefined,
-      googleRefreshToken: undefined,
-      googleLoginCustomerId: undefined,
-      linkSite: false,
-      siteUrl: undefined,
     });
     setEditMetaLoading(true);
     try {
@@ -83,7 +82,10 @@ export function useAdminUsersPage() {
       setEditMetaInfo(info);
       setEditGoogleHasCredentials(Boolean(gInfo.hasCredentials));
       setEditSiteInfo(sInfo);
-      editForm.setFieldsValue({
+      /* Async prefill patch — merge over the current values (antd
+         setFieldsValue semantics), keeping the form pristine. */
+      editForm.reset({
+        ...editForm.getValues(),
         linkMeta: info.metaCampaignId ? "with" : "without",
         metaCampaignId: info.metaCampaignId ?? undefined,
         linkGoogle: gInfo.customerId ? "with" : "without",
@@ -103,7 +105,8 @@ export function useAdminUsersPage() {
           const bi = await services.admin.getAccountBillingInstruction(info.accountId);
           preservedBillingLinesRef.current =
             bi.lineItems && bi.lineItems.length > 0 ? bi.lineItems.map((x) => ({ ...x })) : undefined;
-          editForm.setFieldsValue({
+          editForm.reset({
+            ...editForm.getValues(),
             billingChargeType: bi.chargeType,
             billingAmount: bi.amount ?? undefined,
             billingCurrency: bi.currency || "USD",
@@ -116,7 +119,7 @@ export function useAdminUsersPage() {
     } catch {
       setEditMetaInfo({ accountId: null, metaCampaignId: null, metaCampaignName: null });
       setEditGoogleHasCredentials(false);
-      messageRef.current.error(tRef.current("admin.editMetaLoadError"));
+      message.error(tRef.current("admin.editMetaLoadError"));
     } finally {
       setEditMetaLoading(false);
     }
@@ -158,8 +161,7 @@ export function useAdminUsersPage() {
       message.success(t("admin.createSuccess"));
       setCreateOpen(false);
       setCreatedCredentials({ name: values.displayName, email: values.email, password: values.password });
-      form.resetFields();
-      form.setFieldsValue({ role: "user", linkMeta: "without", linkGoogle: "without", linkSite: false, siteUrl: undefined });
+      form.reset({ ...ADMIN_CREATE_USER_DEFAULTS });
       await loadMetaCampaigns();
     } catch (e) {
       message.error(e instanceof Error ? e.message : t("errors.generic"));
@@ -168,8 +170,10 @@ export function useAdminUsersPage() {
 
   const handleEditSave = async () => {
     if (!editUser || editMetaLoading || editMetaInfo === null) return;
+    const valid = await editForm.trigger();
+    if (!valid) return;
     try {
-      const values = await editForm.validateFields();
+      const values = editForm.getValues();
       const result = await submitAdminUserEdit({
         editUser,
         editMetaInfo,
@@ -187,7 +191,6 @@ export function useAdminUsersPage() {
       message.success(t("admin.editSuccess"));
       await loadMetaCampaigns();
     } catch (e) {
-      if (e && typeof e === "object" && "errorFields" in e) return;
       let msg = e instanceof Error ? e.message : t("errors.generic");
       if (axios.isAxiosError(e)) {
         const raw = e.response?.data as { detail?: unknown } | undefined;
@@ -204,29 +207,30 @@ export function useAdminUsersPage() {
 
   const handleResetPasswordSave = async () => {
     if (!resetUser) return;
+    const valid = await pwdForm.trigger();
+    if (!valid) return;
     try {
-      const values = await pwdForm.validateFields();
+      const values = pwdForm.getValues();
       await resetPassword(String(resetUser.id), values.password);
       setResetUser(null);
       message.success(t("admin.passwordUpdated"));
     } catch (e) {
-      if (e && typeof e === "object" && "errorFields" in e) return;
       message.error(e instanceof Error ? e.message : t("errors.generic"));
     }
   };
 
   const openResetPassword = (u: User) => {
     setResetUser(u);
-    pwdForm.resetFields();
+    pwdForm.reset({ password: "" });
   };
 
   const handleDeleteUser = async (u: User) => {
-    modal.confirm({
+    confirm({
       title: t("admin.deleteUserConfirmTitle"),
       content: t("admin.deleteUserConfirmContent", { name: u.displayName || u.email }),
       okText: t("common.confirm"),
-      okType: "danger",
       cancelText: t("common.cancel"),
+      danger: true,
       onOk: async () => {
         try {
           await services.admin.deleteUser(Number(u.id));
@@ -251,19 +255,19 @@ export function useAdminUsersPage() {
 
   /** Close the create modal; if the form has touched fields, confirm first. */
   const closeCreateGuarded = () => {
-    if (!form.isFieldsTouched()) {
+    if (!createFormDirty) {
       setCreateOpen(false);
       return;
     }
-    modal.confirm({
+    confirm({
       title: t("admin.form.discardTitle"),
       content: t("admin.form.discardContent"),
       okText: t("common.confirm"),
       cancelText: t("common.cancel"),
-      okButtonProps: { danger: true },
+      danger: true,
       onOk: () => {
         setCreateOpen(false);
-        form.resetFields();
+        form.reset({ ...ADMIN_CREATE_USER_DEFAULTS });
       },
     });
   };

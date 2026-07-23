@@ -1,7 +1,7 @@
-import { App, theme } from "antd";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/app/AppProviders";
+import { message } from "@/lib/toast";
 import type { BillingHistoryWithAccountRow, InvoiceTemplateCreateInput } from "@/services/admin/AdminService";
 import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
 import {
@@ -11,17 +11,16 @@ import {
 import {
   ADMIN_PAYMENTS_SHELL_RADIUS,
   ADMIN_PAYMENTS_SHELL_SHADOW,
+  ADMIN_PAYMENTS_TOKEN,
   showAdminPaymentsFormMessage,
 } from "./adminPaymentsPageUi";
 import type { AdminPaymentsLibraryDrawerModel } from "./adminPaymentsLibraryTypes";
 import type { AdminPaymentsFormValues } from "./types";
-import { useAdminPaymentsComposerSession } from "./useAdminPaymentsComposerSession";
+import { ADMIN_PAYMENTS_FORM_DEFAULTS, useAdminPaymentsComposerSession } from "./useAdminPaymentsComposerSession";
 import { useAdminPaymentsRemoteLists } from "./useAdminPaymentsRemoteLists";
 
 export function useAdminPaymentsPage() {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
-  const { message } = App.useApp();
   const { services, users, usersLoading: loadingUsers } = useApp();
 
   const lists = useAdminPaymentsRemoteLists(services.admin);
@@ -43,7 +42,7 @@ export function useAdminPaymentsPage() {
   );
 
   const buildTemplatePayloadFromForm = (): InvoiceTemplateCreateInput | null => {
-    const values = session.form.getFieldsValue();
+    const values = session.form.getValues();
     const r = buildInvoiceTemplatePayload(values);
     if (!r.ok) {
       showAdminPaymentsFormMessage(message, t, r.message);
@@ -74,7 +73,7 @@ export function useAdminPaymentsPage() {
   };
 
   const openSaveTemplateModal = () => {
-    const v = session.form.getFieldsValue();
+    const v = session.form.getValues();
     if (v.chargeType !== "one_time" && v.chargeType !== "monthly") {
       message.warning(t("admin.payments.templateNeedCharge"));
       return;
@@ -141,17 +140,11 @@ export function useAdminPaymentsPage() {
         testIntervalMinutes: chargeType === "monthly" && schedule === "minutely" ? (values.testIntervalMinutes ?? null) : null,
       });
       message.success(t("admin.payments.createdSuccess"));
-      session.form.resetFields();
-      session.form.setFieldsValue({
+      // antd `resetFields()` + `setFieldsValue({chargeType:"none", currency:"USD", ...})` equivalent.
+      session.form.reset({
+        ...ADMIN_PAYMENTS_FORM_DEFAULTS,
         chargeType: "none",
         currency: "USD",
-        useBreakdown: false,
-        lineItems: [],
-        splitAcrossMonths: undefined,
-        billingSchedule: undefined,
-        billingDay: undefined,
-        billingWeekDay: undefined,
-        testIntervalMinutes: undefined,
       });
       await session.onUserChange("");
       await lists.loadAllBillingHistory();
@@ -165,7 +158,7 @@ export function useAdminPaymentsPage() {
     try {
       const payload = buildTemplatePayloadFromForm();
       if (!payload) {
-        return Promise.reject(new Error("validation"));
+        return; // validation message already shown; keep the modal open
       }
       await services.admin.createInvoiceTemplate({
         ...payload,
@@ -177,7 +170,6 @@ export function useAdminPaymentsPage() {
       await lists.loadInvoiceTemplates();
     } catch (e) {
       message.error(e instanceof Error ? e.message : t("errors.generic"));
-      return Promise.reject(e);
     } finally {
       setSavingTemplate(false);
     }
@@ -212,7 +204,7 @@ export function useAdminPaymentsPage() {
 
   return {
     t,
-    token,
+    token: ADMIN_PAYMENTS_TOKEN,
     message,
     services,
     users,

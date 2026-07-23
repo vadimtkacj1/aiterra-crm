@@ -1,13 +1,20 @@
-import { DollarOutlined } from "@ant-design/icons";
-import { Alert, Button, Card, Descriptions, Form, Select, Space, Spin, Tag, Typography } from "antd";
-import type { GlobalToken } from "antd/es/theme/interface";
+import { DollarSign } from "lucide-react";
 import type { TFunction } from "i18next";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Combobox } from "@/components/ui/combobox";
+import { FormItem } from "@/components/ui/form";
+import { Spinner } from "@/components/ui/spinner";
 import type { User } from "@/domain/User";
 import type { AccountBillingInstruction, UserBusinessMeta } from "@/services/admin/AdminService";
+import type { AdminPaymentsTokenLike } from "./adminPaymentsPageUi";
+import type { AdminPaymentsFormValues } from "./types";
 
 type Props = {
   t: TFunction;
-  token: GlobalToken;
+  token: AdminPaymentsTokenLike;
   shellRadius: number;
   shellShadow: string;
   loadingUsers: boolean;
@@ -38,6 +45,7 @@ export function RecipientStepCard({
 }: Props) {
   return (
     <Card
+      className="p-6"
       style={{
         borderRadius: shellRadius,
         border: `1px solid ${token.colorBorderSecondary}`,
@@ -45,108 +53,112 @@ export function RecipientStepCard({
         background: token.colorBgContainer,
       }}
     >
-      <Space direction="vertical" size={20} style={{ width: "100%" }}>
+      <div className="flex w-full flex-col gap-5">
         {/* User Selection — label omitted: the placeholder already names it */}
-        <Form.Item name="userId" style={{ marginBottom: 0 }}>
-          <Select
-            size="large"
-            showSearch
-            allowClear
-            loading={loadingUsers}
-            placeholder={t("admin.payments.selectClientPlaceholder")}
-            optionFilterProp="search"
-            onChange={(v) => void onUserChange(String(v ?? ""))}
-            options={users.map((u) => {
-              const name = u.displayName?.trim();
-              // Visible label: name + email only; phone/role/#id stay searchable via `search`.
-              return {
-                value: String(u.id),
-                search: [
-                  u.displayName,
-                  u.email,
-                  u.phone,
-                  u.role === "admin" ? t("admin.roles.admin") : "",
-                  `#${u.id}`,
-                ]
-                  .filter(Boolean)
-                  .join(" "),
-                label: name ? (
-                  <>
-                    {name}{" "}
-                    <Typography.Text type="secondary">{u.email}</Typography.Text>
-                  </>
-                ) : (
-                  u.email
-                ),
-              };
-            })}
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
+        <FormItem<AdminPaymentsFormValues, "userId"> name="userId">
+          {(field) => (
+            <Combobox
+              value={field.value || null}
+              onChange={(v) => {
+                const next = v ?? "";
+                field.onChange(next);
+                void onUserChange(next);
+              }}
+              clearable
+              loading={loadingUsers}
+              placeholder={t("admin.payments.selectClientPlaceholder")}
+              searchPlaceholder={t("admin.payments.selectClientPlaceholder")}
+              emptyText={t("common.noData")}
+              options={users.map((u) => {
+                const name = u.displayName?.trim();
+                // Visible label: name + email only; phone/role/#id stay searchable via `search`.
+                return {
+                  value: String(u.id),
+                  search: [
+                    u.displayName,
+                    u.email,
+                    u.phone,
+                    u.role === "admin" ? t("admin.roles.admin") : "",
+                    `#${u.id}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
+                  label: name ? `${name} · ${u.email}` : u.email,
+                };
+              })}
+            />
+          )}
+        </FormItem>
 
         {/* Admin Warning */}
         {selectedIsAdmin && (
           <Alert
-            type="warning"
-            showIcon
-            message={t("admin.payments.adminSelectedWarning")}
+            variant="warning"
+            title={t("admin.payments.adminSelectedWarning")}
             description={t("admin.payments.adminSelectedWarningDesc")}
           />
         )}
 
         {/* Selected User Info */}
         {selectedUser && !selectedIsAdmin && (
-          <Spin spinning={metaLoading}>
-            <div style={{ paddingTop: 20, borderTop: "1px solid var(--ds-border-subtle)" }}>
-              <Descriptions column={1} size="small">
-                <Descriptions.Item label={t("admin.payments.clientName")}>
-                  <Typography.Text strong>{selectedUser.displayName || selectedUser.email}</Typography.Text>
-                </Descriptions.Item>
-                <Descriptions.Item label={t("admin.payments.clientEmail")}>
-                  {selectedUser.email}
-                </Descriptions.Item>
-                <Descriptions.Item label={t("admin.payments.accountId")}>
+          <div className="relative">
+            {metaLoading ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60">
+                <Spinner aria-hidden="true" />
+              </div>
+            ) : null}
+            <div className="pt-5" style={{ borderTop: "1px solid var(--ds-border-subtle)" }}>
+              <dl className="m-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-sm">
+                <dt className="text-muted-foreground">{t("admin.payments.clientName")}:</dt>
+                <dd className="m-0 font-semibold text-foreground">
+                  {selectedUser.displayName || selectedUser.email}
+                </dd>
+                <dt className="text-muted-foreground">{t("admin.payments.clientEmail")}:</dt>
+                <dd className="m-0">{selectedUser.email}</dd>
+                <dt className="text-muted-foreground">{t("admin.payments.accountId")}:</dt>
+                <dd className="m-0">
                   {userMeta?.accountId ? (
-                    <Tag color="blue">#{userMeta.accountId}</Tag>
+                    <Badge variant="primary">#{userMeta.accountId}</Badge>
                   ) : (
-                    <Tag color="default">{t("admin.payments.noAccount")}</Tag>
+                    <Badge variant="default">{t("admin.payments.noAccount")}</Badge>
                   )}
-                </Descriptions.Item>
+                </dd>
                 {userMeta?.metaCampaignId && (
-                  <Descriptions.Item label={t("admin.payments.metaCampaign")}>
-                    <Tag color="green">{userMeta.metaCampaignId}</Tag>
-                  </Descriptions.Item>
+                  <>
+                    <dt className="text-muted-foreground">{t("admin.payments.metaCampaign")}:</dt>
+                    <dd className="m-0">
+                      <Badge variant="success">{userMeta.metaCampaignId}</Badge>
+                    </dd>
+                  </>
                 )}
-              </Descriptions>
+              </dl>
 
               {/* Live Billing Import */}
               {clientLiveBilling && (clientLiveBilling.chargeType === "one_time" || clientLiveBilling.chargeType === "monthly") && (
                 <Alert
-                  type="info"
-                  showIcon
-                  icon={<DollarOutlined />}
-                  message={t("admin.payments.liveBillingDetected")}
+                  variant="info"
+                  icon={<DollarSign aria-hidden="true" />}
+                  className="mt-4"
+                  title={t("admin.payments.liveBillingDetected")}
                   description={
-                    <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                      <Typography.Text>
+                    <div className="flex w-full flex-col items-start gap-2">
+                      <span>
                         {t("admin.payments.liveBillingAmount", {
                           amount: clientLiveBilling.amount?.toFixed(2) || "0.00",
                           currency: clientLiveBilling.currency || "USD",
                         })}
-                      </Typography.Text>
-                      <Button size="small" type="default" onClick={importLiveBillingIntoForm}>
+                      </span>
+                      <Button type="button" variant="outline" size="sm" onClick={importLiveBillingIntoForm}>
                         {t("admin.payments.importLiveBilling")}
                       </Button>
-                    </Space>
+                    </div>
                   }
-                  style={{ marginTop: 16 }}
                 />
               )}
             </div>
-          </Spin>
+          </div>
         )}
-
-      </Space>
+      </div>
     </Card>
   );
 }

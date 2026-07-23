@@ -1,53 +1,55 @@
 import {
-  CheckCircleOutlined,
-  CopyOutlined,
-  CreditCardOutlined,
-  FilePdfOutlined,
-  MinusCircleOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  SyncOutlined,
-  WalletOutlined,
-} from "@ant-design/icons";
-import { EmptyState } from "../../../shared/components/EmptyState";
-import {
-  App,
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Flex,
-  Form,
-  Image,
-  Input,
-  InputNumber,
-  Row,
-  Select,
-  Space,
-  Spin,
-  Switch,
-  Table,
-  Tag,
-  Tooltip,
-  Typography,
-  Upload,
-} from "antd";
-import { AppModal } from "../../../shared/components/AppModal";
-import type { ColumnsType } from "antd/es/table";
+  Check,
+  CheckCircle2,
+  Copy,
+  CreditCard,
+  FileText,
+  MinusCircle,
+  Plus,
+  RefreshCw,
+  Search,
+  Wallet,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useFieldArray, useForm, type DefaultValues } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import type { Contract } from "../../../../domain/Contract";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Combobox } from "@/components/ui/combobox";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { Form, FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { InputNumber } from "@/components/ui/input-number";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { UploadButton } from "@/components/ui/upload-button";
+import { confirm } from "@/lib/confirm";
+import { message } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import { useApp } from "../../../../app/AppProviders";
-import { renderContractBody } from "../../user/contracts/components/contractBodyRenderer";
-import { PdfViewer } from "../../user/contracts/components/PdfViewer";
+import type { Contract } from "../../../../domain/Contract";
+import type { SubscriptionStatus } from "../../../../services/admin/AdminService";
+import { AppModal } from "../../../shared/components/AppModal";
+import { EmptyState } from "../../../shared/components/EmptyState";
 import { PageContainer } from "../../../shared/components/PageContainer";
 import { PageHeader } from "../../../shared/components/PageHeader";
-import { SubscriptionStatusModal } from "./SubscriptionStatusModal";
-import { ContractRowActions } from "./ContractRowActions";
-import { SubscriptionPaymentHistory } from "../../user/subscriptions/components/SubscriptionPaymentHistory";
-import type { SubscriptionStatus } from "../../../../services/admin/AdminService";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
+import { TableActionButton } from "../../../shared/components/TableActionButton";
+import { renderContractBody } from "../../user/contracts/components/contractBodyRenderer";
+import { PdfViewer } from "../../user/contracts/components/PdfViewer";
+import { SubscriptionPaymentHistory } from "../../user/subscriptions/components/SubscriptionPaymentHistory";
 import { formatMoney } from "../payments/billingUi";
+import { ContractRowActions } from "./ContractRowActions";
+import { SubscriptionStatusModal } from "./SubscriptionStatusModal";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -55,8 +57,10 @@ function fmtMoney(amount: number, currency: string) {
   return formatMoney(amount, currency || "ILS");
 }
 
-function statusCfg(status: Contract["status"]) {
-  const map: Record<string, [string, string]> = {
+type BadgeVariant = NonNullable<BadgeProps["variant"]>;
+
+function statusCfg(status: Contract["status"]): [BadgeVariant, string] {
+  const map: Record<string, [BadgeVariant, string]> = {
     draft: ["default", "admin.contracts.status.draft"],
     pending_signature: ["processing", "admin.contracts.status.pending_signature"],
     signed: ["success", "admin.contracts.status.signed"],
@@ -65,8 +69,8 @@ function statusCfg(status: Contract["status"]) {
   return map[status] ?? ["default", status];
 }
 
-function stageCfg(status: string) {
-  const map: Record<string, [string, string]> = {
+function stageCfg(status: string): [BadgeVariant, string] {
+  const map: Record<string, [BadgeVariant, string]> = {
     pending: ["default", "admin.contracts.stageStatus.pending"],
     invoiced: ["processing", "admin.contracts.stageStatus.invoiced"],
     paid: ["success", "admin.contracts.stageStatus.paid"],
@@ -127,11 +131,31 @@ interface FormValues {
   oneTimeDescription?: string;
 }
 
+const CREATE_DEFAULTS: DefaultValues<FormValues> = {
+  title: "",
+  body: "",
+  currency: "ILS",
+  stages: [{ description: "", amount: null }],
+  isSubscription: false,
+  hasOneTime: false,
+  oneTimeDescription: "",
+  oneTimeAmount: null,
+};
+
+// ─── small presentational bits ──────────────────────────────────────────────
+
+function StepChip({ n }: { n: number }) {
+  return (
+    <div className="flex size-5.5 shrink-0 items-center justify-center rounded-full bg-(--ds-color-primary) text-[11px] font-bold text-white">
+      {n}
+    </div>
+  );
+}
+
 // ─── component ──────────────────────────────────────────────────────────────
 
 export function AdminContractsPage() {
   const { t } = useTranslation();
-  const { message, modal } = App.useApp();
   const { services, users } = useApp();
   const isMobile = useMobileView();
 
@@ -152,7 +176,19 @@ export function AdminContractsPage() {
   /** Equal-split helper is an advanced utility — hidden until requested. */
   const [splitOpen, setSplitOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [form] = Form.useForm<FormValues>();
+
+  const form = useForm<FormValues>({ defaultValues: CREATE_DEFAULTS });
+  const stagesArray = useFieldArray({ control: form.control, name: "stages" });
+
+  // Live form values driving conditional UI + totals (replaces antd shouldUpdate)
+  const isSubscription = form.watch("isSubscription");
+  const hasOneTime = form.watch("hasOneTime");
+  const watchedStages = form.watch("stages");
+  const watchedCurrency = form.watch("currency") ?? "ILS";
+  const watchedMonthly = form.watch("monthlyAmount");
+  const watchedMonths = form.watch("subscriptionMonths");
+  const watchedBillingDay = form.watch("billingDay");
+  const watchedOneTimeAmt = form.watch("oneTimeAmount");
 
   const filteredContracts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -166,6 +202,18 @@ export function AdminContractsPage() {
       );
     });
   }, [contracts, users, search]);
+
+  const clientOptions = useMemo(
+    () =>
+      users
+        .filter((u) => u.role !== "admin" && u.accountId != null && u.accountId > 0)
+        .map((u) => ({
+          value: String(u.accountId),
+          label: u.displayName || u.email,
+          search: `${u.displayName ?? ""} ${u.email ?? ""}`,
+        })),
+    [users],
+  );
 
   const reload = () => {
     setLoading(true);
@@ -230,10 +278,10 @@ export function AdminContractsPage() {
   };
 
   const handleVoid = (c: Contract) => {
-    modal.confirm({
+    confirm({
       title: t("admin.contracts.voidConfirmTitle"),
       content: t("admin.contracts.voidConfirmContent"),
-      okType: "danger",
+      danger: true,
       okText: t("common.confirm"),
       cancelText: t("common.cancel"),
       onOk: async () => {
@@ -249,13 +297,13 @@ export function AdminContractsPage() {
   };
 
   const handleDelete = (c: Contract) => {
-    modal.confirm({
+    confirm({
       title: t("admin.contracts.deleteConfirmTitle"),
       content:
         c.status === "signed"
           ? t("admin.contracts.deleteSignedConfirmContent")
           : t("admin.contracts.deleteConfirmContent"),
-      okType: "danger",
+      danger: true,
       okText: t("common.confirm"),
       cancelText: t("common.cancel"),
       onOk: async () => {
@@ -272,7 +320,7 @@ export function AdminContractsPage() {
 
   const resetCreateForm = () => {
     setCreateOpen(false);
-    form.resetFields();
+    form.reset(CREATE_DEFAULTS);
     setPdfBase64(null);
     setPdfFileName(null);
     setSplitTotal(null);
@@ -285,19 +333,19 @@ export function AdminContractsPage() {
       return;
     }
     const doApply = () => {
-      const amounts = splitEqual(splitTotal!, splitParts);
-      form.setFieldsValue({
-        stages: amounts.map((amount, i) => ({
+      const amounts = splitEqual(splitTotal, splitParts);
+      stagesArray.replace(
+        amounts.map((amount, i) => ({
           description: t("admin.contracts.form.equalStageLabel", { current: i + 1, total: splitParts }),
           amount,
         })),
-      });
+      );
       void message.success(t("admin.contracts.form.equalSplitApplied"));
     };
-    const currentStages: StageRow[] = form.getFieldValue("stages") ?? [];
+    const currentStages: StageRow[] = form.getValues("stages") ?? [];
     const hasData = currentStages.some((s) => s.description?.trim() || (s.amount && s.amount > 0));
     if (hasData) {
-      modal.confirm({
+      confirm({
         title: t("admin.contracts.form.equalSplitConfirmTitle"),
         content: t("admin.contracts.form.equalSplitConfirmContent"),
         okText: t("admin.contracts.form.equalSplitConfirmOk"),
@@ -307,6 +355,20 @@ export function AdminContractsPage() {
     } else {
       doApply();
     }
+  };
+
+  const handlePdfFile = (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      void message.error(t("admin.contracts.form.pdfSizeError"));
+      return;
+    }
+    readFileAsBase64(file)
+      .then((b64) => {
+        setPdfBase64(b64);
+        setPdfFileName(file.name);
+        form.setValue("body", "");
+      })
+      .catch(() => void message.error(t("errors.generic")));
   };
 
   const handleCreate = async (values: FormValues) => {
@@ -381,7 +443,7 @@ export function AdminContractsPage() {
 
   // ─── table ────────────────────────────────────────────────────────────────
 
-  const columns: ColumnsType<Contract> = [
+  const columns: DataTableColumn<Contract>[] = [
     {
       title: t("admin.contracts.columns.account"),
       key: "account",
@@ -389,8 +451,8 @@ export function AdminContractsPage() {
         const u = users.find((x) => x.accountId === r.accountId);
         return (
           <div>
-            <div style={{ fontWeight: 600 }}>{u?.displayName || `Account #${r.accountId}`}</div>
-            {u?.email && <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{u.email}</div>}
+            <div className="font-semibold">{u?.displayName || `Account #${r.accountId}`}</div>
+            {u?.email && <div className="text-xs text-(--ds-text-tertiary)">{u.email}</div>}
           </div>
         );
       },
@@ -400,10 +462,10 @@ export function AdminContractsPage() {
       key: "title",
       render: (_, r) => (
         <div>
-          <Typography.Text strong>{r.title}</Typography.Text>
+          <span className="font-semibold">{r.title}</span>
           {r.monthlyAmount && r.monthlyAmount > 0 && (
-            <div style={{ marginTop: 3 }}>
-              <Tag color="blue" style={{ fontSize: 11 }}>
+            <div className="mt-1">
+              <Badge variant="processing" className="text-[11px]">
                 {!r.subscriptionMonths
                   ? t("admin.contracts.subscriptionTagOpenEnded", {
                       amount: fmtMoney(r.monthlyAmount, r.currency),
@@ -412,7 +474,7 @@ export function AdminContractsPage() {
                       amount: fmtMoney(r.monthlyAmount, r.currency),
                       months: r.subscriptionMonths,
                     })}
-              </Tag>
+              </Badge>
             </div>
           )}
         </div>
@@ -421,16 +483,16 @@ export function AdminContractsPage() {
     {
       title: t("admin.contracts.columns.total"),
       key: "total",
-      align: "right" as const,
-      onCell: () => ({ style: { fontVariantNumeric: "tabular-nums" } }),
+      align: "end",
+      onCell: () => ({ className: "tabular-nums" }),
       render: (_, r) => {
         const paidCount = getPaidCount(r);
         const total = r.stages.length;
         const paidAmt = getPaidAmount(r);
         return (
-          <div style={{ textAlign: "end" }}>
-            <div style={{ fontWeight: 600 }}>{fmtMoney(r.totalAmount, r.currency)}</div>
-            <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)", marginTop: 2 }}>
+          <div className="text-end">
+            <div className="font-semibold">{fmtMoney(r.totalAmount, r.currency)}</div>
+            <div className="mt-0.5 text-xs text-(--ds-text-tertiary)">
               {paidCount === total && total > 0
                 ? t("admin.contracts.installmentsTag.paid", { paid: paidCount, total })
                 : paidCount === 0
@@ -446,12 +508,12 @@ export function AdminContractsPage() {
       key: "status",
       width: 150,
       render: (_, r) => {
-        const [color, key] = statusCfg(r.status);
+        const [variant, key] = statusCfg(r.status);
         return (
           <div>
-            <Tag color={color}>{t(key)}</Tag>
+            <Badge variant={variant}>{t(key)}</Badge>
             {r.signedAt && (
-              <div style={{ fontSize: 11, color: "var(--ds-text-tertiary)", marginTop: 3 }}>
+              <div className="mt-1 text-[11px] text-(--ds-text-tertiary)">
                 {new Date(r.signedAt).toLocaleDateString()}
               </div>
             )}
@@ -482,17 +544,26 @@ export function AdminContractsPage() {
   // ─── create modal ─────────────────────────────────────────────────────────
 
   const createFooter = (
-    <Flex justify="space-between" align="center">
-      <Button onClick={resetCreateForm}>{t("common.cancel")}</Button>
+    <div className="flex w-full items-center justify-between">
+      <Button variant="outline" onClick={resetCreateForm}>{t("common.cancel")}</Button>
       <Button
-        type="primary"
-        loading={creating}
-        onClick={() => void form.validateFields().then(handleCreate)}
+        disabled={creating}
+        onClick={() => void form.handleSubmit(handleCreate)()}
       >
+        {creating && <Spinner size="sm" className="text-current" aria-hidden="true" />}
         {t("admin.contracts.form.submit")}
       </Button>
-    </Flex>
+    </div>
   );
+
+  // Card styles for the payment-type selector
+  const typeCardClass = (active: boolean) =>
+    cn(
+      "relative cursor-pointer select-none rounded-lg border p-4 transition-[border-color,box-shadow,background-color] duration-150",
+      active
+        ? "border-(--ds-color-primary) bg-(--ds-color-primary-surface) shadow-(--ds-shadow-focus)"
+        : "border-(--ds-border-subtle) bg-(--ds-surface-0)",
+    );
 
   // ─── render ───────────────────────────────────────────────────────────────
 
@@ -503,26 +574,25 @@ export function AdminContractsPage() {
         subtitle={t("admin.contracts.subtitle")}
       />
 
-      <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
-        <Flex
-          align="center"
-          justify="space-between"
-          gap={8}
-          wrap="wrap"
-          style={{ marginBottom: 16 }}
-        >
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder={t("common.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: isMobile ? 160 : 280 }}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+      <Card className={isMobile ? "p-3" : "p-4"}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="relative" style={{ width: isMobile ? 160 : 280 }}>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              className="ps-9"
+              placeholder={t("common.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus aria-hidden="true" />
             {!isMobile && t("admin.contracts.create")}
           </Button>
-        </Flex>
+        </div>
         {isMobile ? (
           <ResponsiveCardView
             items={filteredContracts.map((c) => {
@@ -553,17 +623,17 @@ export function AdminContractsPage() {
                     : []),
                 ],
                 extra: (
-                  <div style={{ textAlign: "end" }}>
-                    <Typography.Text strong style={{ fontSize: 14 }}>
+                  <div className="text-end">
+                    <span className="text-sm font-semibold">
                       {fmtMoney(c.totalAmount, c.currency)}
-                    </Typography.Text>
-                    <Typography.Text type="secondary" style={{ display: "block", fontSize: 11 }}>
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
                       {paidCount === total && total > 0
                         ? t("admin.contracts.installmentsTag.paid", { paid: paidCount, total })
                         : paidCount === 0
                         ? t("admin.contracts.installmentsTag.unpaid")
                         : `${paidCount}/${total}`}
-                    </Typography.Text>
+                    </span>
                   </div>
                 ),
                 actions: [
@@ -579,7 +649,7 @@ export function AdminContractsPage() {
             emptyText={t("common.noData")}
           />
         ) : (
-          <Table
+          <DataTable<Contract>
             columns={columns}
             dataSource={filteredContracts}
             rowKey="id"
@@ -596,7 +666,7 @@ export function AdminContractsPage() {
                 />
               ),
             }}
-            pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (n) => t("admin.contracts.totalCount", { count: n }) }}
+            pagination={{ pageSize: 20, showTotal: (n) => t("admin.contracts.totalCount", { count: n }) }}
             expandable={{
               rowExpandable: (c) => !!(c.monthlyAmount && c.monthlyAmount > 0),
               onExpand: handleRowExpand,
@@ -604,13 +674,13 @@ export function AdminContractsPage() {
                 const status = expandedPayments[c.id];
                 const isLoading = expandedLoading[c.id];
                 return (
-                  <div style={{ padding: "8px 16px 16px" }}>
+                  <div className="px-4 pb-4 pt-2">
                     {isLoading ? (
-                      <Spin size="small" />
+                      <Spinner size="sm" />
                     ) : !status || status.payments.length === 0 ? (
-                      <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                      <span className="text-[13px] text-muted-foreground">
                         {t("admin.contracts.noPaymentHistory")}
-                      </Typography.Text>
+                      </span>
                     ) : (
                       <SubscriptionPaymentHistory payments={status.payments} t={t} />
                     )}
@@ -631,606 +701,507 @@ export function AdminContractsPage() {
         footer={createFooter}
         styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ currency: "ILS", stages: [{ description: "", amount: null }], isSubscription: false, hasOneTime: false, oneTimeDescription: "", oneTimeAmount: null }}
-        >
+        <Form form={form} onFinish={handleCreate} className="space-y-5">
           {/* ── Step 1: Client ─────────────────────────────────── */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
-                color: "#fff", fontSize: 11, fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>1</div>
-              <Typography.Text strong style={{ fontSize: 13, color: "var(--ds-text-primary)" }}>
+          <div>
+            <div className="mb-2.5 flex items-center gap-2">
+              <StepChip n={1} />
+              <span className="text-[13px] font-semibold text-(--ds-text-primary)">
                 {t("admin.contracts.form.selectClient")}
-              </Typography.Text>
+              </span>
             </div>
-            <Form.Item
+            <FormItem<FormValues, "accountId">
               name="accountId"
-              rules={[{ required: true }]}
-              style={{ marginBottom: 0 }}
+              rules={{ required: t("errors.validation") }}
             >
-              <Select
-                size="large"
-                showSearch
-                placeholder={t("admin.contracts.form.accountPlaceholder")}
-                filterOption={(input, opt) => {
-                  const q = input.toLowerCase();
-                  const label = ((opt?.label as string) ?? "").toLowerCase();
-                  const email = ((opt?.email as string) ?? "").toLowerCase();
-                  return label.includes(q) || email.includes(q);
-                }}
-                optionRender={(opt) => (
-                  <div style={{ padding: "2px 0" }}>
-                    <div style={{ fontWeight: 500 }}>{opt.data.label}</div>
-                    <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{opt.data.email}</div>
-                  </div>
-                )}
-                options={users
-                  .filter((u) => u.role !== "admin" && u.accountId != null && u.accountId > 0)
-                  .map((u) => ({
-                    value: u.accountId as number,
-                    label: u.displayName || u.email,
-                    email: u.email,
-                  }))}
-              />
-            </Form.Item>
+              {(field, { invalid }) => (
+                <Combobox
+                  value={field.value != null ? String(field.value) : null}
+                  onChange={(v) => field.onChange(v == null ? undefined : Number(v))}
+                  options={clientOptions}
+                  placeholder={t("admin.contracts.form.accountPlaceholder")}
+                  searchPlaceholder={t("admin.contracts.form.accountPlaceholder")}
+                  emptyText={t("common.noData")}
+                  className={cn(invalid && "border-destructive")}
+                  aria-label={t("admin.contracts.form.account")}
+                />
+              )}
+            </FormItem>
           </div>
 
           {/* ── Step 2: Contract Details ────────────────────────── */}
-          <div style={{ marginBottom: 20, paddingTop: 16, borderTop: "1px solid var(--ds-border-subtle)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
-                color: "#fff", fontSize: 11, fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>2</div>
-              <Typography.Text strong style={{ fontSize: 13, color: "var(--ds-text-primary)" }}>
+          <div className="border-t border-(--ds-border-subtle) pt-4">
+            <div className="mb-3.5 flex items-center gap-2">
+              <StepChip n={2} />
+              <span className="text-[13px] font-semibold text-(--ds-text-primary)">
                 {t("admin.contracts.form.contractDetails")}
-              </Typography.Text>
+              </span>
             </div>
 
-            <Row gutter={12}>
-              <Col flex="auto">
-                <Form.Item name="title" label={t("admin.contracts.form.title")} rules={[{ required: true }]}>
-                  <Input size="large" placeholder={t("admin.contracts.form.titlePlaceholder")} />
-                </Form.Item>
-              </Col>
-              <Col>
-                <Form.Item name="currency" label={t("admin.contracts.form.currency")}>
-                  <Select
-                    size="large"
-                    style={{ width: 96 }}
-                    options={[{ value: "ILS" }, { value: "USD" }, { value: "EUR" }]}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {!pdfBase64 && (
-              <Form.Item
-                name="body"
-                label={t("admin.contracts.form.body")}
-                extra={
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    {t("admin.contracts.form.bodyFormatHint")}
-                  </Typography.Text>
-                }
-              >
-                <Input.TextArea
-                  rows={4}
-                  style={{ fontFamily: "monospace", fontSize: 13 }}
-                />
-              </Form.Item>
-            )}
-
-            {/* PDF upload — label omitted: the "Upload PDF" button already names it */}
-            <Form.Item style={{ marginBottom: 0 }}>
-              {pdfFileName ? (
-                <Flex align="center" gap={8}
-                  style={{
-                    padding: "8px 12px",
-                    background: "var(--ds-color-primary-surface)",
-                    border: "1px solid var(--ds-color-primary-surface-deep)",
-                    borderRadius: 6,
-                  }}
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <FormItem<FormValues, "title">
+                  name="title"
+                  label={t("admin.contracts.form.title")}
+                  rules={{ required: t("errors.validation") }}
+                  className="min-w-0 flex-1"
                 >
-                  <FilePdfOutlined style={{ color: "var(--ds-color-primary)", fontSize: 16, flexShrink: 0 }} />
-                  <Typography.Text
-                    ellipsis
-                    style={{ flex: 1, fontSize: 13, color: "var(--ds-text-primary)" }}
+                  {(field) => (
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      placeholder={t("admin.contracts.form.titlePlaceholder")}
+                    />
+                  )}
+                </FormItem>
+                <FormItem<FormValues, "currency">
+                  name="currency"
+                  label={t("admin.contracts.form.currency")}
+                >
+                  {(field) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ILS">ILS</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </FormItem>
+              </div>
+
+              {!pdfBase64 && (
+                <FormItem<FormValues, "body">
+                  name="body"
+                  label={t("admin.contracts.form.body")}
+                  hint={t("admin.contracts.form.bodyFormatHint")}
+                >
+                  {(field) => (
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      rows={4}
+                      className="font-mono text-[13px]"
+                    />
+                  )}
+                </FormItem>
+              )}
+
+              {/* PDF upload — label omitted: the "Upload PDF" button already names it */}
+              {pdfFileName ? (
+                <div className="flex items-center gap-2 rounded-md border border-(--ds-color-primary-surface-deep) bg-(--ds-color-primary-surface) px-3 py-2">
+                  <FileText aria-hidden="true" className="size-4 shrink-0 text-(--ds-color-primary)" />
+                  <span
+                    className="min-w-0 flex-1 truncate text-[13px] text-(--ds-text-primary)"
                     title={pdfFileName}
                   >
                     {pdfFileName}
-                  </Typography.Text>
+                  </span>
                   <Button
-                    type="text"
-                    danger
-                    size="small"
-                    icon={<MinusCircleOutlined />}
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 shrink-0 text-destructive hover:text-destructive"
+                    aria-label={t("common.remove")}
                     onClick={() => { setPdfBase64(null); setPdfFileName(null); }}
-                    style={{ flexShrink: 0 }}
-                  />
-                </Flex>
-              ) : (
-                <Upload
-                  accept=".pdf"
-                  maxCount={1}
-                  showUploadList={false}
-                  beforeUpload={(file) => {
-                    if (file.size > 5 * 1024 * 1024) {
-                      void message.error(t("admin.contracts.form.pdfSizeError"));
-                      return false;
-                    }
-                    readFileAsBase64(file)
-                      .then((b64) => {
-                        setPdfBase64(b64);
-                        setPdfFileName(file.name);
-                        form.setFieldsValue({ body: "" });
-                      })
-                      .catch(() => void message.error(t("errors.generic")));
-                    return false;
-                  }}
-                >
-                  <Button icon={<FilePdfOutlined />}>
-                    {t("admin.contracts.form.pdfUpload")}
+                  >
+                    <MinusCircle className="size-4" />
                   </Button>
-                </Upload>
+                </div>
+              ) : (
+                <UploadButton
+                  accept=".pdf"
+                  icon={<FileText aria-hidden="true" className="size-4" />}
+                  onFile={handlePdfFile}
+                >
+                  {t("admin.contracts.form.pdfUpload")}
+                </UploadButton>
               )}
-            </Form.Item>
+            </div>
           </div>
 
           {/* ── Step 3: Payment Type ─────────────────────────────── */}
-          <div style={{ paddingTop: 16, borderTop: "1px solid var(--ds-border-subtle)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", background: "var(--ds-color-primary)",
-                color: "#fff", fontSize: 11, fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>3</div>
-              <Typography.Text strong style={{ fontSize: 13, color: "var(--ds-text-primary)" }}>
+          <div className="border-t border-(--ds-border-subtle) pt-4">
+            <div className="mb-3 flex items-center gap-2">
+              <StepChip n={3} />
+              <span className="text-[13px] font-semibold text-(--ds-text-primary)">
                 {t("admin.contracts.form.paymentStages")}
-              </Typography.Text>
+              </span>
             </div>
 
             {/* ── Payment type selector cards ───────────────────── */}
-            <Form.Item noStyle shouldUpdate={(prev, curr) =>
-              prev.isSubscription !== curr.isSubscription ||
-              prev.monthlyAmount !== curr.monthlyAmount ||
-              prev.subscriptionMonths !== curr.subscriptionMonths ||
-              prev.billingDay !== curr.billingDay ||
-              prev.stages !== curr.stages ||
-              prev.currency !== curr.currency ||
-              prev.hasOneTime !== curr.hasOneTime ||
-              prev.oneTimeAmount !== curr.oneTimeAmount ||
-              prev.oneTimeDescription !== curr.oneTimeDescription
-            }>
-              {({ getFieldValue }) => {
-                const isSubscription = getFieldValue("isSubscription") as boolean;
-                const currency: string = getFieldValue("currency") ?? "ILS";
+            <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {/* One-time / Installments */}
+              <div
+                className={typeCardClass(!isSubscription)}
+                onClick={() => form.setValue("isSubscription", false)}
+                role="button"
+                aria-pressed={!isSubscription}
+              >
+                {!isSubscription && (
+                  <CheckCircle2 className="absolute inset-e-2.5 top-2.5 size-3.5 text-(--ds-color-primary)" />
+                )}
+                <Wallet
+                  className={cn(
+                    "mb-2 size-5.5 transition-colors duration-150",
+                    !isSubscription ? "text-(--ds-color-primary)" : "text-(--ds-text-tertiary)",
+                  )}
+                />
+                <span className="mb-0.5 block text-[13px] font-semibold">
+                  {t("admin.contracts.form.typeOneTime")}
+                </span>
+                <span className="block text-xs leading-snug text-muted-foreground">
+                  {t("admin.contracts.form.typeOneTimeDesc")}
+                </span>
+              </div>
 
-                const cardBase: React.CSSProperties = {
-                  position: "relative",
-                  cursor: "pointer",
-                  padding: "14px 16px",
-                  borderRadius: 8,
-                  border: "1px solid var(--ds-border-subtle)",
-                  background: "var(--ds-surface-0)",
-                  transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
-                  userSelect: "none",
-                };
-                const cardActive: React.CSSProperties = {
-                  border: "1px solid var(--ds-color-primary)",
-                  background: "var(--ds-color-primary-surface)",
-                  boxShadow: "var(--ds-shadow-focus)",
-                };
+              {/* Monthly Subscription */}
+              <div
+                className={typeCardClass(!!isSubscription)}
+                onClick={() => form.setValue("isSubscription", true)}
+                role="button"
+                aria-pressed={!!isSubscription}
+              >
+                {isSubscription && (
+                  <CheckCircle2 className="absolute inset-e-2.5 top-2.5 size-3.5 text-(--ds-color-primary)" />
+                )}
+                <RefreshCw
+                  className={cn(
+                    "mb-2 size-5.5 transition-colors duration-150",
+                    isSubscription ? "text-(--ds-color-primary)" : "text-(--ds-text-tertiary)",
+                  )}
+                />
+                <span className="mb-0.5 block text-[13px] font-semibold">
+                  {t("admin.contracts.form.typeSubscription")}
+                </span>
+                <span className="block text-xs leading-snug text-muted-foreground">
+                  {t("admin.contracts.form.typeSubscriptionDesc")}
+                </span>
+              </div>
+            </div>
 
-                return (
-                  <>
-                    {/* Type cards */}
-                    <Row gutter={10} style={{ marginBottom: 16 }}>
-                      {/* One-time / Installments */}
-                      <Col xs={24} sm={12}>
-                        <div
-                          style={{ ...cardBase, ...(!isSubscription ? cardActive : {}) }}
-                          onClick={() => form.setFieldsValue({ isSubscription: false })}
-                          role="button"
-                          aria-pressed={!isSubscription}
-                        >
-                          {!isSubscription && (
-                            <CheckCircleOutlined style={{
-                              position: "absolute", top: 10, right: 10,
-                              color: "var(--ds-color-primary)", fontSize: 14,
-                            }} />
-                          )}
-                          <WalletOutlined style={{
-                            fontSize: 22,
-                            color: !isSubscription ? "var(--ds-color-primary)" : "var(--ds-text-tertiary)",
-                            display: "block", marginBottom: 8,
-                            transition: "color 0.15s",
-                          }} />
-                          <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 3 }}>
-                            {t("admin.contracts.form.typeOneTime")}
-                          </Typography.Text>
-                          <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4, display: "block" }}>
-                            {t("admin.contracts.form.typeOneTimeDesc")}
-                          </Typography.Text>
-                        </div>
-                      </Col>
-
-                      {/* Monthly Subscription */}
-                      <Col xs={24} sm={12}>
-                        <div
-                          style={{ ...cardBase, ...(isSubscription ? cardActive : {}) }}
-                          onClick={() => form.setFieldsValue({ isSubscription: true })}
-                          role="button"
-                          aria-pressed={isSubscription}
-                        >
-                          {isSubscription && (
-                            <CheckCircleOutlined style={{
-                              position: "absolute", top: 10, right: 10,
-                              color: "var(--ds-color-primary)", fontSize: 14,
-                            }} />
-                          )}
-                          <SyncOutlined style={{
-                            fontSize: 22,
-                            color: isSubscription ? "var(--ds-color-primary)" : "var(--ds-text-tertiary)",
-                            display: "block", marginBottom: 8,
-                            transition: "color 0.15s",
-                          }} />
-                          <Typography.Text strong style={{ fontSize: 13, display: "block", marginBottom: 3 }}>
-                            {t("admin.contracts.form.typeSubscription")}
-                          </Typography.Text>
-                          <Typography.Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4, display: "block" }}>
-                            {t("admin.contracts.form.typeSubscriptionDesc")}
-                          </Typography.Text>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    {/* ── One-time / Installments ───────────────────── */}
-                    {!isSubscription && (
-                      <div>
-                        {/* Subheader; the equal-split helper hides behind a toggle (advanced) */}
-                        <Flex align="center" justify="space-between" gap={8} wrap="wrap" style={{ marginBottom: 10 }}>
-                          <Typography.Text strong style={{ fontSize: 13 }}>
-                            {t("admin.contracts.form.scheduleTitle")}
-                          </Typography.Text>
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{ padding: 0, fontSize: 12 }}
-                            onClick={() => setSplitOpen((v) => !v)}
-                          >
-                            ÷ {t("admin.contracts.form.equalSplitTitle")}
-                          </Button>
-                        </Flex>
-                        {splitOpen && (
-                          <Flex
-                            align={isMobile ? "stretch" : "center"}
-                            gap={8}
-                            wrap="wrap"
-                            vertical={isMobile}
-                            style={{ marginBottom: 14 }}
-                          >
-                            <Flex gap={8} align="center" style={{ width: isMobile ? "100%" : "auto" }}>
-                              <InputNumber
-                                size="small"
-                                min={0.01}
-                                value={splitTotal ?? undefined}
-                                onChange={(v) => setSplitTotal(typeof v === "number" ? v : null)}
-                                placeholder={t("admin.contracts.form.equalSplitTotal")}
-                                style={{ width: isMobile ? "100%" : 140, flex: isMobile ? 1 : undefined }}
-                              />
-                              <Typography.Text type="secondary">÷</Typography.Text>
-                              <InputNumber
-                                size="small"
-                                min={2}
-                                max={60}
-                                precision={0}
-                                value={splitParts}
-                                onChange={(v) => setSplitParts(typeof v === "number" ? v : 2)}
-                                style={{ width: 60 }}
-                              />
-                            </Flex>
-                            <Button
-                              size="small"
-                              type="primary"
-                              ghost
-                              onClick={applyEqualSplit}
-                              block={isMobile}
-                              disabled={!splitTotal || splitTotal <= 0}
-                            >
-                              {t("admin.contracts.form.equalSplitApply")}
-                            </Button>
-                          </Flex>
-                        )}
-
-                        {/* Stage list */}
-                        <Form.List name="stages">
-                          {(fields, { add, remove }) => (
-                            <Space direction="vertical" size={6} style={{ width: "100%" }}>
-                              {fields.map(({ key, name, ...rest }, index) => (
-                                <Flex
-                                  key={key}
-                                  gap={8}
-                                  align="center"
-                                  style={{
-                                    padding: "8px 0",
-                                    borderBottom:
-                                      index < fields.length - 1
-                                        ? "1px solid var(--ds-border-subtle)"
-                                        : undefined,
-                                  }}
-                                >
-                                  {/* Row number only matters once there are several payments */}
-                                  {fields.length > 1 && (
-                                    <div style={{
-                                      width: 20, height: 20, borderRadius: "50%",
-                                      background: "var(--ds-color-primary-surface-deep)",
-                                      color: "var(--ds-color-primary)",
-                                      fontSize: 11, fontWeight: 600,
-                                      display: "flex", alignItems: "center", justifyContent: "center",
-                                      flexShrink: 0,
-                                    }}>
-                                      {index + 1}
-                                    </div>
-                                  )}
-                                  <Form.Item
-                                    {...rest}
-                                    name={[name, "description"]}
-                                    rules={[{ required: true, message: t("admin.contracts.form.stageDescriptionRequired") }]}
-                                    style={{ flex: 1, marginBottom: 0 }}
-                                  >
-                                    <Input placeholder={t("admin.contracts.form.stageDescription")} />
-                                  </Form.Item>
-                                  <Form.Item
-                                    {...rest}
-                                    name={[name, "amount"]}
-                                    rules={[{ required: true, type: "number", min: 0.01, message: t("admin.contracts.form.stageAmountRequired") }]}
-                                    style={{ width: 140, marginBottom: 0 }}
-                                  >
-                                    <InputNumber min={0.01} style={{ width: "100%" }} placeholder="0.00" />
-                                  </Form.Item>
-                                  {/* Can't remove the only payment — hide instead of a dead button */}
-                                  {fields.length > 1 && (
-                                    <Tooltip title={t("common.remove")}>
-                                      <Button
-                                        type="text"
-                                        danger
-                                        icon={<MinusCircleOutlined />}
-                                        onClick={() => remove(name)}
-                                        style={{ flexShrink: 0 }}
-                                      />
-                                    </Tooltip>
-                                  )}
-                                </Flex>
-                              ))}
-
-                              <Button
-                                type="dashed"
-                                icon={<PlusOutlined />}
-                                onClick={() => add({ description: "", amount: null })}
-                                block
-                                style={{ marginTop: 4 }}
-                              >
-                                {t("admin.contracts.form.addStage")}
-                              </Button>
-                            </Space>
-                          )}
-                        </Form.List>
-
-                        {/* Live total */}
-                        {(() => {
-                          const stages: StageRow[] = getFieldValue("stages") ?? [];
-                          const total = stages.reduce((sum, s) => sum + (s?.amount ?? 0), 0);
-                          if (total <= 0) return null;
-                          return (
-                            <Flex
-                              justify="space-between"
-                              align="center"
-                              style={{
-                                marginTop: 10,
-                                padding: "10px 14px",
-                                background: "var(--ds-color-primary-surface)",
-                                border: "1px solid var(--ds-color-primary-surface-deep)",
-                                borderRadius: 6,
-                              }}
-                            >
-                              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                                {t("admin.contracts.form.stagesTotal")} ({stages.filter(s => (s?.amount ?? 0) > 0).length} {t("admin.contracts.form.stagesCount")})
-                              </Typography.Text>
-                              <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)", fontVariantNumeric: "tabular-nums" }}>
-                                {fmtMoney(total, currency)}
-                              </Typography.Text>
-                            </Flex>
-                          );
-                        })()}
-                      </div>
+            {/* ── One-time / Installments ───────────────────────── */}
+            {!isSubscription && (
+              <div>
+                {/* Subheader; the equal-split helper hides behind a toggle (advanced) */}
+                <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[13px] font-semibold">
+                    {t("admin.contracts.form.scheduleTitle")}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => setSplitOpen((v) => !v)}
+                  >
+                    ÷ {t("admin.contracts.form.equalSplitTitle")}
+                  </Button>
+                </div>
+                {splitOpen && (
+                  <div
+                    className={cn(
+                      "mb-3.5 flex flex-wrap gap-2",
+                      isMobile ? "flex-col items-stretch" : "items-center",
                     )}
+                  >
+                    <div className={cn("flex items-center gap-2", isMobile && "w-full")}>
+                      <InputNumber
+                        min={0.01}
+                        value={splitTotal}
+                        onChange={setSplitTotal}
+                        placeholder={t("admin.contracts.form.equalSplitTotal")}
+                        className={isMobile ? "flex-1" : "w-35"}
+                      />
+                      <span className="text-muted-foreground">÷</span>
+                      <InputNumber
+                        min={2}
+                        max={60}
+                        precision={0}
+                        value={splitParts}
+                        onChange={(v) => setSplitParts(v ?? 2)}
+                        className="w-15"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className={cn(
+                        "border-(--ds-color-primary) text-(--ds-color-primary) hover:text-(--ds-color-primary)",
+                        isMobile && "w-full",
+                      )}
+                      onClick={applyEqualSplit}
+                      disabled={!splitTotal || splitTotal <= 0}
+                    >
+                      {t("admin.contracts.form.equalSplitApply")}
+                    </Button>
+                  </div>
+                )}
 
-                    {/* ── Monthly Subscription ──────────────────────── */}
-                    {isSubscription && (
-                      <div>
-                        {/* Monthly billing fields */}
-                        <Row gutter={12}>
-                          <Col xs={24} sm={12}>
-                            <Form.Item
-                              name="monthlyAmount"
-                              label={t("admin.contracts.form.monthlyAmount")}
-                              rules={[{ required: true, type: "number", min: 0.01 }]}
-                            >
-                              <InputNumber
-                                size="large"
-                                min={0.01}
-                                style={{ width: "100%" }}
-                                placeholder="0.00"
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} sm={12}>
-                            <Form.Item
-                              name="subscriptionMonths"
-                              label={t("admin.contracts.form.subscriptionMonths")}
-                              extra={
-                                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                                  {t("admin.contracts.form.subscriptionMonthsHint")}
-                                </Typography.Text>
+                {/* Stage list */}
+                <div className="flex w-full flex-col gap-1.5">
+                  {stagesArray.fields.map((f, index) => (
+                    <div
+                      key={f.id}
+                      className={cn(
+                        "flex items-start gap-2 py-2",
+                        index < stagesArray.fields.length - 1 &&
+                          "border-b border-(--ds-border-subtle)",
+                      )}
+                    >
+                      {/* Row number only matters once there are several payments */}
+                      {stagesArray.fields.length > 1 && (
+                        <div className="mt-2.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-(--ds-color-primary-surface-deep) text-[11px] font-semibold text-(--ds-color-primary)">
+                          {index + 1}
+                        </div>
+                      )}
+                      <FormItem<FormValues, `stages.${number}.description`>
+                        name={`stages.${index}.description`}
+                        rules={{ required: t("admin.contracts.form.stageDescriptionRequired") }}
+                        className="min-w-0 flex-1"
+                      >
+                        {(field) => (
+                          <Input
+                            {...field}
+                            value={field.value ?? ""}
+                            placeholder={t("admin.contracts.form.stageDescription")}
+                          />
+                        )}
+                      </FormItem>
+                      <FormItem<FormValues, `stages.${number}.amount`>
+                        name={`stages.${index}.amount`}
+                        rules={{
+                          validate: (v) =>
+                            (typeof v === "number" && v >= 0.01) ||
+                            t("admin.contracts.form.stageAmountRequired"),
+                        }}
+                        className="w-35"
+                      >
+                        {(field) => (
+                          <InputNumber
+                            min={0.01}
+                            value={(field.value as number | null) ?? null}
+                            onChange={field.onChange}
+                            placeholder="0.00"
+                          />
+                        )}
+                      </FormItem>
+                      {/* Can't remove the only payment — hide instead of a dead button */}
+                      {stagesArray.fields.length > 1 && (
+                        <TableActionButton
+                          tooltip={t("common.remove")}
+                          icon={<MinusCircle className="size-4" />}
+                          className="mt-1 shrink-0 text-destructive hover:text-destructive"
+                          onClick={() => stagesArray.remove(index)}
+                        />
+                      )}
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-1 w-full border-dashed"
+                    onClick={() => stagesArray.append({ description: "", amount: null })}
+                  >
+                    <Plus aria-hidden="true" />
+                    {t("admin.contracts.form.addStage")}
+                  </Button>
+                </div>
+
+                {/* Live total */}
+                {(() => {
+                  const stages: StageRow[] = watchedStages ?? [];
+                  const total = stages.reduce((sum, s) => sum + (s?.amount ?? 0), 0);
+                  if (total <= 0) return null;
+                  return (
+                    <div className="mt-2.5 flex items-center justify-between rounded-md border border-(--ds-color-primary-surface-deep) bg-(--ds-color-primary-surface) px-3.5 py-2.5">
+                      <span className="text-xs text-muted-foreground">
+                        {t("admin.contracts.form.stagesTotal")} ({stages.filter((s) => (s?.amount ?? 0) > 0).length} {t("admin.contracts.form.stagesCount")})
+                      </span>
+                      <span className="text-[15px] font-semibold tabular-nums text-(--ds-color-primary)">
+                        {fmtMoney(total, watchedCurrency)}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* ── Monthly Subscription ──────────────────────────── */}
+            {isSubscription && (
+              <div>
+                {/* Monthly billing fields */}
+                <div className="grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2">
+                  <FormItem<FormValues, "monthlyAmount">
+                    name="monthlyAmount"
+                    label={t("admin.contracts.form.monthlyAmount")}
+                    rules={{
+                      validate: (v) =>
+                        (typeof v === "number" && v >= 0.01) || t("errors.validation"),
+                    }}
+                  >
+                    {(field) => (
+                      <InputNumber
+                        min={0.01}
+                        value={(field.value as number | null) ?? null}
+                        onChange={field.onChange}
+                        placeholder="0.00"
+                      />
+                    )}
+                  </FormItem>
+                  <FormItem<FormValues, "subscriptionMonths">
+                    name="subscriptionMonths"
+                    label={t("admin.contracts.form.subscriptionMonths")}
+                    hint={t("admin.contracts.form.subscriptionMonthsHint")}
+                  >
+                    {(field) => (
+                      <InputNumber
+                        min={1}
+                        max={60}
+                        precision={0}
+                        value={(field.value as number | null) ?? null}
+                        onChange={field.onChange}
+                        placeholder={t("admin.contracts.form.subscriptionMonthsPlaceholder")}
+                      />
+                    )}
+                  </FormItem>
+                  <FormItem<FormValues, "billingDay">
+                    name="billingDay"
+                    label={t("admin.contracts.form.billingDay")}
+                    hint={t("admin.contracts.form.billingDayHint")}
+                  >
+                    {(field) => (
+                      <Combobox
+                        value={field.value != null ? String(field.value) : null}
+                        onChange={(v) => field.onChange(v == null ? null : Number(v))}
+                        options={Array.from({ length: 28 }, (_, i) => ({
+                          value: String(i + 1),
+                          label: String(i + 1),
+                        }))}
+                        placeholder={t("admin.contracts.form.billingDayPlaceholder")}
+                        clearable
+                        aria-label={t("admin.contracts.form.billingDay")}
+                      />
+                    )}
+                  </FormItem>
+                </div>
+
+                {/* ── One-time payment toggle ─────────────────────── */}
+                <div className="mt-1 border-t border-(--ds-border-subtle) pt-3.5">
+                  <div className="flex items-center">
+                    <Switch
+                      checked={hasOneTime ?? false}
+                      onCheckedChange={(checked) => {
+                        form.setValue("hasOneTime", checked);
+                        if (!checked) {
+                          form.setValue("oneTimeAmount", null);
+                          form.setValue("oneTimeDescription", "");
+                        }
+                      }}
+                      aria-label={t("admin.contracts.form.oneTimeToggle")}
+                    />
+                    <span
+                      className="ms-2 cursor-pointer select-none text-[13px]"
+                      onClick={() => {
+                        const cur = form.getValues("hasOneTime") ?? false;
+                        form.setValue("hasOneTime", !cur);
+                        if (cur) {
+                          form.setValue("oneTimeAmount", null);
+                          form.setValue("oneTimeDescription", "");
+                        }
+                      }}
+                    >
+                      {t("admin.contracts.form.oneTimeToggle")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* One-time payment fields */}
+                {hasOneTime && (
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[7fr_5fr]">
+                    <FormItem<FormValues, "oneTimeDescription">
+                      name="oneTimeDescription"
+                      label={t("admin.contracts.form.oneTimeDescription")}
+                    >
+                      {(field) => (
+                        <Input
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder={t("admin.contracts.form.oneTimeDescriptionPlaceholder")}
+                        />
+                      )}
+                    </FormItem>
+                    <FormItem<FormValues, "oneTimeAmount">
+                      name="oneTimeAmount"
+                      label={t("admin.contracts.form.oneTimeAmount")}
+                      rules={{
+                        validate: (v) =>
+                          v == null ||
+                          (typeof v === "number" && v >= 0.01) ||
+                          t("admin.contracts.form.stageAmountRequired"),
+                      }}
+                    >
+                      {(field) => (
+                        <InputNumber
+                          min={0.01}
+                          value={(field.value as number | null) ?? null}
+                          onChange={field.onChange}
+                          placeholder="0.00"
+                        />
+                      )}
+                    </FormItem>
+                  </div>
+                )}
+
+                {/* Live subscription preview */}
+                {(() => {
+                  const monthly = watchedMonthly ?? null;
+                  const months = watchedMonths ?? null;
+                  const day = watchedBillingDay ?? null;
+                  const oneTimeAmt = watchedOneTimeAmt ?? null;
+                  if (!monthly || monthly <= 0) return null;
+                  const hasMonths = months && months > 0;
+                  const recurringTotal = hasMonths ? monthly * months : null;
+                  const showOneTime = hasOneTime && oneTimeAmt && oneTimeAmt > 0;
+                  return (
+                    <div className="mt-3 rounded-md border border-(--ds-color-primary-surface-deep) bg-(--ds-color-primary-surface) px-3.5 py-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-1 flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <RefreshCw className="size-3.25 text-(--ds-color-primary)" />
+                            <span className="text-[13px] text-(--ds-text-secondary)">
+                              {hasMonths
+                                ? `${fmtMoney(monthly, watchedCurrency)} × ${months} ${t("admin.contracts.form.months")}`
+                                : `${fmtMoney(monthly, watchedCurrency)} / ${t("admin.contracts.form.month")} · ${t("admin.contracts.form.openEnded")}`
                               }
-                            >
-                              <InputNumber
-                                size="large"
-                                min={1}
-                                max={60}
-                                precision={0}
-                                style={{ width: "100%" }}
-                                placeholder={t("admin.contracts.form.subscriptionMonthsPlaceholder")}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} sm={12}>
-                            <Form.Item
-                              name="billingDay"
-                              label={t("admin.contracts.form.billingDay")}
-                              tooltip={t("admin.contracts.form.billingDayHint")}
-                            >
-                              <Select
-                                size="large"
-                                allowClear
-                                placeholder={t("admin.contracts.form.billingDayPlaceholder")}
-                                popupMatchSelectWidth={false}
-                                options={Array.from({ length: 28 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-
-                        {/* ── One-time payment toggle ─────────────────── */}
-                        <div style={{
-                          borderTop: "1px solid var(--ds-border-subtle)",
-                          paddingTop: 14,
-                          marginTop: 4,
-                        }}>
-                          <Form.Item name="hasOneTime" valuePropName="checked" noStyle>
-                            <Switch
-                              size="small"
-                              onChange={(checked) => {
-                                if (!checked) {
-                                  form.setFieldsValue({ oneTimeAmount: null, oneTimeDescription: "" });
-                                }
-                              }}
-                            />
-                          </Form.Item>
-                          <Typography.Text
-                            style={{ marginInlineStart: 8, fontSize: 13, cursor: "pointer", userSelect: "none" }}
-                            onClick={() => {
-                              const cur = form.getFieldValue("hasOneTime") as boolean;
-                              form.setFieldsValue({ hasOneTime: !cur });
-                              if (cur) form.setFieldsValue({ oneTimeAmount: null, oneTimeDescription: "" });
-                            }}
-                          >
-                            {t("admin.contracts.form.oneTimeToggle")}
-                          </Typography.Text>
-                        </div>
-
-                        {/* One-time payment fields */}
-                        {(getFieldValue("hasOneTime") as boolean) && (
-                          <div style={{
-                            marginTop: 12,
-                          }}>
-                            <Row gutter={12}>
-                              <Col xs={24} sm={14}>
-                                <Form.Item
-                                  name="oneTimeDescription"
-                                  label={t("admin.contracts.form.oneTimeDescription")}
-                                  style={{ marginBottom: 0 }}
-                                >
-                                  <Input
-                                    placeholder={t("admin.contracts.form.oneTimeDescriptionPlaceholder")}
-                                  />
-                                </Form.Item>
-                              </Col>
-                              <Col xs={24} sm={10}>
-                                <Form.Item
-                                  name="oneTimeAmount"
-                                  label={t("admin.contracts.form.oneTimeAmount")}
-                                  rules={[{ type: "number", min: 0.01, message: t("admin.contracts.form.stageAmountRequired") }]}
-                                  style={{ marginBottom: 0 }}
-                                >
-                                  <InputNumber
-                                    min={0.01}
-                                    style={{ width: "100%" }}
-                                    placeholder="0.00"
-                                  />
-                                </Form.Item>
-                              </Col>
-                            </Row>
+                              {day ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}` : ""}
+                            </span>
                           </div>
-                        )}
-
-                        {/* Live subscription preview */}
-                        {(() => {
-                          const monthly = getFieldValue("monthlyAmount") as number | null;
-                          const months = getFieldValue("subscriptionMonths") as number | null;
-                          const day = getFieldValue("billingDay") as number | null;
-                          const hasOneTime = getFieldValue("hasOneTime") as boolean;
-                          const oneTimeAmt = getFieldValue("oneTimeAmount") as number | null;
-                          if (!monthly || monthly <= 0) return null;
-                          const hasMonths = months && months > 0;
-                          const recurringTotal = hasMonths ? monthly * months : null;
-                          const showOneTime = hasOneTime && oneTimeAmt && oneTimeAmt > 0;
-                          return (
-                            <div style={{
-                              padding: "10px 14px",
-                              background: "var(--ds-color-primary-surface)",
-                              border: "1px solid var(--ds-color-primary-surface-deep)",
-                              borderRadius: 6,
-                              marginTop: 12,
-                            }}>
-                              <Flex justify="space-between" align="center" gap={8} wrap="wrap">
-                                <Flex vertical gap={4} style={{ flex: 1 }}>
-                                  <Flex align="center" gap={6}>
-                                    <SyncOutlined style={{ color: "var(--ds-color-primary)", fontSize: 13 }} />
-                                    <Typography.Text style={{ fontSize: 13, color: "var(--ds-text-secondary)" }}>
-                                      {hasMonths
-                                        ? `${fmtMoney(monthly, currency)} × ${months} ${t("admin.contracts.form.months")}`
-                                        : `${fmtMoney(monthly, currency)} / ${t("admin.contracts.form.month")} · ${t("admin.contracts.form.openEnded")}`
-                                      }
-                                      {day ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}` : ""}
-                                    </Typography.Text>
-                                  </Flex>
-                                  {showOneTime && (
-                                    <Flex align="center" gap={6}>
-                                      <WalletOutlined style={{ color: "var(--ds-color-primary)", fontSize: 13 }} />
-                                      <Typography.Text style={{ fontSize: 13, color: "var(--ds-text-secondary)" }}>
-                                        {t("admin.contracts.form.oneTimePreview", { amount: fmtMoney(oneTimeAmt!, currency) })}
-                                      </Typography.Text>
-                                    </Flex>
-                                  )}
-                                </Flex>
-                                {recurringTotal !== null && (
-                                  <Typography.Text strong style={{ fontSize: 15, color: "var(--ds-color-primary)", fontVariantNumeric: "tabular-nums" }}>
-                                    = {fmtMoney(recurringTotal + (showOneTime ? (oneTimeAmt ?? 0) : 0), currency)}
-                                  </Typography.Text>
-                                )}
-                              </Flex>
+                          {showOneTime && (
+                            <div className="flex items-center gap-1.5">
+                              <Wallet className="size-3.25 text-(--ds-color-primary)" />
+                              <span className="text-[13px] text-(--ds-text-secondary)">
+                                {t("admin.contracts.form.oneTimePreview", { amount: fmtMoney(oneTimeAmt, watchedCurrency) })}
+                              </span>
                             </div>
-                          );
-                        })()}
+                          )}
+                        </div>
+                        {recurringTotal !== null && (
+                          <span className="text-[15px] font-semibold tabular-nums text-(--ds-color-primary)">
+                            = {fmtMoney(recurringTotal + (showOneTime ? (oneTimeAmt ?? 0) : 0), watchedCurrency)}
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </>
-                );
-              }}
-            </Form.Item>
-
-            {/* Hidden form field — value managed via form.setFieldsValue */}
-            <Form.Item name="isSubscription" valuePropName="checked" noStyle>
-              <Switch style={{ display: "none" }} />
-            </Form.Item>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </Form>
       </AppModal>
@@ -1245,31 +1216,33 @@ export function AdminContractsPage() {
         styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       >
         {detailContract && (() => {
-          const [statusColor, statusKey] = statusCfg(detailContract.status);
-          const sectionStyle: React.CSSProperties = {
-            paddingTop: 20,
-            borderTop: "1px solid var(--ds-border-subtle)",
-          };
+          const [statusVariant, statusKey] = statusCfg(detailContract.status);
           return (
-            <Space direction="vertical" size={20} style={{ width: "100%" }}>
-              {/* Metadata grid */}
-              <Descriptions
-                size="small"
-                column={isMobile ? 1 : 2}
-              >
-                <Descriptions.Item label={t("admin.contracts.columns.status")}>
-                  <Tag color={statusColor}>{t(statusKey)}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label={t("admin.contracts.columns.total")}>
-                  <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
+            <div className="flex w-full flex-col gap-5">
+              {/* Metadata grid (Descriptions replacement) */}
+              <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+                <div>
+                  <div className="mb-1 text-xs text-muted-foreground">
+                    {t("admin.contracts.columns.status")}
+                  </div>
+                  <Badge variant={statusVariant}>{t(statusKey)}</Badge>
+                </div>
+                <div>
+                  <div className="mb-1 text-xs text-muted-foreground">
+                    {t("admin.contracts.columns.total")}
+                  </div>
+                  <span className="font-semibold tabular-nums">
                     {fmtMoney(detailContract.totalAmount, detailContract.currency)}
-                  </Typography.Text>
-                </Descriptions.Item>
+                  </span>
+                </div>
                 {detailContract.signedAt && (
-                  <Descriptions.Item label={t("admin.contracts.columns.signedAt")} span={2}>
+                  <div className="md:col-span-2">
+                    <div className="mb-1 text-xs text-muted-foreground">
+                      {t("admin.contracts.columns.signedAt")}
+                    </div>
                     <div>{new Date(detailContract.signedAt).toLocaleDateString()}</div>
                     {detailContract.signerName && (
-                      <div style={{ color: "var(--ds-text-secondary)", fontSize: 12 }}>
+                      <div className="text-xs text-(--ds-text-secondary)">
                         {detailContract.signerName}
                         {detailContract.signerPosition
                           ? ` · ${detailContract.signerPosition}`
@@ -1277,25 +1250,19 @@ export function AdminContractsPage() {
                       </div>
                     )}
                     {detailContract.signedCopyEmail && (
-                      <div style={{ color: "var(--ds-text-tertiary)", fontSize: 11, marginTop: 2 }}>
+                      <div className="mt-0.5 text-[11px] text-(--ds-text-tertiary)">
                         {t("admin.contracts.signedCopyEmail", {
                           email: detailContract.signedCopyEmail,
                         })}
                       </div>
                     )}
-                  </Descriptions.Item>
+                  </div>
                 )}
-              </Descriptions>
+              </div>
 
               {/* Contract body */}
               {detailContract.body && (
-                <div
-                  style={{
-                    ...sectionStyle,
-                    fontSize: 13,
-                    lineHeight: 1.8,
-                  }}
-                >
+                <div className="border-t border-(--ds-border-subtle) pt-5 text-[13px] leading-[1.8]">
                   {renderContractBody(detailContract.body, {
                     signerName: detailContract.signerName,
                     signaturePngBase64: detailContract.signaturePngBase64,
@@ -1307,12 +1274,9 @@ export function AdminContractsPage() {
               {/* PDF */}
               {detailContract.pdfBase64 && (
                 <div>
-                  <Typography.Text
-                    type="secondary"
-                    style={{ fontSize: 12, display: "block", marginBottom: 6 }}
-                  >
+                  <span className="mb-1.5 block text-xs text-muted-foreground">
                     {t("admin.contracts.form.pdf")}
-                  </Typography.Text>
+                  </span>
                   <PdfViewer
                     base64={detailContract.pdfBase64}
                     style={{ border: "1px solid var(--ds-border-subtle)", borderRadius: 8, height: 400 }}
@@ -1322,41 +1286,39 @@ export function AdminContractsPage() {
 
               {/* Payment stages */}
               <div>
-                <Typography.Text strong style={{ display: "block", marginBottom: 10 }}>
+                <span className="mb-2.5 block font-semibold">
                   {t("admin.contracts.form.stages")}
-                </Typography.Text>
-                <Space direction="vertical" size={0} style={{ width: "100%" }}>
+                </span>
+                <div className="flex w-full flex-col">
                   {detailContract.stages.map((s) => {
-                    const [sc, sk] = stageCfg(s.status);
+                    const [sv, sk] = stageCfg(s.status);
                     return (
-                      <Flex
+                      <div
                         key={s.id}
-                        justify="space-between"
-                        align="center"
-                        style={{ padding: "10px 0", borderBottom: "1px solid var(--ds-border-subtle)" }}
+                        className="flex items-center justify-between border-b border-(--ds-border-subtle) py-2.5"
                       >
                         <div>
-                          <Space size={8}>
-                            <Typography.Text>{s.description}</Typography.Text>
-                            <Tag color={sc} style={{ fontSize: 11 }}>
+                          <div className="flex items-center gap-2">
+                            <span>{s.description}</span>
+                            <Badge variant={sv} className="text-[11px]">
                               {t(sk)}
-                            </Tag>
-                          </Space>
+                            </Badge>
+                          </div>
                           {s.paidAt && (
-                            <div style={{ fontSize: 11, color: "var(--ds-text-tertiary)", marginTop: 2 }}>
+                            <div className="mt-0.5 text-[11px] text-(--ds-text-tertiary)">
                               {t("admin.contracts.stage.paidAt", {
                                 date: new Date(s.paidAt).toLocaleString(),
                               })}
                             </div>
                           )}
                         </div>
-                        <Typography.Text strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                        <span className="font-semibold tabular-nums">
                           {fmtMoney(s.amount, detailContract.currency)}
-                        </Typography.Text>
-                      </Flex>
+                        </span>
+                      </div>
                     );
                   })}
-                </Space>
+                </div>
               </div>
 
               {/* Subscription payment history */}
@@ -1370,17 +1332,17 @@ export function AdminContractsPage() {
                 detailContract.signaturePngBase64 &&
                 !(detailContract.body ?? "").includes("{{signerSignature}}") && (
                 <div>
-                  <Typography.Text
-                    type="secondary"
-                    style={{ fontSize: 12, display: "block", marginBottom: 8 }}
-                  >
-                    <CheckCircleOutlined style={{ color: "var(--ds-color-success)", marginInlineEnd: 4 }} />
+                  <span className="mb-2 flex items-center gap-1 text-xs text-muted-foreground">
+                    <CheckCircle2
+                      aria-hidden="true"
+                      className="size-3.5 text-(--ds-color-success)"
+                    />
                     {t("admin.contracts.signatureCaption")}
-                  </Typography.Text>
-                  <Image
+                  </span>
+                  <img
                     src={`data:image/png;base64,${detailContract.signaturePngBase64}`}
-                    style={{ border: "1px solid var(--ds-border-subtle)", borderRadius: 8, maxWidth: 280 }}
                     alt="signature"
+                    className="max-w-70 rounded-lg border border-(--ds-border-subtle)"
                   />
                 </div>
               )}
@@ -1389,73 +1351,57 @@ export function AdminContractsPage() {
               {(detailContract.status === "pending_signature" ||
                 detailContract.status === "draft") && (
                 <div>
-                  <Typography.Text
-                    type="secondary"
-                    style={{ fontSize: 12, display: "block", marginBottom: 8 }}
-                  >
+                  <span className="mb-2 block text-xs text-muted-foreground">
                     {t("admin.contracts.signLink")}
-                  </Typography.Text>
-                  <Row gutter={8}>
-                    <Col xs={24} sm="auto" flex={isMobile ? undefined : "auto"}>
-                      <Input readOnly value={signUrl(detailContract)} size="small" />
-                    </Col>
-                    <Col xs={24} sm="auto">
-                      <Button
-                        size="small"
-                        block={isMobile}
-                        icon={
-                          copiedId === detailContract.id ? (
-                            <CheckCircleOutlined style={{ color: "var(--ds-color-success)" }} />
-                          ) : (
-                            <CopyOutlined />
-                          )
-                        }
-                        onClick={() => void copyLink(detailContract)}
-                      >
-                        {copiedId === detailContract.id
-                          ? t("admin.contracts.linkCopied")
-                          : t("admin.contracts.copyLink")}
-                      </Button>
-                    </Col>
-                  </Row>
+                  </span>
+                  <div className={cn("flex gap-2", isMobile && "flex-col")}>
+                    <Input readOnly value={signUrl(detailContract)} className="h-8 min-w-0 flex-1 text-xs" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(isMobile && "w-full")}
+                      onClick={() => void copyLink(detailContract)}
+                    >
+                      {copiedId === detailContract.id ? (
+                        <Check aria-hidden="true" className="size-4 text-(--ds-color-success)" />
+                      ) : (
+                        <Copy aria-hidden="true" className="size-4" />
+                      )}
+                      {copiedId === detailContract.id
+                        ? t("admin.contracts.linkCopied")
+                        : t("admin.contracts.copyLink")}
+                    </Button>
+                  </div>
                 </div>
               )}
 
               {/* Payment link */}
               {detailContract.status === "signed" && (
                 <div>
-                  <Typography.Text
-                    type="secondary"
-                    style={{ fontSize: 12, display: "block", marginBottom: 8 }}
-                  >
+                  <span className="mb-2 block text-xs text-muted-foreground">
                     {t("admin.contracts.paymentLink")}
-                  </Typography.Text>
-                  <Row gutter={8}>
-                    <Col xs={24} sm="auto" flex={isMobile ? undefined : "auto"}>
-                      <Input readOnly value={paymentUrl(detailContract)} size="small" />
-                    </Col>
-                    <Col xs={24} sm="auto">
-                      <Button
-                        size="small"
-                        block={isMobile}
-                        icon={
-                          copiedId === detailContract.id ? (
-                            <CheckCircleOutlined style={{ color: "var(--ds-color-success)" }} />
-                          ) : (
-                            <CreditCardOutlined />
-                          )
-                        }
-                        onClick={() => void copyPaymentLink(detailContract)}
-                      >
-                        {copiedId === detailContract.id
-                          ? t("admin.contracts.linkCopied")
-                          : t("admin.contracts.copyPaymentLink")}
-                      </Button>
-                    </Col>
-                  </Row>
+                  </span>
+                  <div className={cn("flex gap-2", isMobile && "flex-col")}>
+                    <Input readOnly value={paymentUrl(detailContract)} className="h-8 min-w-0 flex-1 text-xs" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(isMobile && "w-full")}
+                      onClick={() => void copyPaymentLink(detailContract)}
+                    >
+                      {copiedId === detailContract.id ? (
+                        <Check aria-hidden="true" className="size-4 text-(--ds-color-success)" />
+                      ) : (
+                        <CreditCard aria-hidden="true" className="size-4" />
+                      )}
+                      {copiedId === detailContract.id
+                        ? t("admin.contracts.linkCopied")
+                        : t("admin.contracts.copyPaymentLink")}
+                    </Button>
+                  </div>
                 </div>
               )}
-            </Space>
+            </div>
           );
         })()}
       </AppModal>

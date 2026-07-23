@@ -1,11 +1,16 @@
-import { PlusOutlined, DeleteOutlined, CheckCircleOutlined, EditOutlined, CloseOutlined, WhatsAppOutlined } from "@ant-design/icons";
-import { App, Button, Input, Popconfirm, Spin, Tag, Tooltip, Typography } from "antd";
+import { CircleCheck, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { WhatsAppIcon } from "@/components/icons/brand";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { confirm } from "@/lib/confirm";
+import { message } from "@/lib/toast";
 import { useApp } from "@/app/AppProviders";
 import type { WaPhoneRow } from "@/services/admin/AdminService";
-
-const { Text } = Typography;
 
 type Props = {
   userId: string;
@@ -14,7 +19,6 @@ type Props = {
 export function WaPhoneManager({ userId }: Props) {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message } = App.useApp();
 
   const [phones, setPhones] = useState<WaPhoneRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,11 +37,11 @@ export function WaPhoneManager({ userId }: Props) {
       const data = await services.admin.listWaPhones(userId);
       setPhones(data);
     } catch {
-      void message.error(t("admin.whatsapp.phones.loadError"));
+      message.error(t("admin.whatsapp.phones.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [services.admin, userId, message, t]);
+  }, [services.admin, userId, t]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -54,7 +58,7 @@ export function WaPhoneManager({ userId }: Props) {
       setNewPhone("");
       setShowAddForm(false);
     } catch {
-      void message.error(t("admin.whatsapp.phones.addError"));
+      message.error(t("admin.whatsapp.phones.addError"));
     } finally {
       setAdding(false);
     }
@@ -69,7 +73,7 @@ export function WaPhoneManager({ userId }: Props) {
       setPhones((prev) => prev.map((p) => (p.id === phoneId ? updated : p)));
       setEditingId(null);
     } catch {
-      void message.error(t("admin.whatsapp.phones.addError"));
+      message.error(t("admin.whatsapp.phones.addError"));
     } finally {
       setSavingId(null);
     }
@@ -81,10 +85,22 @@ export function WaPhoneManager({ userId }: Props) {
       await services.admin.deleteWaPhone(userId, phoneId);
       setPhones((prev) => prev.filter((p) => p.id !== phoneId));
     } catch {
-      void message.error(t("admin.whatsapp.phones.deleteError"));
+      message.error(t("admin.whatsapp.phones.deleteError"));
     } finally {
       setDeletingId(null);
     }
+  }
+
+  function confirmDelete(phoneId: number) {
+    confirm({
+      title: t("admin.whatsapp.phones.deleteConfirm"),
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
+      danger: true,
+      onOk: async () => {
+        await handleDelete(phoneId);
+      },
+    });
   }
 
   function startEdit(p: WaPhoneRow) {
@@ -93,138 +109,162 @@ export function WaPhoneManager({ userId }: Props) {
   }
 
   return (
-    <div style={{ marginTop: 4 }}>
-      <Spin spinning={loading}>
-        {phones.length === 0 && !loading && (
-          <Text type="secondary" style={{ fontSize: 13 }}>
-            {t("admin.whatsapp.phones.empty")}
-          </Text>
-        )}
-        {phones.map((p) => (
-          <div
-            key={p.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "6px 0",
-              borderBottom: "1px solid var(--ds-color-border-subtle, var(--ds-border-subtle))",
-              flexWrap: "wrap",
-            }}
-          >
-            {/* Connect code */}
-            <Tag
-              style={{ fontFamily: "monospace", letterSpacing: 1, fontSize: 12, margin: 0 }}
-              color="blue"
-            >
-              {p.connectCode}
-            </Tag>
+    <div className="relative mt-1">
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
+          <Spinner size="sm" />
+        </div>
+      )}
 
-            {/* Phone / edit inline */}
-            {editingId === p.id ? (
-              <>
-                <Input
-                  size="small"
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  placeholder="+972501234567"
-                  style={{ width: 150 }}
-                  onPressEnter={() => void handleSavePhone(p.id)}
-                />
-                <Button
-                  size="small"
-                  type="primary"
-                  loading={savingId === p.id}
-                  onClick={() => void handleSavePhone(p.id)}
-                >
-                  {t("common.save")}
-                </Button>
-                <Button
-                  size="small"
-                  icon={<CloseOutlined />}
-                  onClick={() => setEditingId(null)}
-                />
-              </>
-            ) : (
-              <>
-                {p.verified ? (
-                  <Text style={{ color: "var(--ds-color-success)", fontSize: 13 }}>
-                    <CheckCircleOutlined style={{ marginRight: 4 }} />
-                    {p.phone}
-                  </Text>
-                ) : (
-                  <Text type="secondary" style={{ fontSize: 13 }}>
-                    {t("admin.whatsapp.phones.notConnected")}
-                  </Text>
-                )}
-                <Tooltip title={t("admin.whatsapp.phones.editPhone")}>
-                  <Button
-                    size="small"
-                    type="text"
-                    icon={<EditOutlined />}
-                    onClick={() => startEdit(p)}
-                  />
-                </Tooltip>
-              </>
-            )}
+      {phones.length === 0 && !loading && (
+        <span className="text-[13px] text-muted-foreground">
+          {t("admin.whatsapp.phones.empty")}
+        </span>
+      )}
 
-            {/* Label */}
-            {p.label && (
-              <Text type="secondary" style={{ fontSize: 12 }}>({p.label})</Text>
-            )}
+      {phones.map((p) => (
+        <div
+          key={p.id}
+          className="flex flex-wrap items-center gap-2 border-b py-1.5"
+          style={{ borderColor: "var(--ds-color-border-subtle, var(--ds-border-subtle))" }}
+        >
+          {/* Connect code */}
+          <Badge variant="primary" className="m-0 font-mono text-xs tracking-widest">
+            {p.connectCode}
+          </Badge>
 
-            {/* Delete */}
-            <Popconfirm
-              title={t("admin.whatsapp.phones.deleteConfirm")}
-              onConfirm={() => void handleDelete(p.id)}
-              okText={t("common.confirm")}
-              cancelText={t("common.cancel")}
-              okButtonProps={{ danger: true }}
-            >
-              <Button
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                loading={deletingId === p.id}
-                style={{ marginLeft: "auto" }}
+          {/* Phone / edit inline */}
+          {editingId === p.id ? (
+            <>
+              <Input
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                placeholder="+972501234567"
+                className="h-8 w-[150px] text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void handleSavePhone(p.id);
+                  }
+                }}
               />
-            </Popconfirm>
-          </div>
-        ))}
-      </Spin>
+              <Button
+                type="button"
+                size="sm"
+                disabled={savingId === p.id}
+                onClick={() => void handleSavePhone(p.id)}
+              >
+                {savingId === p.id && <Spinner size="sm" className="text-current" />}
+                {t("common.save")}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                aria-label={t("common.cancel")}
+                onClick={() => setEditingId(null)}
+              >
+                <X />
+              </Button>
+            </>
+          ) : (
+            <>
+              {p.verified ? (
+                <span className="inline-flex items-center gap-1 text-[13px]" style={{ color: "var(--ds-color-success)" }}>
+                  <CircleCheck className="size-3.5" />
+                  {p.phone}
+                </span>
+              ) : (
+                <span className="text-[13px] text-muted-foreground">
+                  {t("admin.whatsapp.phones.notConnected")}
+                </span>
+              )}
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      aria-label={t("admin.whatsapp.phones.editPhone")}
+                      onClick={() => startEdit(p)}
+                    >
+                      <Pencil />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t("admin.whatsapp.phones.editPhone")}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </>
+          )}
+
+          {/* Label */}
+          {p.label && (
+            <span className="text-xs text-muted-foreground">({p.label})</span>
+          )}
+
+          {/* Delete */}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={deletingId === p.id}
+            aria-label={t("common.remove")}
+            className="ms-auto text-destructive hover:text-destructive"
+            onClick={() => confirmDelete(p.id)}
+          >
+            {deletingId === p.id ? <Spinner size="sm" className="text-current" /> : <Trash2 />}
+          </Button>
+        </div>
+      ))}
 
       {showAddForm ? (
-        <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="relative w-[160px]">
+            <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2.5">
+              <WhatsAppIcon className="text-[#25d366]" />
+            </span>
+            <Input
+              placeholder="+972501234567"
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+              className="h-8 ps-8 text-sm"
+            />
+          </div>
           <Input
-            size="small"
-            prefix={<WhatsAppOutlined style={{ color: "#25d366" }} />}
-            placeholder="+972501234567"
-            value={newPhone}
-            onChange={(e) => setNewPhone(e.target.value)}
-            style={{ width: 160 }}
-          />
-          <Input
-            size="small"
             placeholder={t("admin.whatsapp.phones.labelPlaceholder")}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            onPressEnter={() => void handleAdd()}
-            style={{ width: 140 }}
+            className="h-8 w-[140px] text-sm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleAdd();
+              }
+            }}
           />
-          <Button size="small" type="primary" loading={adding} onClick={() => void handleAdd()}>
+          <Button type="button" size="sm" disabled={adding} onClick={() => void handleAdd()}>
+            {adding && <Spinner size="sm" className="text-current" />}
             {t("admin.whatsapp.phones.addConfirm")}
           </Button>
-          <Button size="small" onClick={() => { setShowAddForm(false); setNewLabel(""); setNewPhone(""); }}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => { setShowAddForm(false); setNewLabel(""); setNewPhone(""); }}
+          >
             {t("common.cancel")}
           </Button>
         </div>
       ) : (
         <Button
-          size="small"
-          icon={<PlusOutlined />}
+          type="button"
+          size="sm"
+          variant="outline"
+          className="mt-2"
           onClick={() => setShowAddForm(true)}
-          style={{ marginTop: 8 }}
         >
+          <Plus />
           {t("admin.whatsapp.phones.addBtn")}
         </Button>
       )}

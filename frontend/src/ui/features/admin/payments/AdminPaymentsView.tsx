@@ -1,5 +1,11 @@
-import { Button, Card, Empty, Flex, Form, Input, Spin, Tag, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyBox } from "@/components/ui/empty";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Paths } from "@/ui/navigation/paths";
 import { AppModal } from "@/ui/shared/components/AppModal";
 import { AdminPaymentsHistoryTable } from "./AdminPaymentsHistoryTable";
@@ -17,8 +23,13 @@ export function AdminPaymentsPage() {
   const hasBillableClient = Boolean(p.selectedUser && p.userMeta?.accountId);
 
   return (
-    <Spin spinning={p.loadingUsers}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 40 }}>
+    <div className="relative">
+      {p.loadingUsers ? (
+        <div className="absolute inset-0 z-10 flex items-start justify-center bg-background/60 pt-24">
+          <Spinner size="lg" aria-hidden="true" />
+        </div>
+      ) : null}
+      <div className="mx-auto max-w-300 pb-10">
         <AdminPaymentsPageHeader
           t={p.t}
           token={p.token}
@@ -30,32 +41,20 @@ export function AdminPaymentsPage() {
 
         {p.users.length === 0 && !p.loadingUsers ? (
           <Card
+            className="mt-6"
             style={{
               borderRadius: p.shellRadius,
               border: `1px solid ${p.token.colorBorderSecondary}`,
               boxShadow: p.shellShadow,
-              marginTop: 24,
             }}
           >
-            <Empty description={p.t("admin.payments.noUsersAtAll")} />
+            <EmptyBox title={p.t("admin.payments.noUsersAtAll")} />
           </Card>
         ) : (
           <>
             <Form
               form={p.form}
-              layout="vertical"
-              style={{ marginTop: 24 }}
-              initialValues={{
-                chargeType: "one_time",
-                currency: "ILS",
-                useBreakdown: false,
-                lineItems: [],
-                splitAcrossMonths: undefined,
-                billingSchedule: undefined,
-                billingDay: undefined,
-                billingWeekDay: undefined,
-                testIntervalMinutes: undefined,
-              }}
+              className="mt-6 space-y-0"
               onFinish={(values) => void p.onFormFinish(values)}
             >
               {/* Recipient */}
@@ -78,7 +77,7 @@ export function AdminPaymentsPage() {
               {/* Composer — appears once a billable client is selected */}
               {hasBillableClient && (
                 <>
-                  <div style={{ marginTop: 24 }}>
+                  <div className="mt-6">
                     <InvoiceComposerCard
                       t={p.t}
                       token={p.token}
@@ -96,16 +95,15 @@ export function AdminPaymentsPage() {
                     />
                   </div>
 
-                  <Flex justify="flex-end" style={{ marginTop: 16 }}>
+                  <div className="mt-4 flex justify-end">
                     <Button
-                      type="primary"
-                      size="large"
-                      htmlType="submit"
+                      type="submit"
+                      size="lg"
                       disabled={!p.userMeta?.accountId || p.billBlockedForAdmin}
                     >
                       {p.t("admin.payments.createSubmit")}
                     </Button>
-                  </Flex>
+                  </div>
                 </>
               )}
 
@@ -114,32 +112,34 @@ export function AdminPaymentsPage() {
 
             {/* Payment History */}
             <Card
-              title={
-                p.userMeta?.accountId ? (
-                  <Flex align="center" gap={8} wrap="wrap">
-                    <span>{p.t("admin.payments.historyTitle")}</span>
-                    <Tag color="blue" style={{ marginInlineEnd: 0 }}>
-                      {p.t("admin.payments.historyFilteredForSelected")}
-                    </Tag>
-                  </Flex>
-                ) : (
-                  p.t("admin.payments.historyTitle")
-                )
-              }
-              extra={
-                <Button type="link" onClick={() => navigate(Paths.adminInvoices)} style={{ paddingInline: 0 }}>
-                  {p.t("admin.payments.historyAllInvoicesLink")}
-                </Button>
-              }
-              size="small"
+              className="mt-6 overflow-hidden"
               style={{
-                marginTop: 24,
                 borderRadius: p.shellRadius,
                 border: `1px solid ${p.token.colorBorderSecondary}`,
                 boxShadow: p.shellShadow,
               }}
-              styles={{ body: { padding: 0 } }}
             >
+              <div
+                className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3"
+                style={{ borderBottomColor: "var(--ds-border-subtle)" }}
+              >
+                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+                  <span>{p.t("admin.payments.historyTitle")}</span>
+                  {p.userMeta?.accountId ? (
+                    <Badge variant="primary">
+                      {p.t("admin.payments.historyFilteredForSelected")}
+                    </Badge>
+                  ) : null}
+                </div>
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => navigate(Paths.adminInvoices)}
+                  className="h-auto p-0"
+                >
+                  {p.t("admin.payments.historyAllInvoicesLink")}
+                </Button>
+              </div>
               <AdminPaymentsHistoryTable
                 t={p.t}
                 admin={p.services.admin}
@@ -167,11 +167,11 @@ export function AdminPaymentsPage() {
               okText={p.t("admin.payments.saveTemplateOk")}
               cancelText={p.t("common.cancel")}
               confirmLoading={p.savingTemplate}
-              onOk={() => p.onSaveTemplateOk()}
+              onOk={() => void p.onSaveTemplateOk()}
             >
-              <Typography.Paragraph type="secondary" style={{ marginBottom: "var(--ds-space-3)" }}>
+              <p className="text-sm text-muted-foreground" style={{ marginBottom: "var(--ds-space-3)" }}>
                 {p.t("admin.payments.saveTemplateHint")}
-              </Typography.Paragraph>
+              </p>
               <Input
                 value={p.saveTemplateTitle}
                 onChange={(e) => p.setSaveTemplateTitle(e.target.value)}
@@ -182,6 +182,6 @@ export function AdminPaymentsPage() {
           </>
         )}
       </div>
-    </Spin>
+    </div>
   );
 }

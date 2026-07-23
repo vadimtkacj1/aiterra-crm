@@ -1,58 +1,71 @@
-import { FacebookOutlined } from "@ant-design/icons";
-import { Form, Select, Switch } from "antd";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { TFunction } from "i18next";
+import { FacebookIcon } from "@/components/icons/brand";
+import { Combobox } from "@/components/ui/combobox";
+import { FormItem } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import type { MetaCampaignOption } from "@/services/analytics/meta/IMetaCampaignAnalyticsService";
+import type { AdminUserLinkFormValues } from "./adminUsersTypes";
 
 type Props = {
   t: TFunction;
+  form: UseFormReturn<AdminUserLinkFormValues>;
   metaCampaigns: MetaCampaignOption[];
   metaCampaignsLoading: boolean;
   showLinkMetaExtra?: boolean;
 };
 
-export function AdminUsersMetaLinkFields({ t, metaCampaigns, metaCampaignsLoading, showLinkMetaExtra }: Props) {
+export function AdminUsersMetaLinkFields({ t, form, metaCampaigns, metaCampaignsLoading, showLinkMetaExtra }: Props) {
+  const linkMeta = useWatch({ control: form.control, name: "linkMeta" });
+
   return (
-    <>
+    <div className="space-y-5">
       {/* Toggle row — same pattern as the Site module switch. The stored form
           value stays the legacy "with"/"without" string so submit payloads and
-          the edit-modal prefill are unchanged. */}
-      <Form.Item
+          the edit-modal prefill are unchanged; the Switch maps at the boundary. */}
+      <FormItem<AdminUserLinkFormValues, "linkMeta">
         name="linkMeta"
         label={
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <FacebookOutlined style={{ color: "#1877f2" }} />
+          <span className="inline-flex items-center gap-1.5">
+            <FacebookIcon className="text-[#1877f2]" />
             {t("admin.form.linkMeta")}
           </span>
         }
-        extra={showLinkMetaExtra ? t("admin.form.linkMetaExtra") : undefined}
-        getValueProps={(value) => ({ checked: value === "with" })}
-        normalize={(checked) => (checked === true || checked === "with" ? "with" : "without")}
+        hint={showLinkMetaExtra ? t("admin.form.linkMetaExtra") : undefined}
       >
-        <Switch
-          checkedChildren={t("admin.form.linkMetaWith")}
-          unCheckedChildren={t("admin.form.linkMetaWithout")}
-        />
-      </Form.Item>
-      <Form.Item noStyle shouldUpdate={(prev, cur) => prev.linkMeta !== cur.linkMeta}>
-        {({ getFieldValue }) =>
-          getFieldValue("linkMeta") === "with" ? (
-            <Form.Item
-              name="metaCampaignId"
-              label={t("admin.form.metaCampaign")}
-              rules={[{ required: true, message: t("admin.form.metaCampaignRequired") }]}
-              extra={showLinkMetaExtra ? t("admin.form.metaCampaignHint") : undefined}
-            >
-              <Select
-                showSearch
-                loading={metaCampaignsLoading}
-                filterOption={(input, opt) => (opt?.label ?? "").toLowerCase().includes(input.toLowerCase())}
-                placeholder={t("admin.form.metaCampaignPlaceholder")}
-                options={metaCampaigns.map((c) => ({ value: c.id, label: `${c.name} (${c.id})` }))}
-              />
-            </Form.Item>
-          ) : null
-        }
-      </Form.Item>
-    </>
+        {(field) => (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={field.value === "with"}
+              onCheckedChange={(checked) => field.onChange(checked ? "with" : "without")}
+            />
+            <span className="text-sm text-muted-foreground">
+              {field.value === "with" ? t("admin.form.linkMetaWith") : t("admin.form.linkMetaWithout")}
+            </span>
+          </div>
+        )}
+      </FormItem>
+
+      {linkMeta === "with" && (
+        <FormItem<AdminUserLinkFormValues, "metaCampaignId">
+          name="metaCampaignId"
+          label={t("admin.form.metaCampaign")}
+          rules={{ required: t("admin.form.metaCampaignRequired") }}
+          hint={showLinkMetaExtra ? t("admin.form.metaCampaignHint") : undefined}
+        >
+          {(field) => (
+            <Combobox
+              options={metaCampaigns.map((c) => ({ value: c.id, label: `${c.name} (${c.id})` }))}
+              value={field.value ?? null}
+              onChange={(v) => field.onChange(v ?? undefined)}
+              loading={metaCampaignsLoading}
+              placeholder={t("admin.form.metaCampaignPlaceholder")}
+              searchPlaceholder={t("common.search")}
+              emptyText={t("common.noData")}
+            />
+          )}
+        </FormItem>
+      )}
+    </div>
   );
 }

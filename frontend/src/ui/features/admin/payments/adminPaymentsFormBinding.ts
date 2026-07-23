@@ -1,5 +1,5 @@
 /**
- * Maps API billing / template shapes → Ant Design form patches (single source of truth).
+ * Maps API billing / template shapes → form-value patches (single source of truth).
  */
 
 import type { AccountBillingInstruction, InvoiceTemplateRow } from "@/services/admin/AdminService";

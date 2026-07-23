@@ -1,12 +1,12 @@
-import { DeleteOutlined, SearchOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Button, Card, Flex, Input, Popconfirm, Typography } from "antd";
+import { DeleteOutlined, MoreOutlined, SearchOutlined, UserAddOutlined } from "@ant-design/icons";
+import { Button, Card, Dropdown, Flex, Input, Popconfirm, Typography } from "antd";
 import { useMemo, useState } from "react";
 import type { Key } from "react";
 import { AppTable } from "@/ui/shared/components/AppTable";
 import type { TFunction } from "i18next";
 import type { User, UserRole } from "@/domain/User";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
-import { UserRowActions } from "./UserRowActions";
+import { UserRowActions, userOverflowMenu } from "./UserRowActions";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 
 type Props = {
@@ -35,6 +35,10 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
     );
   }, [users, search]);
 
+  // When the list empty-state shows its own primary CTA, demote the toolbar
+  // button so the screen keeps a single primary action.
+  const emptyCtaVisible = !loading && !search && users.length === 0;
+
   const emptyState = (
     <EmptyState
       title={search ? t("admin.users.searchEmpty") : t("admin.users.listEmpty")}
@@ -59,7 +63,7 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
             allowClear
             style={{ width: isMobile ? 180 : 280 }}
           />
-          <Button type="primary" icon={<UserAddOutlined />} onClick={onCreateUser}>
+          <Button type={emptyCtaVisible ? "default" : "primary"} icon={<UserAddOutlined />} onClick={onCreateUser}>
             {!isMobile && t("admin.form.submit")}
           </Button>
         </Flex>
@@ -110,9 +114,12 @@ export function AdminUsersListTableCard({ t, users, loading, onEdit, onResetPass
               tags: [{ label: t(`admin.roles.${u.role}`), color: u.role === "admin" ? "red" : "blue" }],
               actions: [
                 { label: t("admin.table.edit"), onClick: () => onEdit(u), type: "default" as const },
-                { label: t("admin.table.resetPassword"), onClick: () => onResetPassword(u), type: "default" as const },
-                { label: t("admin.table.delete"), onClick: () => onDelete(u), danger: true },
               ],
+              extra: (
+                <Dropdown trigger={["click"]} menu={userOverflowMenu(u, t, onResetPassword, onDelete)}>
+                  <Button type="text" size="small" icon={<MoreOutlined />} />
+                </Dropdown>
+              ),
             }))}
             loading={loading}
             emptyText={t("common.noData")}

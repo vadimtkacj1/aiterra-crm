@@ -101,7 +101,7 @@ export function AdminAuditPage() {
             rowKey="id"
             loading={loading}
             size="middle"
-            pagination={{ pageSize: 25, showSizeChanger: true }}
+            pagination={{ pageSize: 25 }}
             dataSource={filtered}
             scroll={{ x: 900 }}
             locale={{ emptyText: emptyState }}
@@ -123,10 +123,28 @@ export function AdminAuditPage() {
                 title: t("admin.audit.columns.resource"),
                 key: "resource",
                 width: 180,
-                render: (_, r) => [r.resourceType, r.resourceId].filter(Boolean).join(" ") || "-",
+                render: (_, r) => r.resourceType || "-",
               },
               { title: t("admin.audit.columns.detail"), dataIndex: "detail", key: "detail", ellipsis: true },
             ]}
+            expandable={{
+              rowExpandable: (r) => Boolean(r.resourceId || r.detail),
+              expandedRowRender: (r) => (
+                <Flex vertical gap={4}>
+                  {r.resourceId ? (
+                    <span>
+                      <strong>{t("admin.audit.columns.resource")}:</strong>{" "}
+                      {[r.resourceType, r.resourceId].filter(Boolean).join(" ")}
+                    </span>
+                  ) : null}
+                  {r.detail ? (
+                    <span style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                      <strong>{t("admin.audit.columns.detail")}:</strong> {r.detail}
+                    </span>
+                  ) : null}
+                </Flex>
+              ),
+            }}
           />
         )}
       </Card>

@@ -1,15 +1,16 @@
 import {
   CalendarOutlined,
-  ClockCircleOutlined,
   FileAddOutlined,
   FileTextOutlined,
   MinusCircleOutlined,
+  MoreOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import {
   Button,
   Col,
   Divider,
+  Dropdown,
   Flex,
   Form,
   Input,
@@ -18,9 +19,9 @@ import {
   Row,
   Select,
   Space,
-  Tooltip,
   Typography,
 } from "antd";
+import type { MenuProps } from "antd";
 import type { FormInstance } from "antd/es/form";
 import type { GlobalToken } from "antd/es/theme/interface";
 import type { TFunction } from "i18next";
@@ -170,19 +171,36 @@ export function InvoiceComposerCard({
         padding: "20px 20px 24px",
       }}
     >
-      {/* Header */}
-      <Flex justify="flex-end" align="flex-start" gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
-        <Tooltip title={canSaveTemplate ? undefined : t("admin.payments.templateNeedCharge")}>
+      {/* Rare actions behind disclosure: templates & presets */}
+      <Flex justify="flex-end" style={{ marginBottom: 8 }}>
+        <Dropdown
+          trigger={["click"]}
+          menu={{
+            items: [
+              {
+                key: "saveTemplate",
+                icon: <FileAddOutlined />,
+                label: t("admin.payments.saveAsTemplate"),
+                disabled: !canSaveTemplate,
+              },
+              { type: "divider" },
+              { key: "presetBundle", label: t("admin.payments.presetBundle") },
+              { key: "presetServerOnly", label: t("admin.payments.presetServerOnly") },
+            ] satisfies MenuProps["items"],
+            onClick: ({ key }) => {
+              if (key === "saveTemplate") openSaveTemplateModal();
+              else if (key === "presetBundle") presetBundle();
+              else if (key === "presetServerOnly") presetServerOnly();
+            },
+          }}
+        >
           <Button
-            type="default"
-            icon={<FileAddOutlined />}
-            onClick={openSaveTemplateModal}
-            disabled={!canSaveTemplate}
-            style={{ borderRadius: 8, flexShrink: 0 }}
-          >
-            {t("admin.payments.saveAsTemplate")}
-          </Button>
-        </Tooltip>
+            type="text"
+            icon={<MoreOutlined />}
+            aria-label={t("admin.payments.composerMenuLabel")}
+            style={{ flexShrink: 0 }}
+          />
+        </Dropdown>
       </Flex>
 
       {/* Charge type selection */}
@@ -292,12 +310,6 @@ export function InvoiceComposerCard({
                       {t("admin.payments.billingScheduleWeekly")}
                     </Flex>
                   </Radio>
-                  <Radio value="minutely">
-                    <Flex align="center" gap={4}>
-                      <ClockCircleOutlined />
-                      {t("admin.payments.billingScheduleMinutely")}
-                    </Flex>
-                  </Radio>
                 </Radio.Group>
               </Form.Item>
 
@@ -333,43 +345,15 @@ export function InvoiceComposerCard({
                   />
                 </Form.Item>
               ) : null}
-
-              {/* Minutely → interval */}
-              {scheduleW === "minutely" ? (
-                <Form.Item
-                  name="testIntervalMinutes"
-                  label={t("admin.payments.testIntervalLabel")}
-                  style={{ marginBottom: 0, maxWidth: 220 }}
-                >
-                  <InputNumber
-                    min={1}
-                    max={1440}
-                    precision={0}
-                    addonAfter={t("admin.payments.testIntervalUnit")}
-                    placeholder={t("admin.payments.testIntervalPlaceholder")}
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              ) : null}
             </div>
           ) : null}
 
           {/* Itemized line items */}
           {useBreakdownW ? (
             <div style={{ ...sectionStyle, marginBottom: 16 }}>
-              <Flex justify="space-between" align="center" wrap="wrap" gap={8} style={{ marginBottom: 12 }}>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  {t("admin.payments.linesHeading")}
-                </Typography.Text>
-                <Space wrap size={6}>
-                  <Button size="small" onClick={presetBundle} style={{ borderRadius: 6 }}>
-                    {t("admin.payments.presetBundle")}
-                  </Button>
-                  <Button size="small" onClick={presetServerOnly} style={{ borderRadius: 6 }}>
-                    {t("admin.payments.presetServerOnly")}
-                  </Button>
-                </Space>
-              </Flex>
+              <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 12 }}>
+                {t("admin.payments.linesHeading")}
+              </Typography.Text>
 
               <Form.List name="lineItems">
                 {(fields, { add, remove }) => (
@@ -377,9 +361,6 @@ export function InvoiceComposerCard({
                     <Flex vertical gap={6} style={{ marginBottom: fields.length > 0 ? 8 : 0 }}>
                       {fields.map(({ key, name, ...rest }) => (
                         <Flex key={key} gap={6} align="flex-start">
-                          <Form.Item {...rest} name={[name, "code"]} style={{ width: 72, flexShrink: 0, marginBottom: 0 }}>
-                            <Input placeholder="SKU" style={{ color: token.colorTextTertiary }} />
-                          </Form.Item>
                           <Form.Item
                             {...rest}
                             name={[name, "label"]}

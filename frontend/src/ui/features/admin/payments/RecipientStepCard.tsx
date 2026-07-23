@@ -54,16 +54,30 @@ export function RecipientStepCard({
             allowClear
             loading={loadingUsers}
             placeholder={t("admin.payments.selectClientPlaceholder")}
-            optionFilterProp="label"
+            optionFilterProp="search"
             onChange={(v) => void onUserChange(String(v ?? ""))}
             options={users.map((u) => {
-              const phonePart = u.phone ? `, ${u.phone}` : '';
+              const name = u.displayName?.trim();
+              // Visible label: name + email only; phone/role/#id stay searchable via `search`.
               return {
                 value: String(u.id),
-                label:
-                  u.role === "admin"
-                    ? `${u.displayName} (${u.email}${phonePart}, ${t("admin.roles.admin")}) #${u.id}`
-                    : `${u.displayName} (${u.email}${phonePart}) #${u.id}`,
+                search: [
+                  u.displayName,
+                  u.email,
+                  u.phone,
+                  u.role === "admin" ? t("admin.roles.admin") : "",
+                  `#${u.id}`,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+                label: name ? (
+                  <>
+                    {name}{" "}
+                    <Typography.Text type="secondary">{u.email}</Typography.Text>
+                  </>
+                ) : (
+                  u.email
+                ),
               };
             })}
             style={{ width: "100%" }}
@@ -120,7 +134,7 @@ export function RecipientStepCard({
                           currency: clientLiveBilling.currency || "USD",
                         })}
                       </Typography.Text>
-                      <Button size="small" type="primary" onClick={importLiveBillingIntoForm}>
+                      <Button size="small" type="default" onClick={importLiveBillingIntoForm}>
                         {t("admin.payments.importLiveBilling")}
                       </Button>
                     </Space>

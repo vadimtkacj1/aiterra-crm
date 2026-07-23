@@ -1,11 +1,14 @@
 import {
-  CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, DisconnectOutlined,
-  PlusOutlined, ReloadOutlined, SearchOutlined, WhatsAppOutlined,
+  CheckCircleFilled, DeleteOutlined, DisconnectOutlined,
+  MoreOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, WhatsAppOutlined,
 } from "@ant-design/icons";
-import { App, Button, Flex, Input, Popconfirm, Tag, Typography } from "antd";
+import { App, Button, Dropdown, Flex, Input, Popconfirm, Tooltip, Typography } from "antd";
+import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { Paths } from "../../../navigation/paths";
 import type { AdminWaPhone, WaConnectionRow } from "@/services/admin/AdminService";
 import { useApp } from "@/app/AppProviders";
 import { AppTable } from "../../../shared/components/AppTable";
@@ -169,7 +172,8 @@ function AdminPhonesSection() {
 export function AdminWhatsAppPage() {
   const { t } = useTranslation();
   const { services } = useApp();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
+  const navigate = useNavigate();
 
   const [rows, setRows] = useState<WaConnectionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -229,93 +233,97 @@ export function AdminWhatsAppPage() {
     );
   }, [rows, search]);
 
+  function confirmDisconnect(r: WaConnectionRow) {
+    modal.confirm({
+      title: t("admin.whatsapp.disconnectConfirm"),
+      okText: t("admin.whatsapp.disconnectOk"),
+      cancelText: t("common.cancel"),
+      okButtonProps: { danger: true },
+      onOk: () => handleDisconnect(r.phoneId),
+    });
+  }
+
+  function confirmDelete(r: WaConnectionRow) {
+    modal.confirm({
+      title: t("admin.whatsapp.deleteConfirm"),
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
+      okButtonProps: { danger: true },
+      onOk: () => handleDelete(r.phoneId),
+    });
+  }
+
   const columns: ColumnsType<WaConnectionRow> = [
     {
       title: t("admin.whatsapp.colAccount"),
       key: "account",
       ellipsis: true,
-      render: (_, r) => <Text strong>{r.accountName}</Text>,
-    },
-    {
-      title: t("admin.whatsapp.colEmail"),
-      dataIndex: "ownerEmail",
-      key: "ownerEmail",
-      ellipsis: true,
-      render: (v: string | null) => v ?? "—",
-    },
-    {
-      title: t("admin.whatsapp.colLabel"),
-      dataIndex: "label",
-      key: "label",
-      width: 120,
-      render: (v: string | null) => v ? <Text type="secondary">{v}</Text> : <Text type="secondary">—</Text>,
-    },
-    {
-      title: t("admin.whatsapp.colStatus"),
-      key: "status",
-      width: 130,
-      render: (_, r) =>
-        r.verified ? (
-          <Tag icon={<CheckCircleOutlined />} color="success">{t("admin.whatsapp.statusConnected")}</Tag>
-        ) : (
-          <Tag icon={<CloseCircleOutlined />} color="default">{t("admin.whatsapp.statusNone")}</Tag>
-        ),
+      render: (_, r) => (
+        <Flex vertical gap={0}>
+          <Text strong>{r.accountName}</Text>
+          {(r.ownerEmail || r.label) && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {[r.ownerEmail, r.label].filter(Boolean).join(" · ")}
+            </Text>
+          )}
+        </Flex>
+      ),
     },
     {
       title: t("admin.whatsapp.colPhone"),
       key: "phone",
-      width: 160,
-      render: (_, r) => r.phone
+      width: 220,
+      render: (_, r) => r.verified && r.phone
         ? (
-          <Text copyable={{ text: r.phone }} style={{ fontFamily: "var(--ds-font-family-mono)", fontVariantNumeric: "tabular-nums" }}>
-            <span dir="ltr">{r.phone}</span>
-          </Text>
+          <Flex align="center" gap={8}>
+            <Tooltip title={t("admin.whatsapp.statusConnected")}>
+              <CheckCircleFilled style={{ color: "var(--ds-color-success)", fontSize: 10 }} />
+            </Tooltip>
+            <Text copyable={{ text: r.phone }} style={{ fontFamily: "var(--ds-font-family-mono)", fontVariantNumeric: "tabular-nums" }}>
+              <span dir="ltr">{r.phone}</span>
+            </Text>
+          </Flex>
         )
-        : <Text type="secondary">—</Text>,
-    },
-    {
-      title: t("admin.whatsapp.colCode"),
-      dataIndex: "connectCode",
-      key: "connectCode",
-      width: 140,
-      render: (v: string) => (
-        <Tag style={{ fontFamily: "var(--ds-font-family-mono)", letterSpacing: 1 }}>{v}</Tag>
-      ),
+        : (
+          <Flex vertical gap={0}>
+            <Text copyable={{ text: r.connectCode }} style={{ fontFamily: "var(--ds-font-family-mono)", letterSpacing: 1 }}>
+              {r.connectCode}
+            </Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>{t("admin.whatsapp.statusNone")}</Text>
+          </Flex>
+        ),
     },
     {
       title: "",
       key: "actions",
-      width: 110,
-      render: (_, r) => (
-        <Flex gap={6}>
-          {r.verified && (
-            <Popconfirm
-              title={t("admin.whatsapp.disconnectConfirm")}
-              onConfirm={() => void handleDisconnect(r.phoneId)}
-              okText={t("admin.whatsapp.disconnectOk")}
-              cancelText={t("common.cancel")}
-              okButtonProps={{ danger: true }}
-            >
-              <Button
-                size="small"
-                icon={<DisconnectOutlined />}
-                loading={disconnectingId === r.phoneId}
-              >
-                {t("admin.whatsapp.disconnectBtn")}
-              </Button>
-            </Popconfirm>
-          )}
-          <Popconfirm
-            title={t("admin.whatsapp.deleteConfirm")}
-            onConfirm={() => void handleDelete(r.phoneId)}
-            okText={t("common.confirm")}
-            cancelText={t("common.cancel")}
-            okButtonProps={{ danger: true }}
+      width: 48,
+      render: (_, r) => {
+        const items: MenuProps["items"] = [
+          ...(r.verified
+            ? [{ key: "unlink", icon: <DisconnectOutlined />, label: t("admin.whatsapp.disconnectBtn") }]
+            : []),
+          { key: "delete", icon: <DeleteOutlined />, danger: true, label: t("admin.whatsapp.deleteBtn") },
+        ];
+        return (
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items,
+              onClick: ({ key }) => {
+                if (key === "unlink") confirmDisconnect(r);
+                if (key === "delete") confirmDelete(r);
+              },
+            }}
           >
-            <Button danger size="small" icon={<DeleteOutlined />} loading={deletingId === r.phoneId} />
-          </Popconfirm>
-        </Flex>
-      ),
+            <Button
+              type="text"
+              size="small"
+              icon={<MoreOutlined />}
+              loading={disconnectingId === r.phoneId || deletingId === r.phoneId}
+            />
+          </Dropdown>
+        );
+      },
     },
   ];
 
@@ -363,7 +371,7 @@ export function AdminWhatsAppPage() {
                 <EmptyState
                   title={t("admin.whatsapp.empty")}
                   description={t("admin.whatsapp.emptyDesc")}
-                  action={{ label: t("common.reload"), onClick: () => void load() }}
+                  action={{ label: t("admin.whatsapp.emptyAction"), onClick: () => void navigate(Paths.adminUsers) }}
                 />
               ),
             }}

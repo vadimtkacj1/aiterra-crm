@@ -21,7 +21,6 @@
       "colAccount": "חשבון",
       "colAmount": "סכום",
       "colStatus": "סטטוס",
-      "colError": "שגיאת Meta",
       "statusSent": "נשלח ל-Meta",
       "statusFailed": "נכשל",
       "statusPending": "ממתין",

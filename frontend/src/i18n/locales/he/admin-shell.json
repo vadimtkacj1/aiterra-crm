@@ -24,9 +24,7 @@
       "displayName": "שם תצוגה",
       "role": "תפקיד",
       "actions": "פעולות",
-      "edit": "עריכה",
-      "resetPassword": "איפוס סיסמה",
-      "delete": "מחיקה"
+      "edit": "עריכה"
     },
     "editUser": "עריכה",
     "resetPassword": "איפוס סיסמה",

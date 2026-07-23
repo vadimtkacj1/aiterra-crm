@@ -29,17 +29,17 @@ test.describe('Admin — statistics', () => {
     await expect(statsPage.thisYearButton).toBeVisible();
   });
 
-  test('shows export action buttons', async ({ page }) => {
+  test('shows export actions inside the Export dropdown', async ({ page }) => {
     const statsPage = new AdminStatsPage(page);
     await statsPage.goto();
 
-    await expect(statsPage.downloadPdfButton).toBeVisible({ timeout: 10000 });
-    await expect(statsPage.exportMenuButton).toBeVisible();
+    await expect(statsPage.exportMenuButton).toBeVisible({ timeout: 10000 });
 
-    // The CSV exports are grouped under the Export dropdown menu.
+    // All exports (CSVs + Executive PDF) are grouped under the Export dropdown menu.
     await statsPage.openExportMenu();
     await expect(statsPage.exportUsersCsvButton).toBeVisible();
     await expect(statsPage.exportBillingCsvButton).toBeVisible();
+    await expect(statsPage.exportPdfMenuItem).toBeVisible();
   });
 
   test('clicking This Week does not crash the page', async ({ page }) => {

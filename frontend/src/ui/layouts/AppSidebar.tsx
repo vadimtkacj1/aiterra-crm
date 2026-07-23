@@ -3,7 +3,6 @@ import { Button, Drawer, Layout, Menu } from "antd";
 import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
 import logoDarkUrl from "@/assets/logo-black.svg";
-import { LanguageSwitcher } from "@/ui/shared/components/LanguageSwitcher";
 
 const { Sider } = Layout;
 
@@ -89,9 +88,6 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
         </div>
-        <div style={{ padding: "14px 16px 18px", borderTop: SIDEBAR_BORDER, background: SIDEBAR_BG }}>
-          <LanguageSwitcher variant="sidebar" />
-        </div>
       </Drawer>
     );
   }
@@ -119,9 +115,6 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
         </div>
         <div data-tour-target="sidebar-nav" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <SideMenu menuItems={menuItems} selectedKeys={selectedKeys} onMenuClick={onMenuClick} />
-        </div>
-        <div style={{ padding: "12px 16px 16px", borderTop: SIDEBAR_BORDER, background: SIDEBAR_BG }}>
-          <LanguageSwitcher variant="sidebar" />
         </div>
       </div>
     </Sider>

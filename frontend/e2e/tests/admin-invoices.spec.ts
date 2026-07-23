@@ -35,7 +35,7 @@ test.describe('Admin — invoices', () => {
     await expect(page.getByText(/pending/i).first()).toBeVisible();
   });
 
-  test('opens create invoice modal on Create button click', async ({ page }) => {
+  test('Create button navigates to the payments wizard', async ({ page }) => {
     await mockAdminBillingHistory(page);
 
     const invoicesPage = new AdminInvoicesPage(page);
@@ -43,7 +43,7 @@ test.describe('Admin — invoices', () => {
     await invoicesPage.createButton.waitFor({ state: 'visible', timeout: 8000 });
     await invoicesPage.createButton.click();
 
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page).toHaveURL(/\/admin\/payments/, { timeout: 5000 });
   });
 
   test('shows empty state when no invoices exist', async ({ page }) => {

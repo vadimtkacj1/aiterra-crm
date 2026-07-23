@@ -1,4 +1,4 @@
-import { DownOutlined, LogoutOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
+import { CheckOutlined, DownOutlined, GlobalOutlined, LogoutOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { Avatar, Button, Dropdown, Layout, Space, Spin, theme, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -69,7 +69,7 @@ export function AppHeader({
   isAdmin,
   onLogout,
 }: AppHeaderProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { token } = theme.useToken();
@@ -85,6 +85,7 @@ export function AppHeader({
     layoutAccountValid && layoutAccountId
       ? accountPath(layoutAccountId, "settings")
       : Paths.accounts;
+  const currentLang = i18n.language.startsWith("he") ? "he" : "en";
 
   return (
     <Header
@@ -152,6 +153,25 @@ export function AppHeader({
                 icon: <SettingOutlined />,
                 label: t("layout.menuSettings"),
                 onClick: () => navigate(settingsPath),
+              },
+              {
+                key: "language",
+                icon: <GlobalOutlined />,
+                label: t("common.language"),
+                children: [
+                  {
+                    key: "lang-he",
+                    icon: currentLang === "he" ? <CheckOutlined /> : null,
+                    label: t("common.hebrew"),
+                    onClick: () => void i18n.changeLanguage("he"),
+                  },
+                  {
+                    key: "lang-en",
+                    icon: currentLang === "en" ? <CheckOutlined /> : null,
+                    label: t("common.english"),
+                    onClick: () => void i18n.changeLanguage("en"),
+                  },
+                ],
               },
               { type: "divider" },
               {

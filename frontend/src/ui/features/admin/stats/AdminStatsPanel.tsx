@@ -14,7 +14,6 @@ import { Line, Pie } from "@ant-design/plots";
 import { App, Button, Card, Col, Dropdown, Row, Segmented, Typography } from "antd";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
 import type { AdminPaymentStats, AdminStats } from "@/services/admin/AdminService";
 import { usePlotPalette } from "@/ui/features/user/analytics/chart/analyticsPlotTheme";
@@ -25,7 +24,6 @@ import {
   getAdminStatsPeriodRange,
   type AdminStatsPeriod,
 } from "./adminStatsData";
-import { Paths } from "@/ui/navigation/paths";
 import { downloadBlob } from "@/ui/shared/utils/downloadBlob";
 import { PageContainer } from "@/ui/shared/components/PageContainer";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
@@ -50,7 +48,6 @@ function pieSliceTooltipFormatter(d: PieSliceTooltipDatum): { name: string; valu
 export function AdminStatsPanel() {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const navigate = useNavigate();
   const { services } = useApp();
   const palette = usePlotPalette();
   const [stats, setStats] = useState<AdminStats | null>(null);

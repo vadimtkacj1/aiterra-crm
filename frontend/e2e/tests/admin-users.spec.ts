@@ -43,26 +43,28 @@ test.describe('Admin — users', () => {
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 8000 });
   });
 
-  test('opens reset password modal on lock button click', async ({ page }) => {
+  test('opens reset password modal from row overflow menu', async ({ page }) => {
     await mockAdminUsersWithData(page);
 
     const usersPage = new AdminUsersPage(page);
     await usersPage.goto();
     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-    await usersPage.resetPasswordButton().click();
+    await usersPage.overflowButton().click();
+    await usersPage.resetPasswordMenuItem().click();
 
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('input[type="password"]')).toBeVisible();
   });
 
-  test('delete button triggers confirmation dialog', async ({ page }) => {
+  test('delete via row overflow menu triggers confirmation dialog', async ({ page }) => {
     await mockAdminUserDelete(page, mockAdminUserEntry.id);
     await mockAdminUsersWithData(page);
 
     const usersPage = new AdminUsersPage(page);
     await usersPage.goto();
     await expect(usersPage.usersTable).toBeVisible({ timeout: 8000 });
-    await usersPage.deleteButton().click();
+    await usersPage.overflowButton().click();
+    await usersPage.deleteMenuItem().click();
 
     await expect(
       page.getByRole('button', { name: 'OK' }).or(page.getByRole('button', { name: 'Yes' })).first(),

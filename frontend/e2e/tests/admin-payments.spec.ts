@@ -16,11 +16,14 @@ test.describe('Admin — payments', () => {
     await mockAdminBillingHistory(page);
   });
 
-  test('shows recipient select in step 1', async ({ page }) => {
+  test('shows recipient select on the single-screen flow', async ({ page }) => {
     const paymentsPage = new AdminPaymentsPage(page);
     await paymentsPage.goto();
 
     await expect(paymentsPage.recipientSelect).toBeVisible({ timeout: 8000 });
+    // No wizard: there is no "next step" button; the composer stays hidden
+    // until a billable client is selected.
+    await expect(page.locator('.ant-steps')).toHaveCount(0);
   });
 
   test('billing history table is visible', async ({ page }) => {

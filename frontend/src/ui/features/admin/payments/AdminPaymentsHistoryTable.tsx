@@ -65,10 +65,13 @@ export function AdminPaymentsHistoryTable({
               label: r.chargeType === "monthly" ? t("admin.payments.historyTypeMonthly") : t("admin.payments.historyTypeOneTime"),
               color: r.chargeType === "monthly" ? "purple" : "blue",
             },
-            {
-              label: r.recordStatus === "active" ? t("admin.payments.historyStatusActive") : r.recordStatus === "revoked" ? t("admin.payments.historyStatusRevoked") : t("admin.payments.historyStatusSuperseded"),
-              color: r.recordStatus === "active" ? "success" : r.recordStatus === "revoked" ? "error" : "default",
-            },
+            paymentStatusTag(t, r.paymentStatus),
+            ...(r.recordStatus !== "active"
+              ? [{
+                  label: r.recordStatus === "revoked" ? t("admin.payments.historyStatusRevoked") : t("admin.payments.historyStatusSuperseded"),
+                  color: "default",
+                }]
+              : []),
           ],
           extra: (
             <div style={{ textAlign: "end" }}>
@@ -140,7 +143,7 @@ export function AdminPaymentsHistoryTable({
       <AppTable<BillingHistoryWithAccountRow>
         rowKey={(r) => `${r.accountId}-${r.id}`}
         pagination={{ pageSize: 12 }}
-        scroll={{ x: 1100 }}
+        scroll={{ x: 900 }}
         locale={{ emptyText: t("admin.payments.historyEmpty") }}
         dataSource={rows}
         columns={[
@@ -154,14 +157,14 @@ export function AdminPaymentsHistoryTable({
             title: t("admin.payments.colBusiness"),
             key: "biz",
             ellipsis: true,
-            render: (_, r) => <Typography.Text ellipsis>{r.accountName}</Typography.Text>,
-          },
-          {
-            title: t("admin.payments.colOwner"),
-            key: "owner",
-            width: 160,
-            ellipsis: true,
-            render: (_, r) => r.ownerEmail || "-",
+            render: (_, r) => (
+              <div>
+                <div style={{ fontWeight: 600 }}>{r.accountName}</div>
+                {r.ownerEmail && (
+                  <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{r.ownerEmail}</div>
+                )}
+              </div>
+            ),
           },
           {
             title: t("admin.payments.historyColType"),
@@ -207,18 +210,18 @@ export function AdminPaymentsHistoryTable({
           {
             title: t("admin.payments.historyColPayment"),
             key: "paymentStatus",
-            width: 100,
-            render: (_, r) => paymentStatusTag(t, r.paymentStatus),
-          },
-          {
-            title: t("admin.payments.historyColRecord"),
-            dataIndex: "recordStatus",
-            width: 88,
-            render: (s: string) => {
-              if (s === "active") return <Tag color="success">{t("admin.payments.historyStatusActive")}</Tag>;
-              if (s === "revoked") return <Tag color="error">{t("admin.payments.historyStatusRevoked")}</Tag>;
-              return <Tag>{t("admin.payments.historyStatusSuperseded")}</Tag>;
-            },
+            width: 160,
+            render: (_, r) => (
+              <Space size={4} wrap>
+                {paymentStatusTag(t, r.paymentStatus)}
+                {r.recordStatus === "revoked" && (
+                  <Tag style={{ fontSize: 11 }}>{t("admin.payments.historyStatusRevoked")}</Tag>
+                )}
+                {r.recordStatus !== "active" && r.recordStatus !== "revoked" && (
+                  <Tag style={{ fontSize: 11 }}>{t("admin.payments.historyStatusSuperseded")}</Tag>
+                )}
+              </Space>
+            ),
           },
           {
             title: t("admin.payments.historyColActions"),

@@ -23,6 +23,19 @@ function Ltr({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Shorten a source URL for display (hostname + path, or file name for file: URLs). */
+function sourceLabel(v: string): string {
+  try {
+    const url = new URL(v);
+    if (url.protocol === "file:") {
+      return url.pathname.split("/").filter(Boolean).pop() ?? v;
+    }
+    return url.hostname + (url.pathname !== "/" ? url.pathname : "");
+  } catch {
+    return v;
+  }
+}
+
 export function AdminLeadsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -115,43 +128,6 @@ export function AdminLeadsPage() {
         ),
     },
     {
-      title: t("admin.leads.colTreatment"),
-      dataIndex: "treatment",
-      key: "treatment",
-      width: 160,
-      responsive: ["xl"],
-      render: (v: string | null) => v ?? "—",
-    },
-    {
-      title: t("admin.leads.colSource"),
-      dataIndex: "source",
-      key: "source",
-      ellipsis: true,
-      width: 200,
-      responsive: ["xl"],
-      render: (v: string | null) => {
-        if (!v) return "—";
-        let label = v;
-        try {
-          const url = new URL(v);
-          if (url.protocol === "file:") {
-            label = url.pathname.split("/").filter(Boolean).pop() ?? v;
-          } else {
-            label = url.hostname + (url.pathname !== "/" ? url.pathname : "");
-          }
-        } catch {
-          label = v;
-        }
-        return (
-          <Tooltip title={v}>
-            <Link href={v} target="_blank" ellipsis style={{ maxWidth: 190 }}>
-              <Ltr>{label}</Ltr>
-            </Link>
-          </Tooltip>
-        );
-      },
-    },
-    {
       title: t("admin.leads.colDate"),
       dataIndex: "createdAt",
       key: "createdAt",
@@ -189,13 +165,14 @@ export function AdminLeadsPage() {
               onChange={(v) => onAccountFilter(v as number | undefined)}
               options={accounts.map((a) => ({ value: a.id, label: a.name }))}
             />
-            <Button
-              icon={<ReloadOutlined />}
-              loading={loading}
-              onClick={() => void load(filterAccountId)}
-            >
-              {!isMobile && t("common.reload")}
-            </Button>
+            <Tooltip title={t("common.reload")}>
+              <Button
+                aria-label={t("common.reload")}
+                icon={<ReloadOutlined />}
+                loading={loading}
+                onClick={() => void load(filterAccountId)}
+              />
+            </Tooltip>
           </Flex>
           {isMobile ? (
             <ResponsiveCardView
@@ -225,6 +202,39 @@ export function AdminLeadsPage() {
               columns={columns}
               rowKey="id"
               locale={{ emptyText: emptyState }}
+              expandable={{
+                rowExpandable: (r) => Boolean(r.message || r.treatment || r.source),
+                expandedRowRender: (r) => (
+                  <Flex vertical gap={12} style={{ paddingBlock: 4 }}>
+                    {r.message && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                          {t("admin.leads.colMessage")}
+                        </Text>
+                        <Text style={{ whiteSpace: "pre-wrap" }}>{r.message}</Text>
+                      </div>
+                    )}
+                    {r.treatment && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                          {t("admin.leads.colTreatment")}
+                        </Text>
+                        <Text>{r.treatment}</Text>
+                      </div>
+                    )}
+                    {r.source && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                          {t("admin.leads.colSource")}
+                        </Text>
+                        <Link href={r.source} target="_blank">
+                          <Ltr>{sourceLabel(r.source)}</Ltr>
+                        </Link>
+                      </div>
+                    )}
+                  </Flex>
+                ),
+              }}
             />
           )}
         </Flex>

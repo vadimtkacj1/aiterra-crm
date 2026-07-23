@@ -24,9 +24,7 @@
       "displayName": "Display name",
       "role": "Role",
       "actions": "Actions",
-      "edit": "Edit",
-      "resetPassword": "Reset password",
-      "delete": "Delete"
+      "edit": "Edit"
     },
     "editUser": "Edit",
     "resetPassword": "Reset password",

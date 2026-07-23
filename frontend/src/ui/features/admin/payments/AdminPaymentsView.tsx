@@ -1,5 +1,4 @@
-import { Button, Card, Empty, Flex, Form, Input, Spin, Steps, Tag, Typography } from "antd";
-import { useState } from "react";
+import { Button, Card, Empty, Flex, Form, Input, Spin, Tag, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { Paths } from "@/ui/navigation/paths";
 import { AppModal } from "@/ui/shared/components/AppModal";
@@ -14,20 +13,8 @@ import { useAdminPaymentsPage } from "./useAdminPaymentsPage";
 export function AdminPaymentsPage() {
   const p = useAdminPaymentsPage();
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
 
-  const steps = [
-    {
-      title: p.t("admin.payments.step1Title"),
-      description: p.t("admin.payments.step1Desc"),
-    },
-    {
-      title: p.t("admin.payments.step2Title"),
-      description: p.t("admin.payments.step2Desc"),
-    },
-  ];
-
-  const canProceedToStep2 = p.selectedUser && p.userMeta?.accountId;
+  const hasBillableClient = Boolean(p.selectedUser && p.userMeta?.accountId);
 
   return (
     <Spin spinning={p.loadingUsers}>
@@ -54,35 +41,14 @@ export function AdminPaymentsPage() {
           </Card>
         ) : (
           <>
-            {/* Progress Steps */}
-            <Card
-              style={{
-                borderRadius: p.shellRadius,
-                border: `1px solid ${p.token.colorBorderSecondary}`,
-                boxShadow: p.shellShadow,
-                marginBottom: 24,
-                marginTop: 24,
-              }}
-            >
-              <Steps
-                current={currentStep}
-                items={steps}
-                onChange={(step) => {
-                  if (step === 0 || (step === 1 && canProceedToStep2)) {
-                    setCurrentStep(step);
-                  }
-                }}
-                style={{ maxWidth: 600, margin: "0 auto" }}
-              />
-            </Card>
-
             <Form
               form={p.form}
               layout="vertical"
+              style={{ marginTop: 24 }}
               initialValues={{
                 chargeType: "one_time",
                 currency: "ILS",
-                useBreakdown: true,
+                useBreakdown: false,
                 lineItems: [],
                 splitAcrossMonths: undefined,
                 billingSchedule: undefined,
@@ -92,61 +58,45 @@ export function AdminPaymentsPage() {
               }}
               onFinish={(values) => void p.onFormFinish(values)}
             >
-              {/* Step 1: Select Recipient */}
-              {currentStep === 0 && (
+              {/* Recipient */}
+              <RecipientStepCard
+                t={p.t}
+                token={p.token}
+                shellRadius={p.shellRadius}
+                shellShadow={p.shellShadow}
+                loadingUsers={p.loadingUsers}
+                users={p.users}
+                onUserChange={p.onUserChange}
+                selectedIsAdmin={Boolean(p.selectedIsAdmin)}
+                selectedUser={p.selectedUser}
+                userMeta={p.userMeta}
+                metaLoading={p.metaLoading}
+                clientLiveBilling={p.clientLiveBilling}
+                importLiveBillingIntoForm={p.importLiveBillingIntoForm}
+              />
+
+              {/* Composer — appears once a billable client is selected */}
+              {hasBillableClient && (
                 <>
-                  <RecipientStepCard
-                    t={p.t}
-                    token={p.token}
-                    shellRadius={p.shellRadius}
-                    shellShadow={p.shellShadow}
-                    loadingUsers={p.loadingUsers}
-                    users={p.users}
-                    onUserChange={p.onUserChange}
-                    selectedIsAdmin={Boolean(p.selectedIsAdmin)}
-                    selectedUser={p.selectedUser}
-                    userMeta={p.userMeta}
-                    metaLoading={p.metaLoading}
-                    clientLiveBilling={p.clientLiveBilling}
-                    importLiveBillingIntoForm={p.importLiveBillingIntoForm}
-                  />
+                  <div style={{ marginTop: 24 }}>
+                    <InvoiceComposerCard
+                      t={p.t}
+                      token={p.token}
+                      shellRadius={p.shellRadius}
+                      shellShadow={p.shellShadow}
+                      form={p.form}
+                      chargeTypeW={p.chargeTypeW}
+                      useBreakdownW={Boolean(p.useBreakdownW)}
+                      currencyW={p.currencyW}
+                      linesRunningTotal={p.linesRunningTotal}
+                      canSaveTemplate={p.canSaveTemplate}
+                      openSaveTemplateModal={p.openSaveTemplateModal}
+                      presetBundle={p.presetBundle}
+                      presetServerOnly={p.presetServerOnly}
+                    />
+                  </div>
 
                   <Flex justify="flex-end" style={{ marginTop: 16 }}>
-                    <Button
-                      type="primary"
-                      size="large"
-                      disabled={!canProceedToStep2}
-                      onClick={() => setCurrentStep(1)}
-                    >
-                      {p.t("admin.payments.nextStep")}
-                    </Button>
-                  </Flex>
-                </>
-              )}
-
-              {/* Step 2: Create Invoice */}
-              {currentStep === 1 && (
-                <>
-                  <InvoiceComposerCard
-                    t={p.t}
-                    token={p.token}
-                    shellRadius={p.shellRadius}
-                    shellShadow={p.shellShadow}
-                    form={p.form}
-                    chargeTypeW={p.chargeTypeW}
-                    useBreakdownW={Boolean(p.useBreakdownW)}
-                    currencyW={p.currencyW}
-                    linesRunningTotal={p.linesRunningTotal}
-                    canSaveTemplate={p.canSaveTemplate}
-                    openSaveTemplateModal={p.openSaveTemplateModal}
-                    presetBundle={p.presetBundle}
-                    presetServerOnly={p.presetServerOnly}
-                  />
-
-                  <Flex justify="space-between" align="center" style={{ marginTop: 16 }}>
-                    <Button size="large" onClick={() => setCurrentStep(0)}>
-                      {p.t("admin.payments.backStep")}
-                    </Button>
                     <Button
                       type="primary"
                       size="large"

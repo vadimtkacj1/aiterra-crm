@@ -21,7 +21,6 @@
       "colAccount": "Account",
       "colAmount": "Amount",
       "colStatus": "Status",
-      "colError": "Meta error",
       "statusSent": "Sent to Meta",
       "statusFailed": "Failed",
       "statusPending": "Pending",

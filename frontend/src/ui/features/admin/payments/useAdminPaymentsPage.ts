@@ -145,7 +145,7 @@ export function useAdminPaymentsPage() {
       session.form.setFieldsValue({
         chargeType: "none",
         currency: "USD",
-        useBreakdown: true,
+        useBreakdown: false,
         lineItems: [],
         splitAcrossMonths: undefined,
         billingSchedule: undefined,

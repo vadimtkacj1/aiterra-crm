@@ -1,5 +1,4 @@
-import { ReloadOutlined } from "@ant-design/icons";
-import { App, Button, Card, Flex, Grid, Table, Tag } from "antd";
+import { App, Card, Grid, Table, Tag, Tooltip } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminAccountRow, MetaTopupRecord } from "@/services/admin/AdminService";
@@ -7,7 +6,13 @@ import { useApp } from "../../../../app/AppProviders";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ResponsiveCardView } from "../../../shared/components/ResponsiveCardView";
 
-export function MetaPaymentPanel() {
+interface MetaPaymentPanelProps {
+  /** Bump to trigger a reload from outside (e.g. the page-header reload button). */
+  refreshToken?: number;
+  onLoadingChange?: (loading: boolean) => void;
+}
+
+export function MetaPaymentPanel({ refreshToken = 0, onLoadingChange }: MetaPaymentPanelProps) {
   const { t } = useTranslation();
   const { services } = useApp();
   const { message } = App.useApp();
@@ -17,6 +22,8 @@ export function MetaPaymentPanel() {
   messageRef.current = message;
   const tRef = useRef(t);
   tRef.current = t;
+  const onLoadingChangeRef = useRef(onLoadingChange);
+  onLoadingChangeRef.current = onLoadingChange;
 
   const [topups, setTopups] = useState<MetaTopupRecord[]>([]);
   const [accounts, setAccounts] = useState<AdminAccountRow[]>([]);
@@ -24,6 +31,7 @@ export function MetaPaymentPanel() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    onLoadingChangeRef.current?.(true);
     try {
       const [tu, acc] = await Promise.all([services.admin.listTopups(), services.admin.listAccounts()]);
       setTopups(tu);
@@ -34,12 +42,13 @@ export function MetaPaymentPanel() {
       setAccounts([]);
     } finally {
       setLoading(false);
+      onLoadingChangeRef.current?.(false);
     }
   }, [services.admin]);
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, refreshToken]);
 
   const accountName = (id: number) => accounts.find((a) => a.id === id)?.name ?? `#${id}`;
 
@@ -55,11 +64,6 @@ export function MetaPaymentPanel() {
 
   return (
     <Card styles={{ body: { padding: isMobile ? 12 : 16 } }}>
-      <Flex align="center" justify="flex-end" style={{ marginBottom: 16 }}>
-        <Button icon={<ReloadOutlined />} loading={loading} onClick={() => void load()}>
-          {!isMobile && t("common.reload")}
-        </Button>
-      </Flex>
       {isMobile ? (
         <ResponsiveCardView
           items={topups.map((r) => ({
@@ -117,14 +121,12 @@ export function MetaPaymentPanel() {
               dataIndex: "status",
               key: "status",
               width: 120,
-              render: (s: string) => <Tag color={getStatusColor(s)}>{getStatusLabel(s)}</Tag>,
-            },
-            {
-              title: t("admin.topup.colError"),
-              dataIndex: "metaError",
-              key: "err",
-              ellipsis: true,
-              render: (e: string | null) => e || "-",
+              render: (s: string, r: MetaTopupRecord) => {
+                const tag = <Tag color={getStatusColor(s)}>{getStatusLabel(s)}</Tag>;
+                return s === "failed" && r.metaError
+                  ? <Tooltip title={r.metaError}>{tag}</Tooltip>
+                  : tag;
+              },
             },
           ]}
         />

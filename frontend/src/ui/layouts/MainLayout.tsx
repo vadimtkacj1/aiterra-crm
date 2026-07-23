@@ -1,14 +1,10 @@
-import {
-  AppstoreOutlined,
-  QuestionCircleOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Grid, Layout } from "antd";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
-import { accountPath, Paths } from "@/ui/navigation/paths";
+import { Paths } from "@/ui/navigation/paths";
 import { GuidedTourProvider } from "@/ui/shared/onboarding/guidedTourContext";
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
@@ -44,10 +40,6 @@ export function MainLayout() {
     const items: MenuEntry[] = [];
 
     if (layoutAccountValid && layoutAccountId) {
-      if (accountOutletCtx.totalAccountCount > 1) {
-        items.push({ key: Paths.accounts, icon: <AppstoreOutlined />, label: t("layout.menuBusinesses") });
-      }
-
       const ctx: AccountModuleCtx = {
         accountId: layoutAccountId,
         isAdmin,
@@ -81,11 +73,6 @@ export function MainLayout() {
     }
 
     items.push({ key: Paths.help, icon: <QuestionCircleOutlined />, label: t("help.menuTitle") });
-    items.push({
-      key: layoutAccountValid && layoutAccountId ? accountPath(layoutAccountId, "settings") : Paths.accounts,
-      icon: <SettingOutlined />,
-      label: t("layout.menuSettings"),
-    });
 
     return items;
   }, [

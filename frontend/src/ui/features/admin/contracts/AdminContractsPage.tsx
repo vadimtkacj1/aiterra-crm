@@ -383,15 +383,6 @@ export function AdminContractsPage() {
 
   const columns: ColumnsType<Contract> = [
     {
-      title: "#",
-      dataIndex: "id",
-      key: "id",
-      width: 60,
-      render: (id: number) => (
-        <Typography.Text type="secondary" style={{ fontSize: 13 }}>#{id}</Typography.Text>
-      ),
-    },
-    {
       title: t("admin.contracts.columns.account"),
       key: "account",
       render: (_, r) => {

@@ -10,15 +10,9 @@ import {
   App,
   Button,
   Card,
-  Col,
   Flex,
-  Form,
   Input,
-  InputNumber,
-  Modal,
   Popconfirm,
-  Row,
-  Select,
   Space,
   Table,
   Tag,
@@ -27,9 +21,8 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState } from "react";
-import type { Key } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../app/AppProviders";
 import type { BillingHistoryWithAccountRow } from "../../../../services/admin/AdminService";
 import { PageContainer } from "../../../shared/components/PageContainer";
@@ -38,30 +31,18 @@ import { downloadInvoicePdf } from "../../../shared/utils/invoicePdf";
 import { ResponsiveCardView, useMobileView } from "../../../shared/components/ResponsiveCardView";
 import { formatHistoryDateTime, formatMoney, paymentStatusTag } from "../payments/billingUi";
 
-interface CreateFormValues {
-  userId: string;
-  chargeType: "one_time" | "monthly";
-  amount: number;
-  currency: string;
-  description?: string;
-}
-
 export function AdminInvoicesPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const { services, users } = useApp();
+  const { services } = useApp();
   const isMobile = useMobileView();
+  const navigate = useNavigate();
 
   const [invoices, setInvoices] = useState<BillingHistoryWithAccountRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
-  const [showDescription, setShowDescription] = useState(false);
   const [search, setSearch] = useState("");
-  const [form] = Form.useForm<CreateFormValues>();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -87,35 +68,6 @@ export function AdminInvoicesPage() {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleCreate = async (values: CreateFormValues) => {
-    const user = users.find((u) => String(u.id) === values.userId);
-    if (!user?.accountId) {
-      void message.error(t("admin.payments.noBusiness"));
-      return;
-    }
-
-    setCreating(true);
-    try {
-      await services.admin.setAccountBillingInstruction(user.accountId, {
-        chargeType: values.chargeType,
-        amount: values.amount,
-        currency: values.currency,
-        description: values.description?.trim() || null,
-        lineItems: null,
-        splitAcrossMonths: null,
-      });
-      void message.success(t("admin.invoices.createModal.success"));
-      setCreateOpen(false);
-      form.resetFields();
-      setShowDescription(false);
-      reload();
-    } catch (e) {
-      void message.error(e instanceof Error ? e.message : t("admin.invoices.createModal.error"));
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const handleRevoke = async (row: BillingHistoryWithAccountRow) => {
     setRevokingId(row.id);
@@ -171,17 +123,16 @@ export function AdminInvoicesPage() {
     },
     {
       title: t("admin.invoices.table.business"),
-      dataIndex: "accountName",
       key: "accountName",
       ellipsis: true,
-    },
-    {
-      title: t("admin.invoices.table.owner"),
-      dataIndex: "ownerEmail",
-      key: "ownerEmail",
-      width: 180,
-      ellipsis: true,
-      render: (v: string | null) => v || "-",
+      render: (_, r) => (
+        <div>
+          <div style={{ fontWeight: 600 }}>{r.accountName}</div>
+          {r.ownerEmail && (
+            <div style={{ fontSize: 12, color: "var(--ds-text-tertiary)" }}>{r.ownerEmail}</div>
+          )}
+        </div>
+      ),
     },
     {
       title: t("admin.invoices.table.type"),
@@ -226,21 +177,19 @@ export function AdminInvoicesPage() {
     },
     {
       title: t("admin.invoices.table.paymentStatus"),
-      dataIndex: "paymentStatus",
       key: "paymentStatus",
-      width: 100,
-      render: (s: string) => paymentStatusTag(t, s),
-    },
-    {
-      title: t("admin.invoices.table.recordStatus"),
-      dataIndex: "recordStatus",
-      key: "recordStatus",
-      width: 100,
-      render: (s: string) => {
-        if (s === "active") return <Tag color="processing">{t("admin.invoices.statusActive")}</Tag>;
-        if (s === "revoked") return <Tag color="error">{t("admin.invoices.statusRevoked")}</Tag>;
-        return <Tag>{t("admin.invoices.statusSuperseded")}</Tag>;
-      },
+      width: 160,
+      render: (_, r) => (
+        <Space size={4} wrap>
+          {paymentStatusTag(t, r.paymentStatus)}
+          {r.recordStatus === "revoked" && (
+            <Tag style={{ fontSize: 11 }}>{t("admin.invoices.statusRevoked")}</Tag>
+          )}
+          {r.recordStatus !== "active" && r.recordStatus !== "revoked" && (
+            <Tag style={{ fontSize: 11 }}>{t("admin.invoices.statusSuperseded")}</Tag>
+          )}
+        </Space>
+      ),
     },
     {
       title: t("admin.invoices.table.actions"),
@@ -314,7 +263,7 @@ export function AdminInvoicesPage() {
             allowClear
             style={{ width: isMobile ? 160 : 280 }}
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate("/admin/payments")}>
             {!isMobile && t("admin.invoices.createButton")}
           </Button>
         </Flex>
@@ -331,10 +280,12 @@ export function AdminInvoicesPage() {
                   color: r.chargeType === "monthly" ? "purple" : "blue",
                 },
                 paymentStatusTag(t, r.paymentStatus),
-                {
-                  label: r.recordStatus === "active" ? t("admin.invoices.statusActive") : r.recordStatus === "revoked" ? t("admin.invoices.statusRevoked") : t("admin.invoices.statusSuperseded"),
-                  color: r.recordStatus === "active" ? "processing" : r.recordStatus === "revoked" ? "error" : "default",
-                },
+                ...(r.recordStatus !== "active"
+                  ? [{
+                      label: r.recordStatus === "revoked" ? t("admin.invoices.statusRevoked") : t("admin.invoices.statusSuperseded"),
+                      color: "default",
+                    }]
+                  : []),
               ],
               extra: (
                 <div style={{ textAlign: "end" }}>
@@ -374,42 +325,6 @@ export function AdminInvoicesPage() {
             emptyText={t("admin.invoices.emptyTitle")}
           />
         ) : (
-          <>
-          {selectedRowKeys.length > 0 && (
-            <Flex
-              align="center"
-              justify="space-between"
-              style={{
-                padding: "8px 12px",
-                background: "var(--ds-color-primary-surface, #eff6ff)",
-                border: "1px solid var(--ds-color-primary-surface-deep, #bfdbfe)",
-                borderRadius: 6,
-                marginBottom: 8,
-              }}
-            >
-              <Typography.Text style={{ fontSize: 13 }}>
-                {t("table.selectedCount", { count: selectedRowKeys.length })}
-              </Typography.Text>
-              <Flex gap={8}>
-                <Button size="small" onClick={() => setSelectedRowKeys([])}>
-                  {t("common.clearSelection")}
-                </Button>
-                <Button
-                  size="small"
-                  icon={<DownloadOutlined />}
-                  onClick={() => {
-                    const selected = invoices.filter((r) =>
-                      selectedRowKeys.includes(`${r.accountId}-${r.id}`),
-                    );
-                    selected.forEach(downloadPdf);
-                    setSelectedRowKeys([]);
-                  }}
-                >
-                  {t("admin.invoices.bulkDownload", { count: selectedRowKeys.length })}
-                </Button>
-              </Flex>
-            </Flex>
-          )}
           <Table
             columns={columns}
             dataSource={filtered}
@@ -417,12 +332,7 @@ export function AdminInvoicesPage() {
             loading={loading}
             size="middle"
             pagination={{ pageSize: 20, showSizeChanger: true }}
-            scroll={{ x: 1100 }}
-            rowSelection={{
-              selectedRowKeys,
-              onChange: setSelectedRowKeys,
-              preserveSelectedRowKeys: true,
-            }}
+            scroll={{ x: 900 }}
             locale={{
               emptyText: search ? (
                 <EmptyState title={t("common.noData")} />
@@ -430,140 +340,13 @@ export function AdminInvoicesPage() {
                 <EmptyState
                   title={t("admin.invoices.emptyTitle")}
                   description={t("admin.invoices.emptyDescription")}
-                  action={{ label: t("admin.invoices.createButton"), onClick: () => setCreateOpen(true) }}
+                  action={{ label: t("admin.invoices.createButton"), onClick: () => navigate("/admin/payments") }}
                 />
               ),
             }}
           />
-          </>
         )}
       </Card>
-
-      {/* Create Modal */}
-      <Modal
-        title={t("admin.invoices.createModal.title")}
-        open={createOpen}
-        onCancel={() => {
-          setCreateOpen(false);
-          form.resetFields();
-          setShowDescription(false);
-        }}
-        footer={null}
-        width={520}
-        centered
-      >
-        <Typography.Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
-          {t("admin.invoices.createModal.quickHint")}{" "}
-          <Link to="/admin/payments">{t("admin.invoices.createModal.quickHintLink")}</Link>
-        </Typography.Text>
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ chargeType: "one_time", currency: "ILS" }}
-          onFinish={(values) => void handleCreate(values)}
-        >
-          <Form.Item
-            name="userId"
-            label={t("admin.invoices.createModal.selectUser")}
-            rules={[{ required: true }]}
-          >
-            <Select
-              showSearch
-              placeholder={t("admin.invoices.createModal.selectUserPlaceholder")}
-              filterOption={(input, opt) => {
-                const q = input.toLowerCase();
-                const label = (opt?.label as string ?? "").toLowerCase();
-                return label.includes(q);
-              }}
-              options={users
-                .filter((u) => u.role !== "admin" && u.accountId != null)
-                .map((u) => ({
-                  value: String(u.id),
-                  label: `${u.displayName} (${u.email})`,
-                }))}
-            />
-          </Form.Item>
-
-          <div style={{ borderTop: "1px solid var(--ds-border-subtle)", paddingTop: 16, marginTop: 4 }}>
-            <Form.Item
-              name="chargeType"
-              label={t("admin.invoices.createModal.chargeType")}
-              rules={[{ required: true }]}
-            >
-              <Select>
-                <Select.Option value="one_time">{t("admin.invoices.createModal.chargeTypeOneTime")}</Select.Option>
-                <Select.Option value="monthly">{t("admin.invoices.createModal.chargeTypeMonthly")}</Select.Option>
-              </Select>
-            </Form.Item>
-
-            <Row gutter={12} style={{ marginBottom: 0 }}>
-              <Col flex="auto">
-                <Form.Item
-                  name="amount"
-                  label={t("admin.invoices.createModal.amount")}
-                  rules={[{ required: true, type: "number", min: 0.01 }]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <InputNumber
-                    min={0.01}
-                    style={{ width: "100%", fontVariantNumeric: "tabular-nums" }}
-                    placeholder="0.00"
-                  />
-                </Form.Item>
-              </Col>
-              <Col>
-                <Form.Item
-                  name="currency"
-                  label={t("admin.invoices.createModal.currency")}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Select style={{ width: 100 }}>
-                    <Select.Option value="ILS">ILS</Select.Option>
-                    <Select.Option value="USD">USD</Select.Option>
-                    <Select.Option value="EUR">EUR</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-          </div>
-
-          {showDescription ? (
-            <Form.Item
-              name="description"
-              label={t("admin.invoices.createModal.description")}
-              style={{ marginTop: 16 }}
-            >
-              <Input.TextArea
-                rows={3}
-                placeholder={t("admin.invoices.createModal.descriptionPlaceholder")}
-              />
-            </Form.Item>
-          ) : (
-            <Button
-              type="link"
-              onClick={() => setShowDescription(true)}
-              style={{ paddingInline: 0, marginTop: 8 }}
-            >
-              {t("admin.invoices.createModal.addDescription")}
-            </Button>
-          )}
-
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <Button onClick={() => {
-                setCreateOpen(false);
-                form.resetFields();
-                setShowDescription(false);
-              }}>
-                {t("admin.invoices.createModal.cancel")}
-              </Button>
-              <Button type="primary" htmlType="submit" loading={creating}>
-                {t("admin.invoices.createModal.submit")}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
     </PageContainer>
   );
 }

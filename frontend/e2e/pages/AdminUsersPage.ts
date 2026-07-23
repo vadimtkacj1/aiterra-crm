@@ -17,11 +17,20 @@ export class AdminUsersPage {
     return this.page.getByRole('button', { name: 'edit' }).nth(index);
   }
 
-  deleteButton(index = 0): Locator {
-    return this.page.getByRole('button', { name: 'delete' }).nth(index);
+  /** Per-row ⋯ overflow trigger (reset password / delete live inside it). */
+  overflowButton(index = 0): Locator {
+    return this.page.getByRole('button', { name: 'more' }).nth(index);
   }
 
-  resetPasswordButton(index = 0): Locator {
-    return this.page.getByRole('button', { name: 'lock' }).nth(index);
+  overflowMenuItem(name: string | RegExp): Locator {
+    return this.page.getByRole('menuitem', { name });
+  }
+
+  resetPasswordMenuItem(): Locator {
+    return this.overflowMenuItem(/reset password/i);
+  }
+
+  deleteMenuItem(): Locator {
+    return this.overflowMenuItem(/delete/i);
   }
 }

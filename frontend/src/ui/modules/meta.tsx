@@ -1,4 +1,4 @@
-import { FacebookOutlined } from '@ant-design/icons';
+import { FacebookIcon } from '@/components/icons/brand';
 import { MetaAnalyticsPage } from '@/ui/features/user/analytics/pages/MetaAnalyticsPage';
 import { MetaCampaignDeepDivePage } from '@/ui/features/user/analytics/pages/MetaCampaignDeepDivePage';
 import { Paths, accountPath } from '@/ui/navigation/paths';
@@ -12,6 +12,6 @@ export const metaModule: AccountModule = {
   ],
   navItems: ({ accountId, hasMeta }, t) => {
     if (!hasMeta) return [];
-    return [{ key: accountPath(accountId, 'meta'), icon: <FacebookOutlined />, label: t('layout.menuMeta') }];
+    return [{ key: accountPath(accountId, 'meta'), icon: <FacebookIcon />, label: t('layout.menuMeta') }];
   },
 };

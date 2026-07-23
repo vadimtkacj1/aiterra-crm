@@ -7,6 +7,8 @@
    ============================================================ */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
+/* antd is fully removed — the standard preflight reset is now safe to enable. */
+@import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
 /* Map shadcn design tokens → the existing --ds-* / brand palette */

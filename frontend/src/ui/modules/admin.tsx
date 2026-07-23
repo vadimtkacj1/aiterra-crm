@@ -1,14 +1,14 @@
 import {
-  BarChartOutlined,
-  ContainerOutlined,
-  CreditCardOutlined,
-  DollarOutlined,
-  FileTextOutlined,
-  SafetyCertificateOutlined,
-  TeamOutlined,
-  FormOutlined,
-  WhatsAppOutlined,
-} from '@ant-design/icons';
+  BarChart3,
+  CircleDollarSign,
+  ClipboardList,
+  CreditCard,
+  FileText,
+  ScrollText,
+  ShieldCheck,
+  Users,
+} from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/brand';
 import { AdminStatisticsPage } from '@/ui/features/admin/stats/AdminStatisticsPage';
 import { AdminAuditPage } from '@/ui/features/admin/audit/AdminAuditPage';
 import { AdminUsersPage } from '@/ui/features/admin/users/AdminUsersPage';
@@ -26,7 +26,7 @@ export const adminStatisticsModule: AdminModule = {
   navGroupKey: 'layout.navOverview',
   path: 'statistics',
   element: <AdminStatisticsPage />,
-  navItem: (t) => ({ key: Paths.adminStatistics, icon: <BarChartOutlined />, label: t('admin.stats.title') }),
+  navItem: (t) => ({ key: Paths.adminStatistics, icon: <BarChart3 />, label: t('admin.stats.title') }),
 };
 
 export const adminAuditModule: AdminModule = {
@@ -34,7 +34,7 @@ export const adminAuditModule: AdminModule = {
   navGroupKey: 'layout.navOverview',
   path: 'audit',
   element: <AdminAuditPage />,
-  navItem: (t) => ({ key: Paths.adminAudit, icon: <SafetyCertificateOutlined />, label: t('admin.audit.menuTitle') }),
+  navItem: (t) => ({ key: Paths.adminAudit, icon: <ShieldCheck />, label: t('admin.audit.menuTitle') }),
 };
 
 export const adminUsersModule: AdminModule = {
@@ -42,7 +42,7 @@ export const adminUsersModule: AdminModule = {
   navGroupKey: 'layout.navClients',
   path: 'users',
   element: <AdminUsersPage />,
-  navItem: (t) => ({ key: Paths.adminUsers, icon: <TeamOutlined />, label: t('admin.userListTitle') }),
+  navItem: (t) => ({ key: Paths.adminUsers, icon: <Users />, label: t('admin.userListTitle') }),
 };
 
 export const adminPaymentsModule: AdminModule = {
@@ -50,7 +50,7 @@ export const adminPaymentsModule: AdminModule = {
   navGroupKey: 'layout.navBilling',
   path: 'payments',
   element: <AdminPaymentsPage />,
-  navItem: (t) => ({ key: Paths.adminPayments, icon: <FileTextOutlined />, label: t('admin.payments.title') }),
+  navItem: (t) => ({ key: Paths.adminPayments, icon: <FileText />, label: t('admin.payments.title') }),
 };
 
 export const adminContractsModule: AdminModule = {
@@ -58,7 +58,7 @@ export const adminContractsModule: AdminModule = {
   navGroupKey: 'layout.navBilling',
   path: 'contracts',
   element: <AdminContractsPage />,
-  navItem: (t) => ({ key: Paths.adminContracts, icon: <ContainerOutlined />, label: t('admin.contracts.title') }),
+  navItem: (t) => ({ key: Paths.adminContracts, icon: <ScrollText />, label: t('admin.contracts.title') }),
 };
 
 export const adminInvoicesModule: AdminModule = {
@@ -66,7 +66,7 @@ export const adminInvoicesModule: AdminModule = {
   navGroupKey: 'layout.navBilling',
   path: 'invoices',
   element: <AdminInvoicesPage />,
-  navItem: (t) => ({ key: Paths.adminInvoices, icon: <DollarOutlined />, label: t('admin.invoices.title') }),
+  navItem: (t) => ({ key: Paths.adminInvoices, icon: <CircleDollarSign />, label: t('admin.invoices.title') }),
 };
 
 export const adminMetaBudgetModule: AdminModule = {
@@ -74,7 +74,7 @@ export const adminMetaBudgetModule: AdminModule = {
   navGroupKey: 'layout.navBilling',
   path: 'meta-budget',
   element: <AdminMetaBudgetPage />,
-  navItem: (t) => ({ key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t('admin.topup.title') }),
+  navItem: (t) => ({ key: Paths.adminMetaBudget, icon: <CreditCard />, label: t('admin.topup.title') }),
 };
 
 export const adminLeadsModule: AdminModule = {
@@ -82,7 +82,7 @@ export const adminLeadsModule: AdminModule = {
   navGroupKey: 'layout.navClients',
   path: 'leads',
   element: <AdminLeadsPage />,
-  navItem: (t) => ({ key: Paths.adminLeads, icon: <FormOutlined />, label: t('admin.leads.menuTitle') }),
+  navItem: (t) => ({ key: Paths.adminLeads, icon: <ClipboardList />, label: t('admin.leads.menuTitle') }),
 };
 
 export const adminWhatsAppModule: AdminModule = {
@@ -90,5 +90,5 @@ export const adminWhatsAppModule: AdminModule = {
   navGroupKey: 'layout.navConnections',
   path: 'whatsapp',
   element: <AdminWhatsAppPage />,
-  navItem: (t) => ({ key: Paths.adminWhatsApp, icon: <WhatsAppOutlined style={{ color: '#25d366' }} />, label: t('admin.whatsapp.menuTitle') }),
+  navItem: (t) => ({ key: Paths.adminWhatsApp, icon: <WhatsAppIcon style={{ color: '#25d366' }} />, label: t('admin.whatsapp.menuTitle') }),
 };

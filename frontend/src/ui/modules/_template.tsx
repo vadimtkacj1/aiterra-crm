@@ -17,7 +17,7 @@
 //    10. Register router in  backend/app/api/router.py
 // ════════════════════════════════════════════════════════════════════════════
 
-import { StarOutlined } from '@ant-design/icons';
+import { Star } from 'lucide-react';
 // import { YourModulePage } from '../pages/a/[accountId]/your-module';
 import type { AccountModule } from './types';
 
@@ -31,7 +31,7 @@ export const yourModule: AccountModule = {
   navItems: ({ accountId }, t) => [
     {
       key: `/a/${accountId}/your-module`,
-      icon: <StarOutlined />,
+      icon: <Star />,
       label: t('layout.menuYourModule'), // add to en.json + he.json
     },
   ],

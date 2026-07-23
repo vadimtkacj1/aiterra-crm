@@ -1,4 +1,4 @@
-import { FileTextOutlined } from '@ant-design/icons';
+import { FileText } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useApp } from '@/app/AppProviders';
 import { MemberContractsPage } from '@/ui/features/user/contracts/pages/MemberContractsPage';
@@ -18,6 +18,6 @@ export const contractsModule: AccountModule = {
   ],
   navItems: ({ accountId, isAdmin }, t) => {
     if (isAdmin) return [];
-    return [{ key: accountPath(accountId, 'contracts'), icon: <FileTextOutlined />, label: t('layout.menuContracts') }];
+    return [{ key: accountPath(accountId, 'contracts'), icon: <FileText />, label: t('layout.menuContracts') }];
   },
 };

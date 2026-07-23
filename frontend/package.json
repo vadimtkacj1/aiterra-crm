@@ -25,7 +25,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.1.1",
     "@ant-design/plots": "^2.6.8",
     "@radix-ui/react-accordion": "^1.2.18",
     "@radix-ui/react-alert-dialog": "^1.1.21",
@@ -46,7 +45,6 @@
     "@radix-ui/react-tooltip": "^1.2.14",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-table": "^8.21.3",
-    "antd": "^6.3.5",
     "axios": "^1.14.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,4 +1,4 @@
-import { WalletOutlined } from '@ant-design/icons';
+import { Wallet } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useApp } from '@/app/AppProviders';
 import { BillingPage } from '@/ui/features/user/billing/pages/BillingPage';
@@ -26,6 +26,6 @@ export const billingModule: AccountModule = {
   ],
   navItems: ({ accountId, isAdmin }, t) => {
     if (isAdmin) return [];
-    return [{ key: accountPath(accountId, 'billing'), icon: <WalletOutlined />, label: t('layout.menuBilling') }];
+    return [{ key: accountPath(accountId, 'billing'), icon: <Wallet />, label: t('layout.menuBilling') }];
   },
 };

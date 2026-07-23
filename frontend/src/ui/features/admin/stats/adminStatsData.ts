@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { format, startOfMonth, startOfWeek, startOfYear } from "date-fns";
 import type {
   AdminPaymentCurrencySummary,
   AdminPaymentStats,
@@ -13,24 +13,24 @@ export function getAdminStatsPeriodRange(
   /** Inject fixed clock in tests; default `new Date()` in UI. */
   now: Date = new Date(),
 ): { startDate: string; endDate: string; groupBy: "day" | "month" } {
-  const today = dayjs(now);
+  const fmt = (d: Date) => format(d, "yyyy-MM-dd");
   if (period === "week") {
     return {
-      startDate: today.startOf("week").format("YYYY-MM-DD"),
-      endDate: today.format("YYYY-MM-DD"),
+      startDate: fmt(startOfWeek(now)),
+      endDate: fmt(now),
       groupBy: "day",
     };
   }
   if (period === "month") {
     return {
-      startDate: today.startOf("month").format("YYYY-MM-DD"),
-      endDate: today.format("YYYY-MM-DD"),
+      startDate: fmt(startOfMonth(now)),
+      endDate: fmt(now),
       groupBy: "day",
     };
   }
   return {
-    startDate: today.startOf("year").format("YYYY-MM-DD"),
-    endDate: today.format("YYYY-MM-DD"),
+    startDate: fmt(startOfYear(now)),
+    endDate: fmt(now),
     groupBy: "month",
   };
 }

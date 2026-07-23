@@ -655,3 +655,21 @@ h2.ant-typography,
 .app-sider-nav .ant-menu-item-group:first-child .ant-menu-item-group-title {
   padding-block-start: 4px;
 }
+
+/* ── Minimal native-button reset ─────────────────────────────
+   Tailwind preflight is off during the antd coexistence phase, so native
+   <button> shows UA borders/background under kit ghost/text buttons and the
+   hand-rolled sidebar nav. MUST live in @layer base: unlayered rules would
+   beat Tailwind's layered utilities (bg-primary etc.) regardless of
+   specificity. antd's own styles are unlayered and win over any layer. */
+@layer base {
+  button {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
+}

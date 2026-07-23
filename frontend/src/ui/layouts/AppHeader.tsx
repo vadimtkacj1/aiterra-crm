@@ -1,12 +1,14 @@
-import { CheckOutlined, DownOutlined, GlobalOutlined, LogoutOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
-import { Avatar, Button, Dropdown, Layout, Space, Spin, theme, Typography } from "antd";
+import { Check, ChevronDown, Globe, LogOut, Menu, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { MenuDropdown } from "@/components/ui/menu-compat";
+import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 import { accountPath, Paths } from "@/ui/navigation/paths";
 import { UserNotificationCenter } from "@/ui/shared/components/UserNotificationCenter";
 import type { AccountLayoutOutletContext } from "./accountLayoutContext";
-
-const { Header } = Layout;
 
 interface AppHeaderProps {
   isMobile: boolean;
@@ -34,24 +36,28 @@ function AccountInfo({
 
   if (accountOutletCtx.accountLoading) {
     return (
-      <Space size="small" align="center">
-        <Spin size="small" />
-        <Typography.Text type="secondary" ellipsis>
+      <span className="flex items-center gap-2">
+        <Spinner size="sm" label={t("layout.loadingBusiness")} />
+        <span className="truncate text-sm text-muted-foreground">
           {t("layout.loadingBusiness")}
-        </Typography.Text>
-      </Space>
+        </span>
+      </span>
     );
   }
 
   return (
     <>
-      <Typography.Text strong ellipsis style={{ fontSize: isMobile ? 13 : 14 }}>
+      <span className={cn("truncate font-semibold text-foreground", isMobile ? "text-[13px]" : "text-sm")}>
         {accountOutletCtx.currentAccount?.name ?? t("layout.accountLabel")}
-      </Typography.Text>
+      </span>
       {accountOutletCtx.totalAccountCount > 1 ? (
-        <Typography.Link style={{ fontSize: 12 }} onClick={() => navigate(Paths.accounts)}>
+        <button
+          type="button"
+          className="self-start text-xs text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={() => navigate(Paths.accounts)}
+        >
           {t("layout.switchBusiness")}
-        </Typography.Link>
+        </button>
       ) : null}
     </>
   );
@@ -72,7 +78,6 @@ export function AppHeader({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { token } = theme.useToken();
   const isAdminRoute = pathname === Paths.admin || pathname.startsWith(`${Paths.admin}/`);
   const businessName = accountOutletCtx.currentAccount?.name?.trim();
   const headerNameDuplicate = Boolean(
@@ -88,50 +93,34 @@ export function AppHeader({
   const currentLang = i18n.language.startsWith("he") ? "he" : "en";
 
   return (
-    <Header
-      style={{
-        padding: isMobile ? "0 12px" : "0 20px",
-        height: 56,
-        lineHeight: "56px",
-        background: token.colorBgContainer,
-        borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        boxShadow: "0 1px 0 rgba(0, 0, 0, 0.03)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 8,
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-      }}
+    <header
+      className={cn(
+        "sticky top-0 z-10 flex h-14 items-center justify-between gap-2",
+        "border-b border-border bg-card shadow-[0_1px_0_rgba(0,0,0,0.03)]",
+        isMobile ? "px-3" : "px-5",
+      )}
     >
       {/* First group: burger + current account */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         {isMobile && (
           <Button
-            type="text"
-            icon={<MenuOutlined />}
+            variant="ghost"
+            size="icon"
             onClick={onMenuOpen}
-            size="middle"
             aria-label={t("layout.openMenu")}
-          />
+          >
+            <Menu aria-hidden="true" />
+          </Button>
         )}
         {showAccountContext && layoutAccountId ? (
           <div
             data-tour-target="header-account"
-            style={{
-              minWidth: 0,
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              lineHeight: 1.35,
-            }}
+            className="flex min-w-0 flex-1 flex-col justify-center leading-[1.35]"
           >
             {isAdmin && isAdminRoute ? (
-              <Typography.Text type="secondary" ellipsis style={{ fontSize: isMobile ? 13 : 14 }}>
+              <span className={cn("truncate text-muted-foreground", isMobile ? "text-[13px]" : "text-sm")}>
                 {t("layout.adminContext")}
-              </Typography.Text>
+              </span>
             ) : (
               <AccountInfo accountOutletCtx={accountOutletCtx} isMobile={isMobile} />
             )}
@@ -140,87 +129,70 @@ export function AppHeader({
       </div>
 
       {/* Right: notifications + user menu (avatar dropdown: settings / sign out) */}
-      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8 }}>
+      <div className={cn("flex items-center", isMobile ? "gap-1" : "gap-2")}>
         {showAccountContext && layoutAccountId && !isAdmin ? (
           <UserNotificationCenter accountId={layoutAccountId} />
         ) : null}
-        <Dropdown
-          trigger={["click"]}
-          menu={{
-            items: [
-              {
-                key: "settings",
-                icon: <SettingOutlined />,
-                label: t("layout.menuSettings"),
-                onClick: () => navigate(settingsPath),
-              },
-              {
-                key: "language",
-                icon: <GlobalOutlined />,
-                label: t("common.language"),
-                children: [
-                  {
-                    key: "lang-he",
-                    icon: currentLang === "he" ? <CheckOutlined /> : null,
-                    label: t("common.hebrew"),
-                    onClick: () => void i18n.changeLanguage("he"),
-                  },
-                  {
-                    key: "lang-en",
-                    icon: currentLang === "en" ? <CheckOutlined /> : null,
-                    label: t("common.english"),
-                    onClick: () => void i18n.changeLanguage("en"),
-                  },
-                ],
-              },
-              { type: "divider" },
-              {
-                key: "logout",
-                icon: <LogoutOutlined />,
-                label: t("layout.signOut"),
-                danger: true,
-                onClick: onLogout,
-              },
-            ],
-          }}
+        <MenuDropdown
+          align="end"
+          items={[
+            {
+              key: "settings",
+              icon: <Settings aria-hidden="true" />,
+              label: t("layout.menuSettings"),
+              onClick: () => navigate(settingsPath),
+            },
+            {
+              key: "language",
+              icon: <Globe aria-hidden="true" />,
+              label: t("common.language"),
+              children: [
+                {
+                  key: "lang-he",
+                  icon: currentLang === "he" ? <Check aria-hidden="true" /> : null,
+                  label: t("common.hebrew"),
+                  onClick: () => void i18n.changeLanguage("he"),
+                },
+                {
+                  key: "lang-en",
+                  icon: currentLang === "en" ? <Check aria-hidden="true" /> : null,
+                  label: t("common.english"),
+                  onClick: () => void i18n.changeLanguage("en"),
+                },
+              ],
+            },
+            { type: "divider" },
+            {
+              key: "logout",
+              icon: <LogOut aria-hidden="true" />,
+              label: t("layout.signOut"),
+              danger: true,
+              onClick: onLogout,
+            },
+          ]}
         >
           <Button
-            type="text"
+            variant="ghost"
             aria-label={headerRightLabel || t("layout.menuSettings")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              height: 40,
-              paddingInline: isMobile ? 4 : 8,
-              borderRadius: 10,
-            }}
+            className={cn("flex h-10 items-center gap-2 rounded-[10px]", isMobile ? "px-1" : "px-2")}
           >
-            <Avatar
-              size={30}
-              style={{
-                background: "var(--ds-color-primary-surface-deep)",
-                color: "var(--ds-color-primary)",
-                fontWeight: 600,
-                fontSize: 13,
-                flexShrink: 0,
-              }}
-            >
-              {(headerRightLabel || userEmail || "?").trim().charAt(0).toUpperCase()}
+            <Avatar className="size-7.5 shrink-0">
+              <AvatarFallback className="bg-accent text-[13px] font-semibold text-primary">
+                {(headerRightLabel || userEmail || "?").trim().charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             {!isMobile && !hideHeaderRightName && headerRightLabel ? (
-              <Typography.Text
-                ellipsis
-                style={{ maxWidth: 160, fontSize: 13, fontWeight: 500 }}
+              <span
+                className="max-w-40 truncate text-[13px] font-medium text-foreground"
                 title={headerRightLabel}
               >
                 {headerRightLabel}
-              </Typography.Text>
+              </span>
             ) : null}
-            <DownOutlined style={{ fontSize: 10, color: "var(--ds-text-tertiary)" }} />
+            <ChevronDown aria-hidden="true" className="size-2.5! text-(--ds-text-tertiary)" />
           </Button>
-        </Dropdown>
+        </MenuDropdown>
       </div>
-    </Header>
+    </header>
   );
 }

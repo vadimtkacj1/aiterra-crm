@@ -1,11 +1,36 @@
-import { Card, Flex, Space, Typography, Button, Tag, Grid } from "antd";
-import { Fragment, isValidElement } from "react";
+import { Fragment, isValidElement, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-
-const { useBreakpoint } = Grid;
+import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 function isTagDescriptor(tag: unknown): tag is { label: string; color?: string } {
   return !!tag && typeof tag === "object" && !isValidElement(tag) && "label" in tag;
+}
+
+/** antd Tag color strings → badge variants (violet reserved for brand accents). */
+function badgeVariant(color?: string): BadgeProps["variant"] {
+  switch (color) {
+    case "success":
+    case "green":
+      return "success";
+    case "processing":
+    case "blue":
+      return "processing";
+    case "warning":
+    case "orange":
+    case "gold":
+      return "warning";
+    case "error":
+    case "red":
+      return "error";
+    case "purple":
+      return "primary";
+    default:
+      return "default";
+  }
 }
 
 export interface CardViewItem {
@@ -30,100 +55,118 @@ interface ResponsiveCardViewProps {
   emptyText?: string;
 }
 
+const ACTION_VARIANT = {
+  primary: "default",
+  default: "outline",
+  dashed: "outline",
+  link: "link",
+  text: "ghost",
+} as const;
+
 export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCardViewProps) {
   if (loading) {
     return (
-      <Flex vertical style={{ width: "100%" }} gap={12}>
+      <div className="flex w-full flex-col gap-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} loading size="small" />
+          <Card key={i} className="rounded-xl p-4 shadow-(--ds-shadow-card)">
+            <Skeleton className="h-4 w-2/5" />
+            <Skeleton className="mt-3 h-3 w-4/5" />
+            <Skeleton className="mt-2 h-3 w-3/5" />
+          </Card>
         ))}
-      </Flex>
+      </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <Card>
-        <Typography.Text type="secondary">{emptyText || "No items"}</Typography.Text>
+      <Card className="p-6">
+        <span className="text-sm text-muted-foreground">{emptyText || "No items"}</span>
       </Card>
     );
   }
 
   return (
-    <Flex vertical style={{ width: "100%" }} gap={12}>
+    <div className="flex w-full flex-col gap-3">
       {items.map((item) => (
-        <Card
-          key={item.id}
-          size="small"
-          style={{
-            borderRadius: 12,
-            boxShadow: "var(--ds-shadow-card)",
-          }}
-        >
-          <Flex vertical style={{ width: "100%" }} gap={8}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Typography.Text strong style={{ fontSize: 15 }}>
-                  {item.title}
-                </Typography.Text>
+        <Card key={item.id} className="rounded-xl p-4 shadow-(--ds-shadow-card)">
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <span className="text-[15px] font-semibold text-foreground">{item.title}</span>
                 {item.subtitle && (
-                  <Typography.Text type="secondary" style={{ display: "block", fontSize: 13, marginTop: 2 }}>
+                  <span className="mt-0.5 block text-[13px] text-muted-foreground">
                     {item.subtitle}
-                  </Typography.Text>
+                  </span>
                 )}
               </div>
-              {item.extra && <div style={{ marginLeft: 12 }}>{item.extra}</div>}
+              {item.extra && <div className="ms-3">{item.extra}</div>}
             </div>
 
             {item.description && (
-              <Typography.Paragraph
-                type="secondary"
-                style={{ marginBottom: 0, fontSize: 13 }}
-                ellipsis={{ rows: 2 }}
-              >
+              <p className="mb-0 line-clamp-2 text-[13px] text-muted-foreground">
                 {item.description}
-              </Typography.Paragraph>
+              </p>
             )}
 
             {item.tags && item.tags.length > 0 && (
-              <Space wrap size={[4, 4]}>
+              <div className="flex flex-wrap items-center gap-1">
                 {item.tags.map((tag, index) =>
                   isTagDescriptor(tag) ? (
-                    <Tag key={index} color={tag.color} style={{ margin: 0 }}>
+                    <Badge key={index} variant={badgeVariant(tag.color)}>
                       {tag.label}
-                    </Tag>
+                    </Badge>
                   ) : (
                     <Fragment key={index}>{tag as ReactNode}</Fragment>
                   ),
                 )}
-              </Space>
+              </div>
             )}
 
             {item.actions && item.actions.length > 0 && (
-              <Space wrap size={[8, 8]} style={{ marginTop: 4 }}>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
                 {item.actions.map((action, index) => (
                   <Button
                     key={index}
-                    type={action.type || "default"}
-                    size="small"
-                    danger={action.danger}
-                    icon={action.icon}
+                    variant={
+                      action.danger && action.type === "primary"
+                        ? "destructive"
+                        : ACTION_VARIANT[action.type ?? "default"]
+                    }
+                    size="sm"
+                    className={cn(
+                      action.danger &&
+                        action.type !== "primary" &&
+                        "border-destructive/40 text-destructive hover:text-destructive",
+                    )}
                     onClick={action.onClick}
                   >
+                    {action.icon}
                     {action.label}
                   </Button>
                 ))}
-              </Space>
+              </div>
             )}
-          </Flex>
+          </div>
         </Card>
       ))}
-    </Flex>
+    </div>
   );
 }
 
-// Hook to determine if mobile view should be used
+// Hook to determine if mobile view should be used (antd `md` breakpoint: 768px)
 export function useMobileView() {
-  const screens = useBreakpoint();
-  return !screens.md;
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? !window.matchMedia("(min-width: 768px)").matches : false,
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(!e.matches);
+    mql.addEventListener("change", onChange);
+    setIsMobile(!mql.matches);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return isMobile;
 }

@@ -1,5 +1,7 @@
-import { App, Button } from "antd";
 import type { TFunction } from "i18next";
+import { Button } from "@/components/ui/button";
+import { confirm } from "@/lib/confirm";
+import { cn } from "@/lib/utils";
 
 interface ConfirmButtonProps {
   onConfirm: () => void | Promise<void>;
@@ -15,6 +17,20 @@ interface ConfirmButtonProps {
   buttonIcon?: React.ReactNode;
 }
 
+const VARIANT_BY_TYPE = {
+  primary: "default",
+  default: "outline",
+  dashed: "outline",
+  link: "link",
+  text: "ghost",
+} as const;
+
+const SIZE_BY_SIZE = {
+  small: "sm",
+  middle: "default",
+  large: "lg",
+} as const;
+
 export function ConfirmButton({
   onConfirm,
   t,
@@ -28,28 +44,30 @@ export function ConfirmButton({
   buttonSize = "middle",
   buttonIcon,
 }: ConfirmButtonProps) {
-  const { modal } = App.useApp();
   const handleClick = () => {
-    modal.confirm({
+    confirm({
       title: title || t("common.confirm"),
       content: content || t("common.confirmAction"),
       okText: okText || t("common.ok"),
       cancelText: cancelText || t("common.cancel"),
-      okType: danger ? "danger" : "primary",
+      danger,
       onOk: async () => {
         await onConfirm();
       },
     });
   };
 
+  const variant =
+    danger && buttonType === "primary" ? "destructive" : VARIANT_BY_TYPE[buttonType];
+
   return (
     <Button
-      type={buttonType}
-      size={buttonSize}
-      icon={buttonIcon}
-      danger={danger}
+      variant={variant}
+      size={SIZE_BY_SIZE[buttonSize]}
+      className={cn(danger && buttonType !== "primary" && "text-destructive hover:text-destructive")}
       onClick={handleClick}
     >
+      {buttonIcon}
       {children}
     </Button>
   );

@@ -1,6 +1,7 @@
-import { Empty, Button, Flex, Space, Typography } from "antd";
 import type { ReactNode } from "react";
-import { InboxOutlined } from "@ant-design/icons";
+import { Inbox } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -30,43 +31,47 @@ export function EmptyState({
   image,
   style,
 }: EmptyStateProps) {
-  const defaultIcon = <InboxOutlined style={{ fontSize: 64, color: "var(--ds-text-disabled)" }} />;
+  const visual = image || icon || (
+    <Inbox aria-hidden="true" className="size-16 text-(--ds-text-disabled)" strokeWidth={1.25} />
+  );
 
   return (
-    <Empty
-      image={image || icon || defaultIcon}
-      description={
-        title || description ? (
-          <Flex vertical gap="small" style={{ marginTop: 8 }}>
-            {title && (
-              <Typography.Text strong style={{ fontSize: 16 }}>
-                {title}
-              </Typography.Text>
-            )}
-            {description && (
-              <Typography.Text type="secondary" style={{ fontSize: 14 }}>
-                {description}
-              </Typography.Text>
-            )}
-          </Flex>
-        ) : undefined
-      }
+    <div
+      className="flex flex-col items-center justify-center text-center"
       style={{ padding: "40px 20px", ...style }}
     >
+      <div className="flex items-center justify-center text-(--ds-text-disabled)">
+        {visual}
+      </div>
+
+      {(title || description) && (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {title && <span className="text-base font-semibold text-foreground">{title}</span>}
+          {description && (
+            <span className="max-w-sm text-sm text-muted-foreground">{description}</span>
+          )}
+        </div>
+      )}
+
       {(action || secondaryAction) && (
-        <Space>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           {action && (
-            <Button type={action.type || "primary"} onClick={action.onClick} loading={action.loading}>
+            <Button
+              variant={action.type === "default" || action.type === "dashed" ? "outline" : "default"}
+              onClick={action.onClick}
+              disabled={action.loading}
+            >
+              {action.loading && <Spinner size="sm" className="text-current" aria-hidden="true" />}
               {action.label}
             </Button>
           )}
           {secondaryAction && (
-            <Button type="default" onClick={secondaryAction.onClick}>
+            <Button variant="outline" onClick={secondaryAction.onClick}>
               {secondaryAction.label}
             </Button>
           )}
-        </Space>
+        </div>
       )}
-    </Empty>
+    </div>
   );
 }

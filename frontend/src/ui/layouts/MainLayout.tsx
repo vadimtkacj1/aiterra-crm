@@ -1,9 +1,10 @@
-import { QuestionCircleOutlined } from "@ant-design/icons";
-import { Grid, Layout } from "antd";
+import { CircleHelp } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/lib/use-media-query";
 import { Paths } from "@/ui/navigation/paths";
 import { GuidedTourProvider } from "@/ui/shared/onboarding/guidedTourContext";
 import { AppHeader } from "./AppHeader";
@@ -11,11 +12,7 @@ import { AppSidebar } from "./AppSidebar";
 import { useLayoutAccount } from "./useLayoutAccount";
 import { accountModules, adminModules, type AccountModuleCtx } from "@/ui/modules";
 
-const { Content } = Layout;
-const DESKTOP_SIDEBAR_WIDTH = 248;
-
 export function MainLayout() {
-  const screens = Grid.useBreakpoint();
   const navigate = useNavigate();
   const location = useLocation();
   const { session, logout, isAdmin } = useApp();
@@ -30,7 +27,7 @@ export function MainLayout() {
     contentRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [location.pathname]);
 
-  const isMobile = !screens.md;
+  const isMobile = useIsMobile();
   const showAccountContext = Boolean(layoutAccountValid && layoutAccountId);
 
   const menuItems = useMemo(() => {
@@ -72,7 +69,7 @@ export function MainLayout() {
       }
     }
 
-    items.push({ key: Paths.help, icon: <QuestionCircleOutlined />, label: t("help.menuTitle") });
+    items.push({ key: Paths.help, icon: <CircleHelp />, label: t("help.menuTitle") });
 
     return items;
   }, [
@@ -101,51 +98,45 @@ export function MainLayout() {
 
   return (
     <GuidedTourProvider isAdmin={isAdmin} showAccountContext={showAccountContext}>
-      <Layout style={{ minHeight: "100vh", alignItems: "stretch" }}>
-      <a href="#main-content" className="skip-link">
-        {t("accessibility.skipToContent")}
-      </a>
-      <AppSidebar
-        isMobile={isMobile}
-        drawerOpen={drawerOpen}
-        onDrawerClose={() => setDrawerOpen(false)}
-        menuItems={menuItems}
-        selectedKeys={selectedKeys}
-        onMenuClick={handleMenuClick}
-      />
-
-      <Layout
-        style={{
-          minWidth: 0,
-          marginInlineStart: isMobile ? 0 : DESKTOP_SIDEBAR_WIDTH,
-        }}
-      >
-        <AppHeader
+      <div className="flex min-h-dvh items-stretch bg-muted">
+        <a href="#main-content" className="skip-link">
+          {t("accessibility.skipToContent")}
+        </a>
+        <AppSidebar
           isMobile={isMobile}
-          onMenuOpen={() => setDrawerOpen(true)}
-          layoutAccountId={layoutAccountId}
-          layoutAccountValid={layoutAccountValid}
-          showAccountContext={showAccountContext}
-          accountOutletCtx={accountOutletCtx}
-          displayName={displayName}
-          userEmail={userEmail}
-          isAdmin={isAdmin}
-          onLogout={logout}
+          drawerOpen={drawerOpen}
+          onDrawerClose={() => setDrawerOpen(false)}
+          menuItems={menuItems}
+          selectedKeys={selectedKeys}
+          onMenuClick={handleMenuClick}
         />
 
-        <Content
-          id="main-content"
-          ref={contentRef}
-          style={{
-            padding: isMobile ? 16 : 28,
-            overflow: "auto",
-            minHeight: "calc(100dvh - 56px)",
-          }}
-        >
-          <Outlet context={accountOutletCtx} />
-        </Content>
-      </Layout>
-    </Layout>
+        <div className={cn("flex min-w-0 flex-1 flex-col", !isMobile && "ms-62")}>
+          <AppHeader
+            isMobile={isMobile}
+            onMenuOpen={() => setDrawerOpen(true)}
+            layoutAccountId={layoutAccountId}
+            layoutAccountValid={layoutAccountValid}
+            showAccountContext={showAccountContext}
+            accountOutletCtx={accountOutletCtx}
+            displayName={displayName}
+            userEmail={userEmail}
+            isAdmin={isAdmin}
+            onLogout={logout}
+          />
+
+          <main
+            id="main-content"
+            ref={contentRef}
+            className={cn(
+              "min-h-[calc(100dvh-56px)] flex-1 overflow-auto",
+              isMobile ? "p-4" : "p-7",
+            )}
+          >
+            <Outlet context={accountOutletCtx} />
+          </main>
+        </div>
+      </div>
     </GuidedTourProvider>
   );
 }

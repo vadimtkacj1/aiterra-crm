@@ -1,5 +1,5 @@
-import { Breadcrumb, Flex, Space, Typography } from "antd";
 import type { ReactNode } from "react";
+import { Fragment } from "react";
 
 interface PageHeaderProps {
   title: string;
@@ -21,33 +21,36 @@ export function PageHeader({
   const desc = description || subtitle;
 
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div className="mb-6">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <Breadcrumb
-          items={breadcrumbs.map((b) => ({ title: b.title, href: b.href }))}
-          style={{ marginBottom: 12 }}
-        />
+        <nav className="mb-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          {breadcrumbs.map((b, i) => (
+            <Fragment key={i}>
+              {i > 0 && <span aria-hidden="true" className="text-(--ds-text-tertiary)">/</span>}
+              {b.href ? (
+                <a href={b.href} className="transition-colors hover:text-foreground">
+                  {b.title}
+                </a>
+              ) : (
+                <span className={i === breadcrumbs.length - 1 ? "text-foreground" : undefined}>
+                  {b.title}
+                </span>
+              )}
+            </Fragment>
+          ))}
+        </nav>
       )}
 
-      <Flex justify="space-between" align="flex-start" gap={16} wrap="wrap">
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Typography.Title level={2} style={{ margin: 0, marginBottom: desc ? 8 : 0, fontSize: 28, fontWeight: 600 }}>
-            {title}
-          </Typography.Title>
-          {desc && (
-            <Typography.Text type="secondary" style={{ fontSize: 14, lineHeight: 1.5 }}>
-              {desc}
-            </Typography.Text>
-          )}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="m-0 text-[28px] font-semibold leading-tight text-foreground">{title}</h1>
+          {desc && <p className="mb-0 mt-2 text-sm leading-normal text-muted-foreground">{desc}</p>}
         </div>
 
         {(actions || extra) && (
-          <Space size={8} wrap>
-            {actions || extra}
-          </Space>
+          <div className="flex flex-wrap items-center gap-2">{actions || extra}</div>
         )}
-      </Flex>
+      </div>
     </div>
   );
 }
-

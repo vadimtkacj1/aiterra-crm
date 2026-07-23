@@ -6,8 +6,6 @@ import {
   CreditCardOutlined,
   DownloadOutlined,
   FilePdfOutlined,
-  ReloadOutlined,
-  SafetyCertificateOutlined,
   TeamOutlined,
   UserOutlined,
   WalletOutlined,
@@ -189,30 +187,26 @@ export function AdminStatsPanel() {
         title={t("admin.stats.title")}
         description={t("admin.stats.subtitle")}
         actions={
-          <>
-            <Button icon={<ReloadOutlined />} onClick={() => void load()} loading={loading}>
-              {t("common.reload")}
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: [
+                { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
+                { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
+                { type: "divider" },
+                {
+                  key: "pdf",
+                  icon: <FilePdfOutlined />,
+                  label: t("admin.stats.downloadExecutivePdf"),
+                  onClick: () => void onDownloadPdf(),
+                },
+              ],
+            }}
+          >
+            <Button icon={<DownloadOutlined />} loading={exporting !== null} disabled={loading}>
+              {t("common.export")}
             </Button>
-            <Button icon={<SafetyCertificateOutlined />} onClick={() => navigate(Paths.adminAudit)} disabled={loading}>
-              {t("admin.audit.title")}
-            </Button>
-            <Dropdown
-              trigger={["click"]}
-              menu={{
-                items: [
-                  { key: "users", label: t("admin.stats.exportUsersCsv"), onClick: () => void onExportUsers() },
-                  { key: "billing", label: t("admin.stats.exportBillingCsv"), onClick: () => void onExportBilling() },
-                ],
-              }}
-            >
-              <Button icon={<DownloadOutlined />} loading={exporting === "users" || exporting === "billing"} disabled={loading}>
-                {t("common.export")}
-              </Button>
-            </Dropdown>
-            <Button type="primary" icon={<FilePdfOutlined />} onClick={() => void onDownloadPdf()} loading={exporting === "pdf"} disabled={loading}>
-              {t("admin.stats.downloadExecutivePdf")}
-            </Button>
-          </>
+          </Dropdown>
         }
       />
 

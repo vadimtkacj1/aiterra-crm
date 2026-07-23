@@ -2,6 +2,7 @@ import { DownloadOutlined } from "@ant-design/icons";
 import { Button, Card, Table, Tag, Tooltip, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import type { UserBillingHistoryRow } from "@/services/billing/IBillingService";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 import { billingShell, formatInvoiceMoney, fmtDateTime } from "./billingUtils";
 import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
@@ -60,7 +61,7 @@ export function BillingHistorySection({ rows, loading, appLocale, accountId }: P
         style={{
           borderRadius: billingShell.radiusMd,
           boxShadow: billingShell.shadow,
-          border: `1px solid ${billingShell.border}`,
+          border: `1px solid ${billingShell.borderInner}`,
         }}
       >
         {isMobile ? (
@@ -104,24 +105,20 @@ export function BillingHistorySection({ rows, loading, appLocale, accountId }: P
           />
         ) : (
           <Table
-            size="small"
+            size="middle"
             rowKey="id"
             scroll={{ x: 560 }}
             pagination={{ pageSize: 8 }}
             dataSource={rows}
             locale={{
-              emptyText: (
-                <Typography.Text type="secondary" style={{ fontSize: 14 }}>
-                  {t("billing.historyEmpty")}
-                </Typography.Text>
-              ),
+              emptyText: <EmptyState title={t("billing.historyEmpty")} style={{ padding: "24px 16px" }} />,
             }}
             columns={[
               {
                 title: t("billing.date"),
                 dataIndex: "createdAt",
                 width: 140,
-                render: (v: string) => fmtDateTime(v, appLocale),
+                render: (v: string) => <span style={{ fontVariantNumeric: "tabular-nums" }}>{fmtDateTime(v, appLocale)}</span>,
               },
               {
                 title: t("billing.description"),

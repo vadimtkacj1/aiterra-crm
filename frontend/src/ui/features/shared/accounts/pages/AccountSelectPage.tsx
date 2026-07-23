@@ -1,10 +1,11 @@
-﻿import { App, Flex, Typography } from "antd";
+﻿import { App } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/app/AppProviders";
 import type { Account } from "@/services/accounts/IAccountService";
 import { accountPath, defaultAccountSection } from "@/ui/navigation/paths";
+import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { AccountList } from "../components/AccountList";
 
@@ -47,19 +48,9 @@ export function AccountSelectPage() {
   }, [navigate, services.accounts]);
 
   return (
-    <UserContentLayout maxWidth={560}>
-      <Flex vertical gap="large" style={{ width: "100%" }}>
-        <div>
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            {t("accounts.title")}
-          </Typography.Title>
-          <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
-            {t("accounts.subtitle")}
-          </Typography.Paragraph>
-        </div>
-
-        <AccountList accounts={accounts} loading={loading} />
-      </Flex>
+    <UserContentLayout maxWidth={640} align="start">
+      <PageHeader title={t("accounts.title")} subtitle={t("accounts.subtitle")} />
+      <AccountList accounts={accounts} loading={loading} />
     </UserContentLayout>
   );
 }

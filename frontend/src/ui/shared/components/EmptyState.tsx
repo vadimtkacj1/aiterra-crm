@@ -10,6 +10,8 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
     type?: "primary" | "default" | "dashed";
+    /** Optional loading state for async actions (e.g. reload). */
+    loading?: boolean;
   };
   secondaryAction?: {
     label: string;
@@ -54,7 +56,7 @@ export function EmptyState({
       {(action || secondaryAction) && (
         <Space>
           {action && (
-            <Button type={action.type || "primary"} onClick={action.onClick}>
+            <Button type={action.type || "primary"} onClick={action.onClick} loading={action.loading}>
               {action.label}
             </Button>
           )}

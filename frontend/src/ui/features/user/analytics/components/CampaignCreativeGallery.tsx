@@ -154,7 +154,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                   ad.thumbnailUrl ? (
                     <div
                       onClick={() => setPreview(ad)}
-                      style={{ position: "relative", height: 180, overflow: "hidden", borderRadius: "8px 8px 0 0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                      style={{ position: "relative", height: 180, overflow: "hidden", borderRadius: "12px 12px 0 0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                     >
                       <img
                         src={ad.thumbnailUrl}
@@ -197,7 +197,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                       style={{
                         height: 180,
                         background: "var(--ant-color-fill-tertiary)",
-                        borderRadius: "8px 8px 0 0",
+                        borderRadius: "12px 12px 0 0",
                       }}
                     >
                       <FileImageOutlined style={{ fontSize: 40, color: "var(--ant-color-text-tertiary)" }} />
@@ -219,7 +219,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                       title={<span style={{ fontSize: 10 }}>{t("analytics.stats.spend")}</span>}
                       value={ad.spend.toFixed(2)}
                       suffix={<span style={{ fontSize: 10 }}>{currency}</span>}
-                      valueStyle={{ fontSize: 14 }}
+                      valueStyle={{ fontSize: 14, fontVariantNumeric: "tabular-nums" }}
                     />
                   </Col>
                   <Col span={cpr ? 8 : 12}>
@@ -235,7 +235,7 @@ export function CampaignCreativeGallery({ ads, currency, loading, objective = ""
                         title={<span style={{ fontSize: 10 }}>{t("meta.creatives.costPerResult")}</span>}
                         value={cpr}
                         suffix={<span style={{ fontSize: 10 }}>{currency}</span>}
-                        valueStyle={{ fontSize: 14 }}
+                        valueStyle={{ fontSize: 14, fontVariantNumeric: "tabular-nums" }}
                       />
                     </Col>
                   )}

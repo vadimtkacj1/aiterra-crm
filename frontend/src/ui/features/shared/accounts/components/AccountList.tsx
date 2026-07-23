@@ -15,7 +15,6 @@ export function AccountList({ accounts, loading }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [hoverAccountId, setHoverAccountId] = useState<number | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -27,36 +26,34 @@ export function AccountList({ accounts, loading }: Props) {
 
   const showSearch = accounts.length > 4;
 
+  if (loading) {
+    return <Card loading style={{ width: "100%" }} />;
+  }
+
   return (
-    <Card loading={loading}>
-      {showSearch && !loading && accounts.length > 0 ? (
+    <Flex vertical gap={12} style={{ width: "100%" }}>
+      {showSearch && accounts.length > 0 ? (
         <Input.Search
           allowClear
           placeholder={t("accounts.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ marginBottom: 12 }}
         />
       ) : null}
 
-      <Flex vertical gap={0}>
-        {filtered.map((a, index) => (
-          <AccountListItem
-            key={a.id}
-            account={a}
-            isFirst={index === 0}
-            isHovered={hoverAccountId === a.id}
-            onHoverEnter={() => setHoverAccountId(a.id)}
-            onHoverLeave={() => setHoverAccountId(null)}
-            onOpen={() => navigate(accountPath(String(a.id), defaultAccountSection(a)))}
-          />
-        ))}
-        {!loading && filtered.length === 0 && accounts.length > 0 ? (
-          <Typography.Paragraph type="secondary" style={{ marginBottom: 0, paddingTop: 8 }}>
-            {t("accounts.noSearchResults")}
-          </Typography.Paragraph>
-        ) : null}
-      </Flex>
-    </Card>
+      {filtered.map((a) => (
+        <AccountListItem
+          key={a.id}
+          account={a}
+          onOpen={() => navigate(accountPath(String(a.id), defaultAccountSection(a)))}
+        />
+      ))}
+
+      {filtered.length === 0 && accounts.length > 0 ? (
+        <Typography.Paragraph type="secondary" style={{ marginBottom: 0, paddingTop: 8 }}>
+          {t("accounts.noSearchResults")}
+        </Typography.Paragraph>
+      ) : null}
+    </Flex>
   );
 }

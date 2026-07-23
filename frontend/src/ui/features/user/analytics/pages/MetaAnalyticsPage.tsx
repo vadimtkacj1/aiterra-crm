@@ -1,5 +1,5 @@
-﻿import { LineChartOutlined } from "@ant-design/icons";
-import { Skeleton, Typography } from "antd";
+import { LineChartOutlined } from "@ant-design/icons";
+import { Card, Skeleton } from "antd";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,6 +7,7 @@ import { useApp } from "@/app/AppProviders";
 import { useAccountLayoutOutlet } from "@/ui/layouts/accountLayoutContext";
 import { accountPath, Paths } from "@/ui/navigation/paths";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
+import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { MetaCampaignListPanel } from "../components/MetaCampaignListPanel";
 
@@ -40,26 +41,26 @@ export function MetaAnalyticsPage() {
   if (!currentAccount?.hasMeta) {
     return (
       <UserContentLayout>
-        <EmptyState
-          icon={<LineChartOutlined style={{ fontSize: 64, color: "rgba(0,0,0,0.2)" }} />}
-          title={t("analytics.meta.notLinkedTitle")}
-          description={t("analytics.meta.notLinkedDescription")}
-          action={{
-            label: t("analytics.meta.goToBilling"),
-            onClick: () => accountId && navigate(accountPath(accountId, "billing")),
-          }}
-        />
+        <PageHeader title={t("analytics.meta.title")} subtitle={t("analytics.meta.subtitle")} />
+        <Card>
+          <EmptyState
+            icon={<LineChartOutlined style={{ fontSize: 64, color: "var(--ds-text-disabled)" }} />}
+            title={t("analytics.meta.notLinkedTitle")}
+            description={t("analytics.meta.notLinkedDescription")}
+            action={{
+              label: t("analytics.meta.goToBilling"),
+              onClick: () => accountId && navigate(accountPath(accountId, "billing")),
+            }}
+          />
+        </Card>
       </UserContentLayout>
     );
   }
 
   return (
     <UserContentLayout>
-      <Typography.Title level={4} style={{ margin: "0 0 16px" }}>
-        {t("analytics.meta.title")}
-      </Typography.Title>
+      <PageHeader title={t("analytics.meta.title")} subtitle={t("analytics.meta.subtitle")} />
       <MetaCampaignListPanel load={load} />
     </UserContentLayout>
   );
 }
-

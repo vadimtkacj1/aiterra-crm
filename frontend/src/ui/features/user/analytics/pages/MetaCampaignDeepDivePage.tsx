@@ -15,6 +15,7 @@ import {
   Col,
   ConfigProvider,
   DatePicker,
+  Divider,
   Drawer,
   Dropdown,
   Flex,
@@ -228,21 +229,31 @@ export function MetaCampaignDeepDivePage() {
 
   return (
     <UserContentLayout>
-      <Flex vertical gap="middle" style={{ width: "100%" }}>
-        {/* Header */}
-        <Flex align="center" gap={12} wrap="wrap">
-          <Button
-            icon={<ArrowLeftOutlined />}
-            type="text"
-            onClick={() => navigate(accountPath(accountId ?? "", "meta"))}
-          >
-            {!isMobile && t("meta.deepdive.backToCampaigns")}
-          </Button>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <Typography.Title level={isMobile ? 5 : 4} style={{ margin: 0 }} ellipsis>
-              {campaign?.campaignName ?? campaignId}
-            </Typography.Title>
-            <Flex gap={4} wrap="wrap" style={{ marginTop: 4 }}>
+      <Flex vertical gap={24} style={{ width: "100%" }}>
+        {/* Page header: back link + campaign title + status tags */}
+        <div>
+          <div style={{ marginBottom: 8 }}>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              type="text"
+              size="small"
+              style={{ marginInlineStart: -8, color: "var(--ds-text-secondary)" }}
+              onClick={() => navigate(accountPath(accountId ?? "", "meta"))}
+            >
+              {t("meta.deepdive.backToCampaigns")}
+            </Button>
+          </div>
+          <Flex align="center" gap={12} wrap="wrap">
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <Typography.Title
+                level={2}
+                style={{ margin: 0, fontSize: isMobile ? 22 : 28, fontWeight: 600 }}
+                ellipsis
+              >
+                {campaign?.campaignName ?? campaignId}
+              </Typography.Title>
+            </div>
+            <Flex gap={4} wrap="wrap">
               {campaign?.objective && (
                 <Tag>{campaign.objective.replace(/_/g, " ")}</Tag>
               )}
@@ -252,48 +263,34 @@ export function MetaCampaignDeepDivePage() {
                 </Tag>
               )}
             </Flex>
-          </div>
-        </Flex>
+          </Flex>
+        </div>
 
         {/* Top KPI cards */}
         {campaign && mainGoal && (
-          <Row gutter={[12, 12]}>
-            <Col xs={12} sm={8} lg={6}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={6}>
               <KpiStatCard
-                compact={isMobile}
                 title={t("analytics.stats.spend")}
                 value={campaign.spend}
                 suffix={currency}
                 precision={2}
-                valueStyle={isMobile ? { fontSize: 20 } : undefined}
               />
             </Col>
             {mainGoal.value !== "0" && (
-              <Col xs={12} sm={8} lg={6}>
-                <KpiStatCard
-                  compact={isMobile}
-                  title={mainGoal.label}
-                  value={mainGoal.value}
-                  valueStyle={{ fontSize: isMobile ? 22 : 32, fontWeight: 700 }}
-                />
+              <Col xs={24} sm={12} lg={6}>
+                <KpiStatCard title={mainGoal.label} value={mainGoal.value} />
               </Col>
             )}
-            <Col xs={12} sm={8} lg={6}>
-              <KpiStatCard
-                compact={isMobile}
-                title={t("analytics.stats.impressions")}
-                value={campaign.impressions}
-                valueStyle={isMobile ? { fontSize: 20 } : undefined}
-              />
+            <Col xs={24} sm={12} lg={6}>
+              <KpiStatCard title={t("analytics.stats.impressions")} value={campaign.impressions} />
             </Col>
             {costPerResult && (
-              <Col xs={12} sm={8} lg={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <KpiStatCard
-                  compact={isMobile}
                   title={costPerResult.label}
                   value={costPerResult.value}
                   suffix={currency}
-                  valueStyle={isMobile ? { fontSize: 20 } : undefined}
                 />
               </Col>
             )}
@@ -301,102 +298,97 @@ export function MetaCampaignDeepDivePage() {
         )}
 
         {/* ── Creatives section (prominent, right after KPIs) ── */}
-        <Typography.Title level={5} style={{ margin: "8px 0 0" }}>
-          {t("meta.deepdive.creativesTitle")}
-        </Typography.Title>
-        <CampaignCreativeGallery
-          ads={adsData?.ads ?? []}
-          currency={adsData?.currency ?? currency}
-          loading={adsLoading}
-          objective={adsData?.objective ?? campaign?.objective ?? ""}
-        />
-
-        {/* ── Detailed metrics section ── */}
-        <Typography.Title level={5} style={{ margin: "8px 0 0" }}>
-          {t("meta.deepdive.metricsTitle")}
-        </Typography.Title>
-
-        {/* Toolbar: date range + manage columns + export */}
-        <Flex gap={8} wrap="wrap" align="center" justify="space-between">
-          <ConfigProvider direction="ltr">
-            <RangePicker
-              value={dateRange ? [dateRange[0], dateRange[1]] : null}
-              onChange={(val) => setDateRange(val as DateRange)}
-              presets={[
-                { label: t("analytics.period.last7Days"), value: [dayjs().subtract(6, "day"), dayjs()] },
-                { label: t("analytics.period.last30Days"), value: [dayjs().subtract(29, "day"), dayjs()] },
-                { label: t("analytics.period.last90Days"), value: [dayjs().subtract(89, "day"), dayjs()] },
-              ]}
-              format="YYYY-MM-DD"
-              style={{ width: isMobile ? "100%" : 260 }}
-            />
-          </ConfigProvider>
-          <Flex gap={8}>
-            <Button
-              icon={<SettingOutlined />}
-              onClick={() => setManageOpen(true)}
-              size="small"
-            >
-              {!isMobile && t("meta.deepdive.manageColumns")}
-            </Button>
-            <Dropdown
-              disabled={!campaign}
-              menu={{
-                items: [
-                  {
-                    key: "csv",
-                    icon: <FileTextOutlined />,
-                    label: t("meta.panel.exportCsv"),
-                    onClick: () =>
-                      campaign &&
-                      exportCampaignDetailCsv(campaign, currency, adsData?.ads ?? []),
-                  },
-                  {
-                    key: "pdf",
-                    icon: <FilePdfOutlined />,
-                    label: t("meta.panel.exportPdf"),
-                    onClick: () =>
-                      campaign &&
-                      exportCampaignDetailPdf(
-                        campaign,
-                        currency,
-                        adsData?.ads ?? [],
-                        snapshot?.periodLabel,
-                      ),
-                  },
-                ],
-              }}
-            >
-              <Button icon={<DownloadOutlined />} size="small" disabled={!campaign}>
-                {!isMobile && t("meta.panel.export")}{" "}
-              </Button>
-            </Dropdown>
-            <Button
-              icon={<ReloadOutlined />}
-              size="small"
-              loading={loading}
-              onClick={() => { void loadSnapshot(); void loadAds(); }}
-            >
-              {!isMobile && t("common.reload")}
-            </Button>
-          </Flex>
+        <Divider style={{ margin: 0 }} />
+        <Flex vertical gap={16}>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {t("meta.deepdive.creativesTitle")}
+          </Typography.Title>
+          <CampaignCreativeGallery
+            ads={adsData?.ads ?? []}
+            currency={adsData?.currency ?? currency}
+            loading={adsLoading}
+            objective={adsData?.objective ?? campaign?.objective ?? ""}
+          />
         </Flex>
 
-        {/* Metrics table */}
-        <ConfigProvider direction="ltr">
-          <Card size="small" styles={{ body: { padding: 0 } }}>
-            <Table<CampaignSummaryRow>
-              loading={loading}
-              rowKey="campaignId"
-              size="small"
-              dataSource={tableData}
-              columns={metricsColumns}
-              pagination={false}
-              scroll={{ x: "max-content" }}
-              locale={{ emptyText: t("common.noData") }}
-            />
-          </Card>
-        </ConfigProvider>
+        {/* ── Detailed metrics: one card = toolbar + table ── */}
+        <Divider style={{ margin: 0 }} />
+        <Card title={t("meta.deepdive.metricsTitle")} styles={{ body: { padding: 16 } }}>
+          <Flex vertical gap={16}>
+            <Flex gap={8} wrap="wrap" align="center" justify="space-between">
+              <ConfigProvider direction="ltr">
+                <RangePicker
+                  value={dateRange ? [dateRange[0], dateRange[1]] : null}
+                  onChange={(val) => setDateRange(val as DateRange)}
+                  presets={[
+                    { label: t("analytics.period.last7Days"), value: [dayjs().subtract(6, "day"), dayjs()] },
+                    { label: t("analytics.period.last30Days"), value: [dayjs().subtract(29, "day"), dayjs()] },
+                    { label: t("analytics.period.last90Days"), value: [dayjs().subtract(89, "day"), dayjs()] },
+                  ]}
+                  format="YYYY-MM-DD"
+                  style={{ width: isMobile ? "100%" : 260 }}
+                />
+              </ConfigProvider>
+              <Flex gap={8}>
+                <Button icon={<SettingOutlined />} onClick={() => setManageOpen(true)}>
+                  {!isMobile && t("meta.deepdive.manageColumns")}
+                </Button>
+                <Dropdown
+                  disabled={!campaign}
+                  menu={{
+                    items: [
+                      {
+                        key: "csv",
+                        icon: <FileTextOutlined />,
+                        label: t("meta.panel.exportCsv"),
+                        onClick: () =>
+                          campaign &&
+                          exportCampaignDetailCsv(campaign, currency, adsData?.ads ?? []),
+                      },
+                      {
+                        key: "pdf",
+                        icon: <FilePdfOutlined />,
+                        label: t("meta.panel.exportPdf"),
+                        onClick: () =>
+                          campaign &&
+                          exportCampaignDetailPdf(
+                            campaign,
+                            currency,
+                            adsData?.ads ?? [],
+                            snapshot?.periodLabel,
+                          ),
+                      },
+                    ],
+                  }}
+                >
+                  <Button icon={<DownloadOutlined />} disabled={!campaign}>
+                    {!isMobile && t("meta.panel.export")}{" "}
+                  </Button>
+                </Dropdown>
+                <Button
+                  icon={<ReloadOutlined />}
+                  loading={loading}
+                  onClick={() => { void loadSnapshot(); void loadAds(); }}
+                >
+                  {!isMobile && t("common.reload")}
+                </Button>
+              </Flex>
+            </Flex>
+
+            <ConfigProvider direction="ltr">
+              <Table<CampaignSummaryRow>
+                loading={loading}
+                rowKey="campaignId"
+                size="middle"
+                dataSource={tableData}
+                columns={metricsColumns}
+                pagination={false}
+                scroll={{ x: "max-content" }}
+                locale={{ emptyText: t("common.noData") }}
+              />
+            </ConfigProvider>
+          </Flex>
+        </Card>
       </Flex>
 
       {/* Manage Columns Drawer */}

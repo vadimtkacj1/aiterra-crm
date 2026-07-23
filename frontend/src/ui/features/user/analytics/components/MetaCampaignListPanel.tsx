@@ -31,7 +31,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import type { TFunction } from "i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { accountCampaignPath, Paths } from "@/ui/navigation/paths";
 import {
@@ -41,6 +41,7 @@ import {
   primaryGoalSortValue,
   type CampaignGoalKind,
 } from "../utils/campaignObjective";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { exportCampaignListCsv, exportCampaignListPdf } from "../utils/exportUtils";
 import { KpiStatCard } from "./KpiStatCard";
 
@@ -342,10 +343,10 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
 
   if (loading && !data) {
     return (
-      <Flex vertical gap="large" style={{ width: "100%" }}>
-        <Row gutter={[12, 12]}>
+      <Flex vertical gap={24} style={{ width: "100%" }}>
+        <Row gutter={[16, 16]}>
           {[0, 1, 2].map((k) => (
-            <Col key={k} xs={12} lg={8}>
+            <Col key={k} xs={24} sm={12} lg={8}>
               <Card size="small">
                 <Skeleton active title paragraph={{ rows: 1 }} />
               </Card>
@@ -359,177 +360,152 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
 
   if (data && data.rows.length === 0 && !search && statusFilter === "ALL") {
     return (
-      <Card size="small">
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("analytics.empty.title")}>
-          <Typography.Paragraph type="secondary" style={{ maxWidth: 420, margin: "0 auto 12px", textAlign: "center" }}>
-            {t("analytics.empty.description")}
-          </Typography.Paragraph>
-          <Typography.Paragraph type="secondary" style={{ maxWidth: 420, margin: "0 auto 16px", textAlign: "center", fontSize: 13 }}>
-            {t("analytics.empty.nextSteps")}
-          </Typography.Paragraph>
-          <Flex justify="center" gap={8} wrap="wrap">
-            <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={loading}>
-              {t("common.reload")}
-            </Button>
-            <Link to={Paths.help}>
-              <Button type="default">{t("analytics.empty.openHelp")}</Button>
-            </Link>
-          </Flex>
-        </Empty>
+      <Card>
+        <EmptyState
+          title={t("analytics.empty.title")}
+          description={t("analytics.empty.description")}
+          action={{ label: t("common.reload"), onClick: () => void refresh() }}
+          secondaryAction={{ label: t("analytics.empty.openHelp"), onClick: () => navigate(Paths.help) }}
+        />
       </Card>
     );
   }
 
   return (
-    <Flex vertical gap="middle" style={{ width: "100%" }}>
+    <Flex vertical gap={24} style={{ width: "100%" }}>
       {/* Top KPI bar */}
       {data && goalMetric && (
-        <Row gutter={[12, 12]}>
-          <Col xs={12} sm={8} lg={6}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} lg={8}>
             <KpiStatCard
-              compact={isMobile}
               title={t("analytics.stats.spend")}
               value={data.totals.spend}
               suffix={currency}
               precision={2}
-              valueStyle={isMobile ? { fontSize: 20 } : undefined}
             />
           </Col>
           {goalMetric.value !== "0" && (
-            <Col xs={12} sm={8} lg={6}>
-              <KpiStatCard
-                compact={isMobile}
-                title={goalMetric.label}
-                value={goalMetric.value}
-                valueStyle={isMobile ? { fontSize: 20 } : undefined}
-              />
+            <Col xs={24} sm={12} lg={8}>
+              <KpiStatCard title={goalMetric.label} value={goalMetric.value} />
             </Col>
           )}
-          <Col xs={12} sm={8} lg={6}>
-            <KpiStatCard
-              compact={isMobile}
-              title={t("analytics.stats.impressions")}
-              value={data.totals.impressions}
-              valueStyle={isMobile ? { fontSize: 20 } : undefined}
-            />
+          <Col xs={24} sm={12} lg={8}>
+            <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
           </Col>
         </Row>
       )}
 
-      {/* Toolbar */}
-      <Flex gap={8} wrap="wrap" align="center" justify="space-between">
-        <Flex gap={8} wrap="wrap" flex={1} style={{ minWidth: 0 }}>
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder={t("meta.panel.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: isMobile ? "100%" : 220 }}
-          />
-          <Select<StatusFilter>
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 130 }}
-            options={[
-              { value: "ALL", label: t("meta.panel.filterAll") },
-              { value: "ACTIVE", label: t("meta.panel.filterActive") },
-              { value: "PAUSED", label: t("meta.panel.filterPaused") },
-            ]}
-          />
+      {/* Campaign list: toolbar + table in one card */}
+      <Card styles={{ body: { padding: 16 } }}>
+        <Flex vertical gap={16}>
+          <Flex gap={8} wrap="wrap" align="center" justify="space-between">
+            <Flex gap={8} wrap="wrap" flex={1} style={{ minWidth: 0 }}>
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder={t("meta.panel.searchPlaceholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                allowClear
+                style={{ width: isMobile ? "100%" : 220 }}
+              />
+              <Select<StatusFilter>
+                value={statusFilter}
+                onChange={setStatusFilter}
+                style={{ width: 130 }}
+                options={[
+                  { value: "ALL", label: t("meta.panel.filterAll") },
+                  { value: "ACTIVE", label: t("meta.panel.filterActive") },
+                  { value: "PAUSED", label: t("meta.panel.filterPaused") },
+                ]}
+              />
+              <ConfigProvider direction="ltr">
+                <RangePicker
+                  value={dateRange ? [dateRange[0], dateRange[1]] : null}
+                  onChange={(val) => setDateRange(val as DateRange)}
+                  presets={[
+                    { label: t("analytics.period.last7Days"), value: [dayjs().subtract(6, "day"), dayjs()] },
+                    { label: t("analytics.period.last30Days"), value: [dayjs().subtract(29, "day"), dayjs()] },
+                    { label: t("analytics.period.last90Days"), value: [dayjs().subtract(89, "day"), dayjs()] },
+                  ]}
+                  format="YYYY-MM-DD"
+                  style={{ width: isMobile ? "100%" : 240 }}
+                />
+              </ConfigProvider>
+            </Flex>
+            <Flex gap={8} align="center">
+              {updatedAtText && (
+                <Typography.Text
+                  type="secondary"
+                  style={{ fontSize: 12, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}
+                >
+                  <SyncOutlined style={{ marginInlineEnd: 4 }} />
+                  {t("meta.panel.updatedAt", { time: updatedAtText })}
+                </Typography.Text>
+              )}
+              <Dropdown
+                disabled={!data || filteredRows.length === 0}
+                menu={{
+                  items: [
+                    {
+                      key: "csv",
+                      icon: <FileTextOutlined />,
+                      label: t("meta.panel.exportCsv"),
+                      onClick: () => data && exportCampaignListCsv(filteredRows, currency),
+                    },
+                    {
+                      key: "pdf",
+                      icon: <FilePdfOutlined />,
+                      label: t("meta.panel.exportPdf"),
+                      onClick: () => data && exportCampaignListPdf(filteredRows, currency, data.periodLabel),
+                    },
+                  ],
+                }}
+              >
+                <Button icon={<DownloadOutlined />} disabled={!data || filteredRows.length === 0}>
+                  {!isMobile && t("meta.panel.export")}{" "}
+                </Button>
+              </Dropdown>
+              <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={loading}>
+                {!isMobile && t("common.reload")}
+              </Button>
+            </Flex>
+          </Flex>
+
           <ConfigProvider direction="ltr">
-            <RangePicker
-              value={dateRange ? [dateRange[0], dateRange[1]] : null}
-              onChange={(val) => setDateRange(val as DateRange)}
-              presets={[
-                { label: t("analytics.period.last7Days"), value: [dayjs().subtract(6, "day"), dayjs()] },
-                { label: t("analytics.period.last30Days"), value: [dayjs().subtract(29, "day"), dayjs()] },
-                { label: t("analytics.period.last90Days"), value: [dayjs().subtract(89, "day"), dayjs()] },
-              ]}
-              format="YYYY-MM-DD"
-              style={{ width: isMobile ? "100%" : 240 }}
+            <Table<CampaignSummaryRow>
+              loading={loading}
+              rowKey="campaignId"
+              size="middle"
+              dataSource={filteredRows}
+              columns={columns}
+              pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: [10, 25, 50, 100] }}
+              locale={{
+                emptyText:
+                  statusFilter !== "ALL" ? (
+                    <EmptyState
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      title={t("meta.panel.noFilteredCampaigns")}
+                      action={{
+                        label: t("meta.panel.showAllStatuses"),
+                        onClick: () => setStatusFilter("ALL"),
+                        type: "default",
+                      }}
+                      style={{ padding: "24px 0" }}
+                    />
+                  ) : (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("analytics.empty.title")} />
+                  ),
+              }}
+              onRow={(row) => ({
+                onClick: () => {
+                  if (accountId) navigate(accountCampaignPath(accountId, row.campaignId));
+                },
+                style: { cursor: "pointer" },
+              })}
             />
           </ConfigProvider>
         </Flex>
-        <Flex gap={8} align="center">
-          {updatedAtText && (
-            <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-              <SyncOutlined style={{ marginInlineEnd: 4 }} />
-              {t("meta.panel.updatedAt", { time: updatedAtText })}
-            </Typography.Text>
-          )}
-          <Dropdown
-            disabled={!data || filteredRows.length === 0}
-            menu={{
-              items: [
-                {
-                  key: "csv",
-                  icon: <FileTextOutlined />,
-                  label: t("meta.panel.exportCsv"),
-                  onClick: () => data && exportCampaignListCsv(filteredRows, currency),
-                },
-                {
-                  key: "pdf",
-                  icon: <FilePdfOutlined />,
-                  label: t("meta.panel.exportPdf"),
-                  onClick: () => data && exportCampaignListPdf(filteredRows, currency, data.periodLabel),
-                },
-              ],
-            }}
-          >
-            <Button
-              icon={<DownloadOutlined />}
-              size="small"
-              disabled={!data || filteredRows.length === 0}
-            >
-              {!isMobile && t("meta.panel.export")}{" "}
-            </Button>
-          </Dropdown>
-          <Button
-            icon={<ReloadOutlined />}
-            size="small"
-            onClick={() => void refresh()}
-            loading={loading}
-          >
-            {!isMobile && t("common.reload")}
-          </Button>
-        </Flex>
-      </Flex>
-
-      {/* Campaign table */}
-      <ConfigProvider direction="ltr">
-        <Card size="small" styles={{ body: { padding: 0 } }}>
-          <Table<CampaignSummaryRow>
-            loading={loading}
-            rowKey="campaignId"
-            size="small"
-            dataSource={filteredRows}
-            columns={columns}
-            pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: [10, 25, 50, 100] }}
-            locale={{
-              emptyText:
-                statusFilter !== "ALL" ? (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={t("meta.panel.noFilteredCampaigns")}
-                  >
-                    <Button size="small" onClick={() => setStatusFilter("ALL")}>
-                      {t("meta.panel.showAllStatuses")}
-                    </Button>
-                  </Empty>
-                ) : (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("analytics.empty.title")} />
-                ),
-            }}
-            onRow={(row) => ({
-              onClick: () => {
-                if (accountId) navigate(accountCampaignPath(accountId, row.campaignId));
-              },
-              style: { cursor: "pointer" },
-            })}
-          />
-        </Card>
-      </ConfigProvider>
+      </Card>
     </Flex>
   );
 }

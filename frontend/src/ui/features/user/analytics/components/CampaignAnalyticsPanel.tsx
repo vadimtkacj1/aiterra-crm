@@ -6,13 +6,11 @@ import {
   Col,
   Collapse,
   ConfigProvider,
-  Empty,
   Flex,
   Grid,
   Row,
   Skeleton,
   Space,
-  Statistic,
   Table,
   Tag,
   theme,
@@ -22,9 +20,12 @@ import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
+import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { CampaignCardList } from "./CampaignCardList";
 import { CampaignSpendChart } from "./CampaignSpendChart";
 import { CampaignMetricsCharts } from "./CampaignMetricsChart";
+import { KpiStatCard } from "./KpiStatCard";
 
 /** Min width per column; sum + expand column must be ≤ scroll.x (Ant Design fixed columns). */
 const DESKTOP_COL_WIDTHS = [
@@ -256,43 +257,24 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
   );
 
   return (
-    <Flex vertical gap="middle" style={{ width: "100%" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <Typography.Title level={isMobile ? 5 : 4} style={{ margin: 0 }}>
-            {title}
-          </Typography.Title>
-          <Typography.Paragraph
-            type="secondary"
-            style={{ marginBottom: 0, fontSize: isMobile ? 12 : 14 }}
-          >
-            {description}
-          </Typography.Paragraph>
-        </div>
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={() => void refresh()}
-          loading={loading}
-          size={isMobile ? "small" : "middle"}
-        >
-          {t("common.reload")}
-        </Button>
-      </div>
+    <div style={{ width: "100%" }}>
+      <PageHeader
+        title={title}
+        subtitle={description}
+        actions={
+          <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={loading}>
+            {t("common.reload")}
+          </Button>
+        }
+      />
 
+      <Flex vertical gap={24} style={{ width: "100%" }}>
       {loading && !data ? (
-        <Flex vertical gap="large" style={{ width: "100%" }}>
+        <Flex vertical gap={24} style={{ width: "100%" }}>
           <Skeleton active title={false} paragraph={{ rows: 1 }} />
-          <Row gutter={[12, 12]}>
+          <Row gutter={[16, 16]}>
             {[0, 1, 2, 3].map((k) => (
-              <Col key={k} xs={12} lg={6}>
+              <Col key={k} xs={24} sm={12} lg={6}>
                 <Card size="small">
                   <Skeleton active title paragraph={{ rows: 1 }} />
                 </Card>
@@ -304,77 +286,51 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
       ) : null}
 
       {data && isSnapshotEmpty(data) ? (
-        <Card size="small" styles={{ body: { padding: isMobile ? 24 : 40 } }}>
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              <Flex vertical gap="small" align="center">
-                <Typography.Text strong>{t("analytics.empty.title")}</Typography.Text>
-                <Typography.Paragraph type="secondary" style={{ marginBottom: 0, maxWidth: 420 }}>
-                  {t("analytics.empty.description")}
-                </Typography.Paragraph>
-              </Flex>
-            }
-          >
-            <Button type="primary" icon={<ReloadOutlined />} loading={loading} onClick={() => void refresh()}>
-              {t("common.reload")}
-            </Button>
-          </Empty>
+        <Card>
+          <EmptyState
+            title={t("analytics.empty.title")}
+            description={t("analytics.empty.description")}
+            action={{ label: t("common.reload"), onClick: () => void refresh(), loading }}
+          />
         </Card>
       ) : null}
 
       {data && !isSnapshotEmpty(data) ? (
         <>
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            {periodText}
-            {data.rows.length > 0 ? (
-              <>
-                {" · "}
-                {t("analytics.table.rowCount", { count: data.rows.length })}
-              </>
-            ) : null}
-          </Typography.Text>
+          <Flex vertical gap={8}>
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, fontVariantNumeric: "tabular-nums" }}
+            >
+              {periodText}
+              {data.rows.length > 0 ? (
+                <>
+                  {" · "}
+                  {t("analytics.table.rowCount", { count: data.rows.length })}
+                </>
+              ) : null}
+            </Typography.Text>
 
-          <Row gutter={[12, 12]}>
-            <Col xs={12} sm={12} lg={6}>
-              <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                <Statistic
-                  title={t("analytics.stats.impressions")}
-                  value={data.totals.impressions}
-                  valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                />
-              </Card>
-            </Col>
-            <Col xs={12} sm={12} lg={6}>
-              <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                <Statistic
-                  title={t("analytics.stats.clicks")}
-                  value={data.totals.clicks}
-                  valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                />
-              </Card>
-            </Col>
-            <Col xs={12} sm={12} lg={6}>
-              <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                <Statistic
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} lg={6}>
+                <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <KpiStatCard title={t("analytics.stats.clicks")} value={data.totals.clicks} />
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <KpiStatCard
                   title={t("analytics.stats.spend")}
                   value={data.totals.spend}
                   suffix={data.currency}
                   precision={2}
-                  valueStyle={isMobile ? { fontSize: 20 } : undefined}
                 />
-              </Card>
-            </Col>
-            <Col xs={12} sm={12} lg={6}>
-              <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                <Statistic
-                  title={t("analytics.stats.conversions")}
-                  value={data.totals.conversions}
-                  valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                />
-              </Card>
-            </Col>
-          </Row>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <KpiStatCard title={t("analytics.stats.conversions")} value={data.totals.conversions} />
+              </Col>
+            </Row>
+          </Flex>
 
           <Collapse
             bordered={false}
@@ -386,83 +342,56 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
                 key: "more",
                 label: <Typography.Text strong>{t("analytics.table.moreMetrics")}</Typography.Text>,
                 children: (
-                  <Row gutter={[12, 12]}>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.reach")}
-                          value={data.totals.reach ?? 0}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard title={t("analytics.stats.reach")} value={data.totals.reach ?? 0} />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.frequency")}
-                          value={data.totals.frequency ?? 0}
-                          precision={2}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.frequency")}
+                        value={data.totals.frequency ?? 0}
+                        precision={2}
+                      />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.cpc")}
-                          value={data.totals.cpc ?? 0}
-                          suffix={data.currency}
-                          precision={4}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.cpc")}
+                        value={data.totals.cpc ?? 0}
+                        suffix={data.currency}
+                        precision={4}
+                      />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.cpm")}
-                          value={data.totals.cpm ?? 0}
-                          suffix={data.currency}
-                          precision={4}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.cpm")}
+                        value={data.totals.cpm ?? 0}
+                        suffix={data.currency}
+                        precision={4}
+                      />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.inlineLinkClicks")}
-                          value={data.totals.inlineLinkClicks ?? 0}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.inlineLinkClicks")}
+                        value={data.totals.inlineLinkClicks ?? 0}
+                      />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.uniqueClicks")}
-                          value={data.totals.uniqueClicks ?? 0}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.uniqueClicks")}
+                        value={data.totals.uniqueClicks ?? 0}
+                      />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.postEngagement")}
-                          value={data.totals.postEngagement ?? 0}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.postEngagement")}
+                        value={data.totals.postEngagement ?? 0}
+                      />
                     </Col>
-                    <Col xs={12} sm={12} lg={6}>
-                      <Card size="small" styles={{ body: { padding: isMobile ? 12 : 20 } }}>
-                        <Statistic
-                          title={t("analytics.stats.videoViews")}
-                          value={data.totals.videoViews ?? 0}
-                          valueStyle={isMobile ? { fontSize: 20 } : undefined}
-                        />
-                      </Card>
+                    <Col xs={24} sm={12} lg={6}>
+                      <KpiStatCard
+                        title={t("analytics.stats.videoViews")}
+                        value={data.totals.videoViews ?? 0}
+                      />
                     </Col>
                   </Row>
                 ),
@@ -471,15 +400,15 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
           />
 
           {isMobile ? (
-            <>
+            <Flex vertical gap={16}>
               <Typography.Text strong style={{ fontSize: 14 }}>
                 {t("analytics.table.campaigns")}
               </Typography.Text>
               <CampaignCardList rows={data.rows} currency={data.currency} />
-            </>
+            </Flex>
           ) : (
             <ConfigProvider direction="ltr">
-              <Flex vertical gap="middle" style={{ width: "100%" }}>
+              <Flex vertical gap={24} style={{ width: "100%" }}>
                 <CampaignSpendChart rows={data.rows} currency={data.currency} />
                 <CampaignMetricsCharts data={data} />
                 <Card
@@ -500,7 +429,7 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
                       pageSizeOptions: [25, 50, 100, 200],
                       showTotal: (total) => t("analytics.table.rowCount", { count: total }),
                     }}
-                    size="small"
+                    size="middle"
                     scroll={{ x: TABLE_SCROLL_X }}
                     dataSource={data.rows}
                     columns={columns}
@@ -515,6 +444,7 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
           )}
         </>
       ) : null}
-    </Flex>
+      </Flex>
+    </div>
   );
 }

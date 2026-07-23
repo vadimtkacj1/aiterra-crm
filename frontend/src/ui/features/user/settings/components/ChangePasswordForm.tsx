@@ -1,5 +1,5 @@
-﻿import { LockOutlined, SaveOutlined } from "@ant-design/icons";
-import { App, Button, Card, Form, Input, theme } from "antd";
+﻿import { SaveOutlined } from "@ant-design/icons";
+import { App, Button, Card, Form, Input } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TranslatableError } from "../../../../../domain/errors";
@@ -16,7 +16,6 @@ export function ChangePasswordForm() {
   const { t } = useTranslation();
   const { services } = useApp();
   const { message } = App.useApp();
-  const { token } = theme.useToken();
   const [form] = Form.useForm<PasswordForm>();
   const [submitting, setSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -47,22 +46,7 @@ export function ChangePasswordForm() {
   };
 
   return (
-    <Card
-      variant="borderless"
-      style={{
-        maxWidth: 400,
-        width: "100%",
-        boxShadow: "var(--ds-shadow-card)",
-        border: `1px solid ${token.colorBorderSecondary}`,
-        borderRadius: Math.max(12, token.borderRadiusLG * 1.25),
-      }}
-      title={
-        <span>
-          <LockOutlined style={{ marginRight: 8 }} />
-          {t("settings.passwordSectionTitle")}
-        </span>
-      }
-    >
+    <Card style={{ width: "100%" }} title={t("settings.passwordSectionTitle")}>
       <Form form={form} layout="vertical" onFinish={(v) => void onFinish(v)} requiredMark="optional" onValuesChange={() => setIsDirty(true)}>
         <Form.Item
           name="currentPassword"
@@ -100,7 +84,7 @@ export function ChangePasswordForm() {
           <Input.Password autoComplete="new-password" />
         </Form.Item>
         <Form.Item style={{ marginBottom: 0 }}>
-          <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={submitting} size="large">
+          <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={submitting}>
             {t("settings.savePassword")}
           </Button>
         </Form.Item>

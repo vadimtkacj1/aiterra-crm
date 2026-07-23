@@ -10,6 +10,7 @@
     },
     "meta": {
       "title": "Meta (Facebook / Instagram) analytics",
+      "subtitle": "Performance and results of your Meta ad campaigns",
       "notLinkedTitle": "Meta campaigns not linked",
       "notLinkedDescription": "Your administrator hasn't linked a Meta campaign to this account yet. Contact them to get access to ad analytics.",
       "goToBilling": "Go to billing"

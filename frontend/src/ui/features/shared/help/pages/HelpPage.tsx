@@ -1,16 +1,15 @@
 import {
   AppstoreOutlined,
   BellOutlined,
-  BookOutlined,
   FacebookOutlined,
   LockOutlined,
   PlayCircleOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
-import { Button, Card, Col, Row, Space, Typography, theme } from "antd";
+import { Button, Card, Col, Flex, Row, Typography } from "antd";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { tokens } from "@/styles/designSystem";
+import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { useGuidedTour } from "@/ui/shared/onboarding/guidedTourContext";
 
@@ -18,96 +17,61 @@ function SectionCard({
   icon,
   title,
   body,
-  accent,
 }: {
   icon: ReactNode;
   title: string;
   body: string;
-  accent: string;
 }) {
-  const { token } = theme.useToken();
   return (
-    <Card
-      variant="borderless"
-      style={{
-        height: "100%",
-        background: token.colorBgContainer,
-        boxShadow: tokens.shadow.card,
-      }}
-      styles={{
-        body: { padding: "18px 18px 16px" },
-      }}
-    >
-      <Space direction="vertical" size={10} style={{ width: "100%" }}>
-        <span
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: accent,
-            color: token.colorPrimary,
-            fontSize: 18,
-          }}
+    <Card style={{ height: "100%" }} styles={{ body: { padding: "18px 20px" } }}>
+      <Flex vertical gap={8}>
+        <Flex align="center" gap={10}>
+          <span
+            style={{
+              color: "var(--ds-text-tertiary)",
+              fontSize: 18,
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            {icon}
+          </span>
+          <Typography.Title level={5} style={{ margin: 0, fontSize: 15 }}>
+            {title}
+          </Typography.Title>
+        </Flex>
+        <Typography.Paragraph
+          style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--ds-text-secondary)" }}
         >
-          {icon}
-        </span>
-        <Typography.Title level={5} style={{ margin: 0, fontSize: 16 }}>
-          {title}
-        </Typography.Title>
-        <Typography.Paragraph style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: token.colorTextSecondary }}>
           {body}
         </Typography.Paragraph>
-      </Space>
+      </Flex>
     </Card>
   );
 }
 
 export function HelpPage() {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
-  const accent = tokens.colors.primarySurface;
   const { startGuidedTour, guidedTourAvailable } = useGuidedTour();
 
   return (
     <UserContentLayout align="start" maxWidth={960}>
-      <Space direction="vertical" size={8} style={{ width: "100%", marginBottom: 8 }}>
-        <Typography.Title level={3} style={{ margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
-          <BookOutlined style={{ color: token.colorPrimary }} />
-          {t("help.title")}
-        </Typography.Title>
-        <Typography.Paragraph type="secondary" style={{ fontSize: 15, lineHeight: 1.65, marginBottom: 0, maxWidth: 720 }}>
-          {t("help.intro")}
-        </Typography.Paragraph>
-      </Space>
-
-      {guidedTourAvailable ? (
-        <Card
-          size="small"
-          variant="borderless"
-          style={{
-            marginBottom: 20,
-            borderRadius: token.borderRadiusLG,
-            border: `1px solid ${token.colorBorderSecondary}`,
-            background: token.colorFillAlter,
-          }}
-          styles={{ body: { padding: "14px 16px" } }}
-        >
-          <Space direction="vertical" size={10} style={{ width: "100%" }} align="start">
-            <Typography.Text strong style={{ fontSize: 15 }}>
-              {t("help.runTour")}
-            </Typography.Text>
-            <Typography.Paragraph type="secondary" style={{ margin: 0, fontSize: 14, lineHeight: 1.55, maxWidth: 640 }}>
-              {t("help.runTourSub")}
-            </Typography.Paragraph>
-            <Button type="primary" icon={<PlayCircleOutlined />} onClick={() => startGuidedTour?.()}>
+      <PageHeader
+        title={t("help.title")}
+        subtitle={t("help.intro")}
+        actions={
+          guidedTourAvailable ? (
+            <Button
+              type="primary"
+              icon={<PlayCircleOutlined />}
+              title={t("help.runTourSub")}
+              onClick={() => startGuidedTour?.()}
+            >
               {t("tour.start")}
             </Button>
-          </Space>
-        </Card>
-      ) : null}
+          ) : undefined
+        }
+      />
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
@@ -115,7 +79,6 @@ export function HelpPage() {
             icon={<AppstoreOutlined />}
             title={t("help.section1Title")}
             body={t("help.section1Body")}
-            accent={accent}
           />
         </Col>
         <Col xs={24} md={12}>
@@ -123,7 +86,6 @@ export function HelpPage() {
             icon={<FacebookOutlined />}
             title={t("help.section2Title")}
             body={t("help.section2Body")}
-            accent={accent}
           />
         </Col>
         <Col xs={24} md={12}>
@@ -131,7 +93,6 @@ export function HelpPage() {
             icon={<WalletOutlined />}
             title={t("help.section3Title")}
             body={t("help.section3Body")}
-            accent={accent}
           />
         </Col>
         <Col xs={24} md={12}>
@@ -139,7 +100,6 @@ export function HelpPage() {
             icon={<LockOutlined />}
             title={t("help.section4Title")}
             body={t("help.section4Body")}
-            accent={accent}
           />
         </Col>
         <Col xs={24} md={12}>
@@ -147,7 +107,6 @@ export function HelpPage() {
             icon={<BellOutlined />}
             title={t("help.section5Title")}
             body={t("help.section5Body")}
-            accent={accent}
           />
         </Col>
       </Row>

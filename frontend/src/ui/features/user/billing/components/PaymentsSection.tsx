@@ -1,11 +1,12 @@
 ﻿import { CheckCircleOutlined, DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Flex, Modal, Row, Space, Table, Tag, Typography } from "antd";
+import { Button, Card, Flex, Modal, Space, Table, Tag, Typography } from "antd";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PaymentRecord } from "@/domain/Billing";
 import type { BillingOverview } from "@/services/billing/IBillingService";
 import { downloadInvoicePdf } from "@/ui/shared/utils/invoicePdf";
 import { billingShell, formatInvoiceMoney } from "./billingUtils";
+import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { ResponsiveCardView, useMobileView } from "@/ui/shared/components/ResponsiveCardView";
 
 interface Props {
@@ -65,34 +66,23 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
     [accountId],
   );
 
-  const tableEmpty = (text: string) => (
-    <Flex justify="center" align="center" style={{ padding: "28px 16px" }}>
-      <Typography.Text type="secondary" style={{ fontSize: 14 }}>
-        {text}
-      </Typography.Text>
-    </Flex>
-  );
-
   return (
     <>
-      <Row gutter={[16, 16]} align="stretch">
-        <Col xs={24}>
-          <Card
-            title={t("billing.invoices")}
-            loading={loading}
-            size="small"
-            variant="borderless"
-            styles={{
-              header: { borderBottom: `1px solid ${billingShell.borderInner}` },
-              body: { padding: 0 },
-            }}
-            style={{
-              height: "100%",
-              borderRadius: billingShell.radiusMd,
-              boxShadow: billingShell.shadow,
-              border: `1px solid ${billingShell.border}`,
-            }}
-          >
+      <Card
+        title={t("billing.invoices")}
+        loading={loading}
+        size="small"
+        variant="borderless"
+        styles={{
+          header: { borderBottom: `1px solid ${billingShell.borderInner}` },
+          body: { padding: 0 },
+        }}
+        style={{
+          borderRadius: billingShell.radiusMd,
+          boxShadow: billingShell.shadow,
+          border: `1px solid ${billingShell.borderInner}`,
+        }}
+      >
             {isMobile ? (
               <ResponsiveCardView
                 items={(overview?.payments ?? []).map((r) => ({
@@ -130,14 +120,20 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
               />
             ) : (
               <Table
-                size="small"
+                size="middle"
                 rowKey="id"
                 scroll={{ x: 500 }}
                 pagination={{ pageSize: 5 }}
                 dataSource={overview?.payments ?? []}
-                locale={{ emptyText: tableEmpty(t("billing.emptyPayments")) }}
+                locale={{ emptyText: <EmptyState title={t("billing.emptyPayments")} style={{ padding: "24px 16px" }} /> }}
                 columns={[
-                  { title: t("billing.date"), dataIndex: "date", key: "date", width: 108 },
+                  {
+                    title: t("billing.date"),
+                    dataIndex: "date",
+                    key: "date",
+                    width: 108,
+                    render: (v: string) => <span style={{ fontVariantNumeric: "tabular-nums" }}>{v}</span>,
+                  },
                   {
                     title: t("billing.invoiceNumberShort"),
                     dataIndex: "id",
@@ -154,7 +150,11 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
                     title: t("billing.total"),
                     key: "amount",
                     width: 100,
-                    render: (_, r) => formatInvoiceMoney(r.amount, r.currency, appLocale),
+                    render: (_, r) => (
+                      <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                        {formatInvoiceMoney(r.amount, r.currency, appLocale)}
+                      </span>
+                    ),
                   },
                   {
                     title: t("billing.status"),
@@ -191,9 +191,7 @@ export function PaymentsSection({ overview, loading, appLocale, accountId }: Pro
                 ]}
               />
             )}
-          </Card>
-        </Col>
-      </Row>
+      </Card>
 
       <Modal
         title={t("billing.invoiceDetailsTitle")}

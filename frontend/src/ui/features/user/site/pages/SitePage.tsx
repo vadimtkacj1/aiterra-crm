@@ -1,15 +1,12 @@
 import {
   CopyOutlined,
   GlobalOutlined,
-  LinkOutlined,
   MailOutlined,
-  NotificationOutlined,
   ReloadOutlined,
   SaveOutlined,
-  TeamOutlined,
   WhatsAppOutlined,
 } from "@ant-design/icons";
-import { App, Button, Card, Col, Input, Radio, Row, Space, Tag, Tooltip, Typography } from "antd";
+import { App, Button, Card, Col, Flex, Input, Radio, Row, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +14,7 @@ import { useParams } from "react-router-dom";
 import { useApp } from "../../../../../app/AppProviders";
 import type { SiteConfig, SiteLead } from "../../../../../domain/Site";
 import { AppTable } from "../../../../shared/components/AppTable";
+import { EmptyState } from "../../../../shared/components/EmptyState";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
 
@@ -178,26 +176,31 @@ export function SitePage() {
       <Row gutter={[0, 24]} style={{ width: "100%" }}>
         {/* Subscription link */}
         <Col span={24}>
-          <Card
-            title={
-              <>
-                <LinkOutlined style={{ marginInlineEnd: 8 }} />
-                {t("site.subscribe.title")}
-              </>
-            }
-            loading={configLoading}
-          >
-            <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+          <Card title={t("site.subscribe.title")} loading={configLoading}>
+            <Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
               {t("site.subscribe.hint")}
             </Text>
             {subscribeUrl ? (
-              <Space wrap>
-                <Tag
-                  color="green"
-                  style={{ fontSize: 13, padding: "4px 12px", fontFamily: "monospace", maxWidth: 500, overflow: "hidden", textOverflow: "ellipsis" }}
+              <Flex wrap gap={8} align="center">
+                <span
+                  dir="ltr"
+                  style={{
+                    fontFamily: "var(--ds-font-family-mono)",
+                    fontSize: 13,
+                    padding: "5px 12px",
+                    background: "var(--ds-surface-1)",
+                    border: "1px solid var(--ds-border-subtle)",
+                    borderRadius: 8,
+                    maxWidth: 500,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    display: "inline-block",
+                    color: "var(--ds-text-secondary)",
+                  }}
                 >
                   {subscribeUrl}
-                </Tag>
+                </span>
                 <Button
                   size="small"
                   icon={<CopyOutlined />}
@@ -213,7 +216,7 @@ export function SitePage() {
                 >
                   {t("site.subscribe.open")}
                 </Button>
-              </Space>
+              </Flex>
             ) : (
               <Text type="secondary">—</Text>
             )}
@@ -222,15 +225,7 @@ export function SitePage() {
 
         {/* Notification config */}
         <Col span={24}>
-          <Card
-            title={
-              <>
-                <NotificationOutlined style={{ marginInlineEnd: 8 }} />
-                {t("site.notify.title")}
-              </>
-            }
-            loading={configLoading}
-          >
+          <Card title={t("site.notify.title")} loading={configLoading}>
             <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
               {t("site.notify.hint")}
             </Text>
@@ -258,23 +253,27 @@ export function SitePage() {
             {(notifyChannel === "whatsapp" || notifyChannel === "both") && (
               <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
                 <Col xs={24}>
-                  <Text strong style={{ display: "block", marginBottom: 8, color: "#25d366" }}>
-                    <WhatsAppOutlined style={{ marginInlineEnd: 6 }} />
+                  <Text strong style={{ display: "block", marginBottom: 8 }}>
+                    <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 6 }} />
                     {t("site.whatsapp.title")}
                   </Text>
                 </Col>
                 <Col xs={24}>
                   {(config?.waOwnerPhoneVerified || config?.waOwnerPhone) ? (
                     /* ── Connected state ── */
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--ds-color-success-surface)", border: "1px solid #b7eb8f", borderRadius: 8 }}>
+                    <Flex align="center" gap={12} wrap="wrap">
                       <WhatsAppOutlined style={{ color: "var(--ds-color-success)", fontSize: 20 }} />
-                      <div>
-                        <Text strong style={{ color: "var(--ds-color-success)" }}>✓ {t("site.whatsapp.connected")}</Text>
-                        <Text type="secondary" style={{ display: "block", fontSize: 12 }}>{config.waOwnerPhoneVerified ?? config.waOwnerPhone}</Text>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <Text strong>{t("site.whatsapp.connected")}</Text>
+                        <Text
+                          type="secondary"
+                          style={{ display: "block", fontSize: 12, fontVariantNumeric: "tabular-nums", direction: "ltr", unicodeBidi: "isolate", textAlign: "start" }}
+                        >
+                          {config.waOwnerPhoneVerified ?? config.waOwnerPhone}
+                        </Text>
                       </div>
                       <Button
                         size="small"
-                        style={{ marginInlineStart: "auto" }}
                         loading={waConnecting}
                         icon={<ReloadOutlined />}
                         onClick={async () => {
@@ -289,18 +288,19 @@ export function SitePage() {
                       >
                         {t("site.whatsapp.refresh")}
                       </Button>
-                    </div>
+                    </Flex>
                   ) : (
                     /* ── Not connected — show permanent code ── */
-                    <div style={{ padding: "14px 16px", background: "var(--ds-color-warning-surface)", border: "1px solid #ffe58f", borderRadius: 8 }}>
+                    <div>
                       <Text strong style={{ display: "block", marginBottom: 6 }}>
-                        <WhatsAppOutlined style={{ color: "#25d366", marginInlineEnd: 6 }} />
                         {t("site.whatsapp.connectInstructions")}
                       </Text>
                       {waConnectBotPhone && (
                         <div style={{ marginBottom: 6 }}>
                           <Text type="secondary">{t("site.whatsapp.connectSendTo")} </Text>
-                          <Text strong copyable>{waConnectBotPhone}</Text>
+                          <Text strong copyable style={{ fontVariantNumeric: "tabular-nums", direction: "ltr", unicodeBidi: "isolate", display: "inline-block" }}>
+                            {waConnectBotPhone}
+                          </Text>
                         </div>
                       )}
                       <div style={{ marginBottom: 12 }}>
@@ -308,7 +308,7 @@ export function SitePage() {
                         <Text
                           strong
                           copyable
-                          style={{ fontSize: 22, letterSpacing: 3, fontFamily: "monospace", color: "var(--ds-color-primary)" }}
+                          style={{ fontSize: 22, letterSpacing: 3, fontFamily: "var(--ds-font-family-mono)", color: "var(--ds-color-primary)" }}
                         >
                           {waConnectCode || "…"}
                         </Text>
@@ -406,9 +406,8 @@ export function SitePage() {
           <Card
             title={
               <>
-                <TeamOutlined style={{ marginInlineEnd: 8 }} />
                 {t("site.leads.title")}
-                <Text type="secondary" style={{ fontWeight: 400, marginLeft: 8 }}>
+                <Text type="secondary" style={{ fontWeight: 400, marginInlineStart: 8, fontVariantNumeric: "tabular-nums" }}>
                   ({leads.length})
                 </Text>
               </>
@@ -428,7 +427,7 @@ export function SitePage() {
               loading={leadsLoading}
               dataSource={leads}
               columns={leadsColumns}
-              locale={{ emptyText: t("site.leads.empty") }}
+              locale={{ emptyText: <EmptyState description={t("site.leads.empty")} style={{ padding: "24px 0" }} /> }}
             />
           </Card>
         </Col>

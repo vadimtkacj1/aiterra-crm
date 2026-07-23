@@ -1,11 +1,12 @@
 ﻿import { ReloadOutlined } from "@ant-design/icons";
-import { App, Button, Card, Empty, Space, Table, Tag, Typography } from "antd";
+import { App, Button, Card, Space, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import type { ContractMemberRow } from "../../../../../domain/Contract";
 import { useApp } from "../../../../../app/AppProviders";
+import { EmptyState } from "../../../../shared/components/EmptyState";
 import { PageHeader } from "../../../../shared/components/PageHeader";
 import { UserContentLayout } from "../../../../shared/components/UserContentLayout";
 import { ResponsiveCardView, useMobileView } from "../../../../shared/components/ResponsiveCardView";
@@ -136,7 +137,7 @@ export function MemberContractsPage() {
               <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
                 {t("memberContracts.monthlyBadge")}
               </Tag>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              <Typography.Text type="secondary" style={{ fontSize: 12, fontVariantNumeric: "tabular-nums" }}>
                 {t("memberContracts.monthlyAmount", { amount: money(r.monthlyAmount!, r.currency) })}
                 {r.subscriptionMonths ? ` · ${t("memberContracts.monthlyDuration", { months: r.subscriptionMonths })}` : ""}
               </Typography.Text>
@@ -158,11 +159,11 @@ export function MemberContractsPage() {
               <Tag color={color} style={{ margin: 0 }}>
                 {t(key)}
               </Tag>
-              <Typography.Text strong style={{ fontSize: 13 }}>
+              <Typography.Text strong style={{ fontSize: 13, fontVariantNumeric: "tabular-nums" }}>
                 {money(r.totalAmount, r.currency)}
               </Typography.Text>
             </div>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            <Typography.Text type="secondary" style={{ fontSize: 12, fontVariantNumeric: "tabular-nums" }}>
               {t("memberContracts.paymentProgress", {
                 paid: stagesPaid,
                 total: stagesTotal,
@@ -237,11 +238,17 @@ export function MemberContractsPage() {
             </Button>
           }
         />
-        <Card styles={{ body: { padding: 0, overflow: "hidden", borderRadius: 12 } }}>
+        <Card
+          variant="borderless"
+          styles={{ body: { padding: 0, overflow: "hidden", borderRadius: 12 } }}
+          style={{
+            borderRadius: 12,
+            boxShadow: "var(--ds-shadow-card)",
+            border: "1px solid var(--ds-border-subtle)",
+          }}
+        >
           {!loading && rows.length === 0 ? (
-            <div style={{ padding: 24 }}>
-              <Empty description={t("memberContracts.empty")} />
-            </div>
+            <EmptyState title={t("memberContracts.empty")} />
           ) : isMobile ? (
             <ResponsiveCardView
               items={rows.map((r) => {
@@ -302,6 +309,7 @@ export function MemberContractsPage() {
           ) : (
             <Table<ContractMemberRow>
               rowKey="id"
+              size="middle"
               loading={loading}
               columns={columns}
               dataSource={rows}

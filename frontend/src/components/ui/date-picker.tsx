@@ -87,7 +87,7 @@ const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
                 className={cn(
                   "-me-1 ms-auto flex size-5 shrink-0 items-center justify-center rounded-md",
                   "text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                 )}
               >
                 <X className="size-3.5" aria-hidden="true" />

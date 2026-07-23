@@ -75,7 +75,12 @@ export function FormItem<T extends FieldValues, N extends Path<T>>({
               {required && <span className="text-destructive ms-1">*</span>}
             </Label>
           )}
-          {children({ ...field } as ControllerRenderProps<T, N>, { invalid: fieldState.invalid })}
+          {/* id + aria-invalid ride along on the field object so plain
+              `{...field}` spreads wire up the label and error styling. */}
+          {children(
+            { ...field, id, "aria-invalid": fieldState.invalid || undefined } as ControllerRenderProps<T, N>,
+            { invalid: fieldState.invalid },
+          )}
           {fieldState.error?.message ? (
             <p role="alert" className="text-xs text-destructive">{fieldState.error.message}</p>
           ) : hint ? (

@@ -10,6 +10,9 @@
 /* antd is fully removed — the standard preflight reset is now safe to enable. */
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
+/* Enter/exit animation utilities (animate-in/out, fade/zoom/slide) for
+   Radix overlays — dialogs, sheets, dropdowns, popovers, tooltips. */
+@import "tw-animate-css";
 
 /* Map shadcn design tokens → the existing --ds-* / brand palette */
 @theme inline {

@@ -20,7 +20,8 @@ const SheetOverlay = React.forwardRef<
     ref={ref}
     data-slot="sheet-overlay"
     className={cn(
-      "fixed inset-0 z-50 bg-foreground/50 transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
+      "fixed inset-0 z-50 bg-foreground/50",
+      "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
       className,
     )}
     {...props}
@@ -29,13 +30,18 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 flex flex-col gap-4 overflow-y-auto bg-card p-6 text-card-foreground shadow-xl transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
+  "fixed z-50 flex flex-col gap-4 overflow-y-auto bg-card p-6 text-card-foreground shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:duration-300 data-[state=closed]:duration-200",
   {
     variants: {
       side: {
-        start: "inset-y-0 start-0 h-full w-[360px] max-w-[calc(100vw-2rem)] border-e border-border",
-        end: "inset-y-0 end-0 h-full w-[360px] max-w-[calc(100vw-2rem)] border-s border-border",
-        bottom: "inset-x-0 bottom-0 max-h-[85vh] w-full rounded-t-2xl border-t border-border",
+        /* start/end are physical here: Radix data-side is unavailable, so RTL flips
+           via the logical inset — slide direction must follow the rendered edge. */
+        start:
+          "inset-y-0 start-0 h-full w-[360px] max-w-[calc(100vw-2rem)] border-e border-border ltr:data-[state=open]:slide-in-from-left rtl:data-[state=open]:slide-in-from-right ltr:data-[state=closed]:slide-out-to-left rtl:data-[state=closed]:slide-out-to-right",
+        end:
+          "inset-y-0 end-0 h-full w-[360px] max-w-[calc(100vw-2rem)] border-s border-border ltr:data-[state=open]:slide-in-from-right rtl:data-[state=open]:slide-in-from-left ltr:data-[state=closed]:slide-out-to-right rtl:data-[state=closed]:slide-out-to-left",
+        bottom:
+          "inset-x-0 bottom-0 max-h-[85vh] w-full rounded-t-2xl border-t border-border data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom",
       },
     },
     defaultVariants: { side: "end" },
@@ -69,7 +75,7 @@ const SheetContent = React.forwardRef<
           aria-label={closeLabel}
           className={cn(
             "absolute end-4 top-4 rounded-md p-1 text-muted-foreground opacity-70 transition-opacity",
-            "hover:opacity-100 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "hover:opacity-100 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
             "disabled:pointer-events-none",
           )}
         >

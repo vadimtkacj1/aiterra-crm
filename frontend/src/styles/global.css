@@ -34,11 +34,14 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--ds-border-strong); }
 
-/* ── Focus ring: accessible + branded ───────────────────── */
-:focus-visible {
-  outline: 2px solid var(--ds-color-primary);
-  outline-offset: 2px;
-  border-radius: var(--ds-radius-xs);
+/* ── Focus ring fallback: accessible + branded ────────────
+   In @layer base so kit components that draw their own
+   focus-visible ring (utilities layer) override it. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ds-color-primary);
+    outline-offset: 2px;
+  }
 }
 
 /* ── Skip-to-content link: visually hidden until focused ──

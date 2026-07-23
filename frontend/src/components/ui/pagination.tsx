@@ -34,7 +34,7 @@ function buildPages(current: number, pageCount: number): PageToken[] {
 const pageButtonClass = cn(
   "inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm",
   "transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
 );
 
 const Pagination = React.forwardRef<HTMLElement, PaginationProps>(

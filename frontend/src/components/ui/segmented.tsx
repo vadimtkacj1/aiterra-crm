@@ -103,7 +103,7 @@ const Segmented = React.forwardRef<HTMLDivElement, SegmentedProps>(
               }}
               className={cn(
                 "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                 "disabled:pointer-events-none disabled:opacity-50",
                 sizeClasses[size],
                 active

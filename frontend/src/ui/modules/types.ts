@@ -40,4 +40,7 @@ export interface AdminModule {
   path: string;
   element: ReactNode;
   navItem: (t: TFn) => NavItem;
+  /** i18n key of the sidebar group this section belongs to (consecutive
+      modules with the same key render under one group label). */
+  navGroupKey?: string;
 }

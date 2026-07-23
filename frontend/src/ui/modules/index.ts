@@ -45,14 +45,16 @@ import {
 } from './admin';
 
 export const adminModules: AdminModule[] = [
+  // Sidebar order — modules with the same navGroupKey must stay consecutive
+  // (they render under one group label):
   adminStatisticsModule,
   adminAuditModule,
   adminUsersModule,
+  adminLeadsModule,
   adminPaymentsModule,
   adminContractsModule,
   adminInvoicesModule,
   adminMetaBudgetModule,
-  adminLeadsModule,
   adminWhatsAppModule,
   // ← ADD NEW ADMIN MODULE HERE
 ];

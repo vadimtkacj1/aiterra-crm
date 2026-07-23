@@ -91,6 +91,10 @@
       "openBilling": "Billing page",
       "statusDue": "Payment due",
       "loadError": "Could not load notifications. Try again from the billing page."
-    }
+    },
+    "navOverview": "Overview",
+    "navClients": "Clients",
+    "navBilling": "Billing",
+    "navConnections": "Connections"
   }
 }

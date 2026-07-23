@@ -38,7 +38,10 @@ export function MainLayout() {
   const showAccountContext = Boolean(layoutAccountValid && layoutAccountId);
 
   const menuItems = useMemo(() => {
-    const items: { key: string; icon: ReactNode; label: string }[] = [];
+    type MenuEntry =
+      | { key: string; icon: ReactNode; label: string }
+      | { type: "group"; label: string; children: { key: string; icon: ReactNode; label: string }[] };
+    const items: MenuEntry[] = [];
 
     if (layoutAccountValid && layoutAccountId) {
       if (accountOutletCtx.totalAccountCount > 1) {
@@ -58,7 +61,23 @@ export function MainLayout() {
     }
 
     if (isAdmin) {
-      items.push(...adminModules.map((m) => m.navItem(t)));
+      // Group consecutive admin sections under their navGroupKey labels
+      // (Refero-canonical grouped sidebar: Fernand / Navan / Shopify pattern).
+      let currentGroup: Extract<MenuEntry, { type: "group" }> | null = null;
+      for (const m of adminModules) {
+        const item = m.navItem(t);
+        if (!m.navGroupKey) {
+          currentGroup = null;
+          items.push(item);
+          continue;
+        }
+        const label = t(m.navGroupKey);
+        if (!currentGroup || currentGroup.label !== label) {
+          currentGroup = { type: "group", label, children: [] };
+          items.push(currentGroup);
+        }
+        currentGroup.children.push(item);
+      }
     }
 
     items.push({ key: Paths.help, icon: <QuestionCircleOutlined />, label: t("help.menuTitle") });

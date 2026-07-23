@@ -1,5 +1,5 @@
-import { LogoutOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
-import { Button, Layout, Space, Spin, theme, Tooltip, Typography } from "antd";
+import { DownOutlined, LogoutOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
+import { Avatar, Button, Dropdown, Layout, Space, Spin, theme, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { accountPath, Paths } from "@/ui/navigation/paths";
@@ -138,41 +138,68 @@ export function AppHeader({
         ) : null}
       </div>
 
-      {/* Right: user name, notifications, settings, logout, mobile menu */}
-      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 6 }}>
-        {!isMobile && !hideHeaderRightName && headerRightLabel ? (
-          <Typography.Text
-            type="secondary"
-            ellipsis
-            style={{ maxWidth: 200, fontSize: 13, fontWeight: 500, marginInlineEnd: 4 }}
-            title={headerRightLabel}
-          >
-            {headerRightLabel}
-          </Typography.Text>
-        ) : null}
+      {/* Right: notifications + user menu (avatar dropdown: settings / sign out) */}
+      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8 }}>
         {showAccountContext && layoutAccountId && !isAdmin ? (
           <UserNotificationCenter accountId={layoutAccountId} />
         ) : null}
-        <Tooltip title={t("layout.menuSettings")}>
+        <Dropdown
+          trigger={["click"]}
+          menu={{
+            items: [
+              {
+                key: "settings",
+                icon: <SettingOutlined />,
+                label: t("layout.menuSettings"),
+                onClick: () => navigate(settingsPath),
+              },
+              { type: "divider" },
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: t("layout.signOut"),
+                danger: true,
+                onClick: onLogout,
+              },
+            ],
+          }}
+        >
           <Button
             type="text"
-            shape="circle"
-            icon={<SettingOutlined style={{ fontSize: 17 }} />}
-            onClick={() => navigate(settingsPath)}
-            aria-label={t("layout.menuSettings")}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, height: 38 }}
-          />
-        </Tooltip>
-        <Tooltip title={t("layout.signOut")}>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<LogoutOutlined style={{ fontSize: 17 }} />}
-            onClick={onLogout}
-            aria-label={t("layout.signOut")}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, height: 38 }}
-          />
-        </Tooltip>
+            aria-label={headerRightLabel || t("layout.menuSettings")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              height: 40,
+              paddingInline: isMobile ? 4 : 8,
+              borderRadius: 10,
+            }}
+          >
+            <Avatar
+              size={30}
+              style={{
+                background: "var(--ds-color-primary-surface-deep)",
+                color: "var(--ds-color-primary)",
+                fontWeight: 600,
+                fontSize: 13,
+                flexShrink: 0,
+              }}
+            >
+              {(headerRightLabel || userEmail || "?").trim().charAt(0).toUpperCase()}
+            </Avatar>
+            {!isMobile && !hideHeaderRightName && headerRightLabel ? (
+              <Typography.Text
+                ellipsis
+                style={{ maxWidth: 160, fontSize: 13, fontWeight: 500 }}
+                title={headerRightLabel}
+              >
+                {headerRightLabel}
+              </Typography.Text>
+            ) : null}
+            <DownOutlined style={{ fontSize: 10, color: "var(--ds-text-tertiary)" }} />
+          </Button>
+        </Dropdown>
       </div>
     </Header>
   );

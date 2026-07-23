@@ -632,3 +632,16 @@ h2.ant-typography,
 .ds-card-section + .ds-card-section {
   border-top: 1px solid var(--ds-border-subtle);
 }
+
+/* ── Sidebar nav group titles (Refero: Fernand/Navan grouped nav) ── */
+.ant-menu-dark .ant-menu-item-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  color: rgba(255, 255, 255, 0.35);
+  padding-block: 14px 4px;
+  padding-inline: 28px 16px;
+}
+.ant-menu-dark .ant-menu-item-group:first-child .ant-menu-item-group-title {
+  padding-block-start: 4px;
+}

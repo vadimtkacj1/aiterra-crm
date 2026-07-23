@@ -11,11 +11,15 @@ import { brand } from "@/ui/theme/tokens";
 
 const SIDEBAR_DARK_BG = brand.sidebarBg;
 
+type SidebarMenuItem =
+  | { key: string; icon: ReactNode; label: string }
+  | { type: "group"; label: string; children: { key: string; icon: ReactNode; label: string }[] };
+
 interface SidebarProps {
   isMobile: boolean;
   drawerOpen: boolean;
   onDrawerClose: () => void;
-  menuItems: { key: string; icon: ReactNode; label: string }[];
+  menuItems: SidebarMenuItem[];
   selectedKeys: string[];
   onMenuClick: (key: string) => void;
 }
@@ -30,11 +34,7 @@ function SideMenu({
       theme="dark"
       mode="inline"
       selectedKeys={selectedKeys}
-      items={menuItems.map((item) => ({
-        key: item.key,
-        icon: item.icon,
-        label: item.label,
-      }))}
+      items={menuItems}
       onClick={({ key }) => onMenuClick(key)}
       style={{ borderInlineEnd: "none", background: "transparent" }}
     />

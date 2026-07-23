@@ -91,6 +91,10 @@
       "openBilling": "דף חיוב",
       "statusDue": "ממתין לתשלום",
       "loadError": "לא ניתן לטעון התראות. נסו שוב מדף החיוב."
-    }
+    },
+    "navOverview": "סקירה",
+    "navClients": "לקוחות",
+    "navBilling": "כספים",
+    "navConnections": "חיבורים"
   }
 }

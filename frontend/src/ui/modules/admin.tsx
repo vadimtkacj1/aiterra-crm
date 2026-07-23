@@ -23,6 +23,7 @@ import type { AdminModule } from './types';
 
 export const adminStatisticsModule: AdminModule = {
   id: 'admin-statistics',
+  navGroupKey: 'layout.navOverview',
   path: 'statistics',
   element: <AdminStatisticsPage />,
   navItem: (t) => ({ key: Paths.adminStatistics, icon: <BarChartOutlined />, label: t('admin.stats.title') }),
@@ -30,6 +31,7 @@ export const adminStatisticsModule: AdminModule = {
 
 export const adminAuditModule: AdminModule = {
   id: 'admin-audit',
+  navGroupKey: 'layout.navOverview',
   path: 'audit',
   element: <AdminAuditPage />,
   navItem: (t) => ({ key: Paths.adminAudit, icon: <SafetyCertificateOutlined />, label: t('admin.audit.menuTitle') }),
@@ -37,6 +39,7 @@ export const adminAuditModule: AdminModule = {
 
 export const adminUsersModule: AdminModule = {
   id: 'admin-users',
+  navGroupKey: 'layout.navClients',
   path: 'users',
   element: <AdminUsersPage />,
   navItem: (t) => ({ key: Paths.adminUsers, icon: <TeamOutlined />, label: t('admin.userListTitle') }),
@@ -44,6 +47,7 @@ export const adminUsersModule: AdminModule = {
 
 export const adminPaymentsModule: AdminModule = {
   id: 'admin-payments',
+  navGroupKey: 'layout.navBilling',
   path: 'payments',
   element: <AdminPaymentsPage />,
   navItem: (t) => ({ key: Paths.adminPayments, icon: <FileTextOutlined />, label: t('admin.payments.title') }),
@@ -51,6 +55,7 @@ export const adminPaymentsModule: AdminModule = {
 
 export const adminContractsModule: AdminModule = {
   id: 'admin-contracts',
+  navGroupKey: 'layout.navBilling',
   path: 'contracts',
   element: <AdminContractsPage />,
   navItem: (t) => ({ key: Paths.adminContracts, icon: <ContainerOutlined />, label: t('admin.contracts.title') }),
@@ -58,6 +63,7 @@ export const adminContractsModule: AdminModule = {
 
 export const adminInvoicesModule: AdminModule = {
   id: 'admin-invoices',
+  navGroupKey: 'layout.navBilling',
   path: 'invoices',
   element: <AdminInvoicesPage />,
   navItem: (t) => ({ key: Paths.adminInvoices, icon: <DollarOutlined />, label: t('admin.invoices.title') }),
@@ -65,6 +71,7 @@ export const adminInvoicesModule: AdminModule = {
 
 export const adminMetaBudgetModule: AdminModule = {
   id: 'admin-meta-budget',
+  navGroupKey: 'layout.navBilling',
   path: 'meta-budget',
   element: <AdminMetaBudgetPage />,
   navItem: (t) => ({ key: Paths.adminMetaBudget, icon: <CreditCardOutlined />, label: t('admin.topup.title') }),
@@ -72,6 +79,7 @@ export const adminMetaBudgetModule: AdminModule = {
 
 export const adminLeadsModule: AdminModule = {
   id: 'admin-leads',
+  navGroupKey: 'layout.navClients',
   path: 'leads',
   element: <AdminLeadsPage />,
   navItem: (t) => ({ key: Paths.adminLeads, icon: <FormOutlined />, label: t('admin.leads.menuTitle') }),
@@ -79,6 +87,7 @@ export const adminLeadsModule: AdminModule = {
 
 export const adminWhatsAppModule: AdminModule = {
   id: 'admin-whatsapp',
+  navGroupKey: 'layout.navConnections',
   path: 'whatsapp',
   element: <AdminWhatsAppPage />,
   navItem: (t) => ({ key: Paths.adminWhatsApp, icon: <WhatsAppOutlined style={{ color: '#25d366' }} />, label: t('admin.whatsapp.menuTitle') }),

@@ -66,7 +66,7 @@
         "stages": "Payment stages",
         "paymentStages": "Payment",
         "typeOneTime": "One-time / Installments",
-        "typeOneTimeDesc": "Single payment or split into milestones",
+        "typeOneTimeDesc": "A single payment, or several scheduled payments",
         "typeSubscription": "Monthly Subscription",
         "typeSubscriptionDesc": "Recurring monthly charge, automatically renewed",
         "stagesCount": "payments",
@@ -106,7 +106,8 @@
         "oneTimeDescriptionPlaceholder": "e.g. Setup fee",
         "oneTimeAmount": "One-time amount",
         "oneTimeDefaultDescription": "Setup fee",
-        "oneTimePreview": "+ {{amount}} one-time"
+        "oneTimePreview": "+ {{amount}} one-time",
+        "scheduleTitle": "Payment schedule"
       },
       "stage": {
         "paidAt": "Paid: {{date}}"

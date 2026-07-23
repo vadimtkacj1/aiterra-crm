@@ -66,7 +66,7 @@
         "stages": "שלבי תשלום",
         "paymentStages": "תשלום",
         "typeOneTime": "חד-פעמי / תשלומים",
-        "typeOneTimeDesc": "תשלום יחיד או פיצול לאבני דרך",
+        "typeOneTimeDesc": "תשלום יחיד או מספר תשלומים מתוזמנים",
         "typeSubscription": "מנוי חודשי",
         "typeSubscriptionDesc": "חיוב חודשי חוזר, מתחדש אוטומטית",
         "stagesCount": "תשלומים",
@@ -106,7 +106,8 @@
         "oneTimeDescriptionPlaceholder": "לדוגמה: דמי פתיחה",
         "oneTimeAmount": "סכום חד-פעמי",
         "oneTimeDefaultDescription": "דמי פתיחה",
-        "oneTimePreview": "+ {{amount}} חד-פעמי"
+        "oneTimePreview": "+ {{amount}} חד-פעמי",
+        "scheduleTitle": "לוח תשלומים"
       },
       "stage": {
         "paidAt": "שולם: {{date}}"

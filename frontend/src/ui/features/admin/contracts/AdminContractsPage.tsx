@@ -866,7 +866,14 @@ export function AdminContractsPage() {
                     {/* ── One-time / Installments ───────────────────── */}
                     {!isSubscription && (
                       <div>
-                        {/* Quick equal-split tool */}
+                        {/* Subheader anchoring the split tool + payment rows as one group */}
+                        <Typography.Text
+                          strong
+                          style={{ display: "block", fontSize: 13, marginBottom: 10 }}
+                        >
+                          {t("admin.contracts.form.scheduleTitle")}
+                        </Typography.Text>
+                        {/* Quick equal-split tool — fills the payment rows below */}
                         <Flex
                           align={isMobile ? "stretch" : "center"}
                           gap={8}
@@ -899,7 +906,14 @@ export function AdminContractsPage() {
                               style={{ width: 60 }}
                             />
                           </Flex>
-                          <Button size="small" type="primary" ghost onClick={applyEqualSplit} block={isMobile}>
+                          <Button
+                            size="small"
+                            type="primary"
+                            ghost
+                            onClick={applyEqualSplit}
+                            block={isMobile}
+                            disabled={!splitTotal || splitTotal <= 0}
+                          >
                             {t("admin.contracts.form.equalSplitApply")}
                           </Button>
                         </Flex>

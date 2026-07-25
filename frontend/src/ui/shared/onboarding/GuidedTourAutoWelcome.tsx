@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -76,29 +78,31 @@ export function GuidedTourAutoWelcome({
     <Dialog open={welcomeOpen}>
       <DialogContent
         hideClose
-        className="w-[min(420px,92vw)] gap-0 p-5 pb-4"
+        className="w-[min(420px,92vw)]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader className="gap-0.5">
-          <DialogTitle className="text-base font-semibold leading-snug">
-            {t("tour.welcomeTitle")}
-          </DialogTitle>
+        {/* Short dialog, but it uses the same header/body/footer sections as
+            every other one — the padding lives there, not on the shell. */}
+        <DialogHeader className="gap-0.5 pe-5">
+          <DialogTitle className="text-base">{t("tour.welcomeTitle")}</DialogTitle>
           <DialogDescription className="text-[13px]">
             {t("tour.welcomeBrand")}
           </DialogDescription>
         </DialogHeader>
-        <p className="mb-4 mt-3 text-sm leading-relaxed text-foreground">
-          {isMobile ? t("tour.welcomeBodyMobile") : t("tour.welcomeBodyDesktop")}
-        </p>
-        <div className="flex flex-wrap justify-end gap-2.5">
+        <DialogBody>
+          <p className="m-0 text-sm leading-relaxed text-foreground">
+            {isMobile ? t("tour.welcomeBodyMobile") : t("tour.welcomeBodyDesktop")}
+          </p>
+        </DialogBody>
+        <DialogFooter>
           <Button variant="outline" onClick={onSkip}>
             {t("tour.skip")}
           </Button>
           <Button onClick={onPrimary}>
             {isMobile ? t("tour.gotIt") : t("tour.start")}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -68,7 +68,7 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
     return (
       <div className="flex w-full flex-col gap-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="rounded-xl p-4 shadow-(--ds-shadow-card)">
+          <Card key={i} className="p-4">
             <Skeleton className="h-4 w-2/5" />
             <Skeleton className="mt-3 h-3 w-4/5" />
             <Skeleton className="mt-2 h-3 w-3/5" />
@@ -89,7 +89,7 @@ export function ResponsiveCardView({ items, loading, emptyText }: ResponsiveCard
   return (
     <div className="flex w-full flex-col gap-3">
       {items.map((item) => (
-        <Card key={item.id} className="rounded-xl p-4 shadow-(--ds-shadow-card)">
+        <Card key={item.id} className="p-4">
           <div className="flex w-full flex-col gap-2">
             <div className="flex items-start justify-between">
               <div className="min-w-0 flex-1">

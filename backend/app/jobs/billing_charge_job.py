@@ -12,19 +12,110 @@ from app.db.session import SessionLocal
 from app.models.billing import AccountBillingInstruction, SavedCard, SubscriptionPayment
 from app.models.contracts import Contract
 from app.models.core import User
+from app.services.billing import SOURCE_BILLING_INSTRUCTION, mark_paid_safe, record_invoice_safe
 from app.services.email.smtp_mail import send_past_due_alert
 from app.services.payments.zcredit.service import pay_open_invoice
 
 logger = logging.getLogger(__name__)
 
 
+def _record_charge_in_registry(
+    db: Session,
+    ins: AccountBillingInstruction,
+    *,
+    doc_id: str,
+    amount: float,
+    payment_number: int,
+) -> None:
+    """Mirror a recurring charge into the invoice registry, already paid.
+
+    A scheduled charge goes straight to the saved card, so there is never a hosted link
+    — but it is still money demanded and collected, and the registry is meant to hold
+    every one of those. Isolated like the other registry writes: bookkeeping must never
+    affect a charge that already went through.
+    """
+    record_invoice_safe(
+        db,
+        source_type=SOURCE_BILLING_INSTRUCTION,
+        source_id=ins.id,
+        account_id=ins.account_id,
+        amount=amount,
+        currency=ins.currency or "ILS",
+        description=f"{ins.description or 'Monthly subscription'} · #{payment_number}",
+        provider_doc_id=doc_id,
+    )
+    mark_paid_safe(db, doc_id, reference_number=doc_id)
+
+
 def _admin_emails(db: Session) -> list[str]:
     return [u.email for u in db.query(User).filter(User.role == "admin").all() if u.email]
+
+
+def _repair_missing_billing_day(db: Session, today: date) -> None:
+    """Give active subscriptions that have no billing day one, from their own history.
+
+    ``billing_day IS NULL`` never equals ``today.day``, so such a subscription is active
+    yet silently never charged. That happens whenever the contract was created without
+    filling in the optional billing-day field. The day is taken from the first successful
+    payment (falling back to the row's creation date) and capped at 28.
+    """
+    orphans = (
+        db.query(AccountBillingInstruction)
+        .filter(
+            AccountBillingInstruction.charge_type == "monthly",
+            AccountBillingInstruction.subscription_status == "active",
+            AccountBillingInstruction.billing_day.is_(None),
+            AccountBillingInstruction.test_interval_minutes.is_(None),
+        )
+        .all()
+    )
+    for ins in orphans:
+        first = (
+            db.query(SubscriptionPayment)
+            .filter(
+                SubscriptionPayment.billing_instruction_id == ins.id,
+                SubscriptionPayment.status == "success",
+            )
+            .order_by(SubscriptionPayment.paid_at.asc())
+            .first()
+        )
+        anchor = (first.paid_at if first else None) or ins.created_at
+        day = getattr(anchor, "day", None) or today.day
+        ins.billing_day = min(int(day), 28)
+        db.add(ins)
+        logger.warning(
+            "subscription_billing: instruction %s (account %s) had no billing day and was "
+            "never charged — anchored to day %s",
+            ins.id, ins.account_id, ins.billing_day,
+        )
+    if orphans:
+        db.commit()
+
+
+def _term_is_complete(db: Session, ins: AccountBillingInstruction) -> bool:
+    """True once the agreed number of monthly charges has been collected."""
+    term = ins.installment_months
+    if not term:
+        return False
+    collected = (
+        db.query(SubscriptionPayment)
+        .filter(
+            SubscriptionPayment.billing_instruction_id == ins.id,
+            SubscriptionPayment.status == "success",
+        )
+        .count()
+    )
+    return collected >= term
 
 
 def run_subscription_billing_sync() -> None:
     today = date.today()
     with SessionLocal() as db:
+        try:
+            _repair_missing_billing_day(db, today)
+        except Exception:
+            logger.exception("subscription_billing: could not repair missing billing days")
+
         try:
             due = (
                 db.query(AccountBillingInstruction)
@@ -48,6 +139,18 @@ def run_subscription_billing_sync() -> None:
 
 
 def _charge_one(db: Session, ins: AccountBillingInstruction, today: date) -> None:
+    # A fixed-term plan stops when its months are collected — otherwise a 12-month
+    # subscription keeps charging in month 13 and forever after.
+    if _term_is_complete(db, ins):
+        ins.subscription_status = "completed"
+        db.add(ins)
+        db.commit()
+        logger.info(
+            "subscription_billing: instruction %s completed its %s-month term — stopping",
+            ins.id, ins.installment_months,
+        )
+        return
+
     # Skip if already successfully charged this calendar month
     last_ok = (
         db.query(SubscriptionPayment)
@@ -127,6 +230,9 @@ def _charge_one(db: Session, ins: AccountBillingInstruction, today: date) -> Non
         zcredit_approval_number="",
     ))
     db.commit()
+    _record_charge_in_registry(
+        db, ins, doc_id=doc_id, amount=amount, payment_number=payment_count + 1
+    )
     logger.info(
         "subscription_billing: charged payment #%d amount=%.2f account_id=%s ins_id=%s",
         payment_count + 1,
@@ -258,6 +364,9 @@ def _charge_one_test(db: Session, ins: AccountBillingInstruction, now: datetime)
         zcredit_approval_number="",
     ))
     db.commit()
+    _record_charge_in_registry(
+        db, ins, doc_id=doc_id, amount=amount, payment_number=payment_count + 1
+    )
     logger.info(
         "test_billing: charged payment #%d amount=%.2f account_id=%s ins_id=%s (interval=%dmin)",
         payment_count + 1,

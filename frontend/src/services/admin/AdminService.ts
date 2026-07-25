@@ -142,6 +142,21 @@ export interface InvoiceTemplateRow {
   billingDay?: number | null;
 }
 
+/** One row of the invoice registry — a payment demand, whatever issued it. */
+export interface OpenInvoiceRow {
+  id: number;
+  accountId: number | null;
+  sourceType: "contract" | "billing_instruction" | "meta_topup" | "landing" | "manual";
+  sourceId: number | null;
+  amount: number;
+  currency: string;
+  description: string | null;
+  status: "open" | "paid" | "superseded" | "canceled";
+  providerUrl: string | null;
+  createdAt: string | null;
+  paidAt?: string | null;
+}
+
 export interface InvoiceTemplateCreateInput {
   title?: string | null;
   chargeType: "one_time" | "monthly";
@@ -380,6 +395,29 @@ export class AdminService {
 
   async getContract(id: number): Promise<Contract> {
     return this.http.get<Contract>(`/admin/contracts/${id}`);
+  }
+
+  /** Payment demands still awaiting money for one account, from the invoice registry. */
+  async listOpenInvoices(accountId: number): Promise<OpenInvoiceRow[]> {
+    return this.listRegistryInvoices({ accountId, status: "open" });
+  }
+
+  /** Invoice registry, optionally filtered. Admins may query across all accounts. */
+  async listRegistryInvoices(params: {
+    accountId?: number;
+    status?: string;
+    sourceType?: string;
+    limit?: number;
+  } = {}): Promise<OpenInvoiceRow[]> {
+    const qs = new URLSearchParams();
+    if (params.accountId != null) qs.set("account_id", String(params.accountId));
+    if (params.status) qs.set("status", params.status);
+    if (params.sourceType) qs.set("source_type", params.sourceType);
+    qs.set("limit", String(params.limit ?? 200));
+    const res = await this.http.get<{ items: OpenInvoiceRow[]; total: number }>(
+      `/billing/invoices?${qs.toString()}`,
+    );
+    return res.items ?? [];
   }
 
   async createContract(input: ContractCreateInput): Promise<Contract> {

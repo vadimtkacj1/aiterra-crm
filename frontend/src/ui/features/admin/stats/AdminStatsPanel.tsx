@@ -1,16 +1,4 @@
-import {
-  BarChart3,
-  CheckCircle2,
-  Clock,
-  CreditCard,
-  Download,
-  FileText,
-  LayoutGrid,
-  PieChart,
-  User,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { BarChart3, Download, FileText, PieChart } from "lucide-react";
 import { Line, Pie } from "@ant-design/plots";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,6 +24,7 @@ import { downloadBlob } from "@/ui/shared/utils/downloadBlob";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { PageContainer } from "@/ui/shared/components/PageContainer";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
+import { MetricStrip } from "@/ui/shared/components/MetricStrip";
 import { StatCard, type StatAccent } from "@/ui/shared/components/StatCard";
 
 type Period = AdminStatsPeriod;
@@ -98,17 +87,19 @@ export function AdminStatsPanel() {
     { key: "year", label: t("admin.stats.thisYear") },
   ];
 
-  const metricCards = useMemo((): { title: string; value: string | number; icon: ReactNode; accent: StatAccent }[] => {
+  /* No per-tile icons: the figure is the content, and a glyph beside it only
+     competes with it. Accent is carried by the delta line where it is real. */
+  const metricCards = useMemo((): { title: string; value: string | number; accent: StatAccent }[] => {
     if (!stats || !paymentStats) return [];
     return [
-      { title: t("admin.stats.users"), value: stats.usersTotal, icon: <User />, accent: "primary" },
-      { title: t("admin.stats.admins"), value: stats.adminsTotal, icon: <Users />, accent: "primary" },
-      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, icon: <LayoutGrid />, accent: "primary" },
-      { title: t("admin.stats.accounts"), value: stats.accountsTotal, icon: <Wallet />, accent: "primary" },
-      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, icon: <BarChart3 />, accent: "primary" },
-      { title: t("admin.stats.revenue"), value: revenueText, icon: <CreditCard />, accent: "primary" },
-      { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, icon: <CheckCircle2 />, accent: "green" },
-      { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, icon: <Clock />, accent: "amber" },
+      { title: t("admin.stats.users"), value: stats.usersTotal, accent: "primary" },
+      { title: t("admin.stats.admins"), value: stats.adminsTotal, accent: "primary" },
+      { title: t("admin.stats.regularUsers"), value: stats.regularUsersTotal, accent: "primary" },
+      { title: t("admin.stats.accounts"), value: stats.accountsTotal, accent: "primary" },
+      { title: t("admin.stats.campaigns"), value: stats.trackedCampaignsTotal, accent: "primary" },
+      { title: t("admin.stats.revenue"), value: revenueText, accent: "primary" },
+      { title: t("admin.stats.paid"), value: paymentStats.paidCount ?? 0, accent: "green" },
+      { title: t("admin.stats.unpaid"), value: paymentStats.unpaidCount ?? 0, accent: "amber" },
     ];
   }, [stats, paymentStats, revenueText, t]);
 
@@ -217,11 +208,11 @@ export function AdminStatsPanel() {
 
       {initialLoading ? (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricStrip columns={4}>
             {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
-              <StatCard key={k} title="" value="" loading />
+              <StatCard key={k} variant="cell" title="" value="" loading />
             ))}
-          </div>
+          </MetricStrip>
           <div className="mt-6 grid gap-6 lg:grid-cols-5">
             <Card className="p-5 lg:col-span-3">
               <Skeleton className="h-5 w-40" />
@@ -235,12 +226,12 @@ export function AdminStatsPanel() {
         </>
       ) : (
         <>
-          {/* KPI tiles */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* One ruled panel, not eight floating tiles. */}
+          <MetricStrip columns={4}>
             {metricCards.map((m) => (
-              <StatCard key={m.title} title={m.title} value={m.value} icon={m.icon} accent={m.accent} />
+              <StatCard key={m.title} variant="cell" title={m.title} value={m.value} accent={m.accent} />
             ))}
-          </div>
+          </MetricStrip>
 
           <div
             aria-busy={loading}

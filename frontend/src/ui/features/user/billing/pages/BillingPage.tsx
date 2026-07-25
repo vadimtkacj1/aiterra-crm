@@ -123,7 +123,7 @@ export function BillingPage() {
         ) : null}
 
         {!isAdmin && !loading && overview?.pendingPayments && overview.pendingPayments.length > 0 ? (
-          <Card className="rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
+          <Card>
             <div className="flex items-center border-b border-(--ds-border-subtle) px-4 py-3">
               <span className="text-[15px] font-semibold">
                 {t("billing.pendingPaymentsTitle")}

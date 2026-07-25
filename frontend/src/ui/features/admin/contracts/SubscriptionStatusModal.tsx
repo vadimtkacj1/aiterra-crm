@@ -81,7 +81,6 @@ export function SubscriptionStatusModal({ contractId, onClose }: Props) {
       open={contractId !== null}
       onCancel={onClose}
       width={isMobile ? "100%" : 800}
-      styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       title={
         <span className="flex items-center gap-2">
           <Calendar aria-hidden="true" className="size-4" />

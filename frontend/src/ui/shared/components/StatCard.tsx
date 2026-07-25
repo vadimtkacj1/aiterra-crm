@@ -4,12 +4,8 @@ import { cn } from "@/lib/utils";
 
 export type StatAccent = "primary" | "green" | "amber" | "red" | "cyan" | "blue" | "teal" | "violet";
 
-/**
- * Only truly semantic statuses tint the icon (quietly). Everything else stays
- * muted — violet/brand color is reserved for interactive states, not ambient
- * tile decoration.
- */
-const SEMANTIC_ICON_CLASS: Partial<Record<StatAccent, string>> = {
+/** Only genuine statuses get colour, and only on the delta line. */
+const SEMANTIC_HINT_CLASS: Partial<Record<StatAccent, string>> = {
   green: "text-(--ds-color-success)",
   amber: "text-(--ds-color-warning)",
   red: "text-(--ds-color-error)",
@@ -19,55 +15,78 @@ interface StatCardProps {
   /** Small caps label above the value. */
   title: ReactNode;
   value: ReactNode;
-  icon?: ReactNode;
   accent?: StatAccent;
-  /** Supporting line under the value (context, or a delta). */
+  /** Supporting line under the value — context, or a delta. */
   hint?: ReactNode;
   loading?: boolean;
   onClick?: () => void;
+  /** Marks this metric as the one currently driving the view. Draws the rail. */
+  active?: boolean;
+  /**
+   * `card` — standalone, carries its own hairline and radius.
+   * `cell` — a cell inside a {@link MetricStrip}; the strip owns the frame,
+   *   so the tile draws no border of its own and the 1px grid gaps become
+   *   the rules between metrics.
+   */
+  variant?: "card" | "cell";
 }
 
 /**
- * KPI tile: caps-XS muted label, large tabular number, optional context line,
- * and a subtle muted icon at the tile's end. White surface, hairline border,
- * card shadow. RTL-safe — uses logical flow only.
+ * Metric readout — caps label, large tabular number, delta line. Three things,
+ * flat, hairline-bounded.
+ *
+ * Two deliberate subtractions from the old tile:
+ *
+ * 1. No decorative icon. A wallet glyph next to a currency figure adds no
+ *    information and is the clearest tell of a template dashboard; the number
+ *    is the content, so nothing may compete with it.
+ * 2. The value is weight 500, not 800. Mezmo's rule — "authority through
+ *    restraint" — a very large number does not also need to shout. What makes
+ *    it read as data is the tabular figures and tight optical tracking.
+ *
+ * Colour appears only on a semantic delta, and the rail only when this metric
+ * is the active one.
  */
-export function StatCard({ title, value, icon, accent = "primary", hint, loading, onClick }: StatCardProps) {
-  const iconClass = SEMANTIC_ICON_CLASS[accent] ?? "text-(--ds-text-tertiary)";
+export function StatCard({
+  title,
+  value,
+  accent = "primary",
+  hint,
+  loading,
+  onClick,
+  active,
+  variant = "card",
+}: StatCardProps) {
+  const hintClass = SEMANTIC_HINT_CLASS[accent] ?? "text-(--ds-text-tertiary)";
 
   return (
     <div
       className={cn(
-        "flex h-full min-h-24 items-start justify-between gap-3 rounded-xl border border-(--ds-border-subtle) bg-card px-[18px] py-4 shadow-(--ds-shadow-card)",
+        "relative flex h-full min-h-24 flex-col justify-start overflow-hidden bg-card px-4 py-3.5",
+        variant === "card" &&
+          cn("rounded-card border", active ? "border-(--ds-border-strong)" : "border-(--ds-border-subtle)"),
         onClick && "ds-card-interactive",
       )}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-pressed={onClick ? active : undefined}
       onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
     >
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-xs font-medium uppercase leading-[1.3] tracking-[0.06em] text-(--ds-text-secondary)">
-          {title}
+      {active && <span aria-hidden="true" className="ds-rail ds-rail--block-start" />}
+
+      <div className="ds-label-caps truncate">{title}</div>
+
+      {loading ? (
+        <Skeleton className="mt-2 h-7 w-18" />
+      ) : (
+        <div className="mt-1.5 truncate text-[28px] font-medium leading-[1.1] tracking-(--ds-track-display) text-foreground tabular-nums">
+          {value}
         </div>
+      )}
 
-        {loading ? (
-          <Skeleton className="mt-2 h-7 w-[72px]" />
-        ) : (
-          <div className="mt-1.5 truncate text-[30px] font-bold leading-[1.15] tracking-[-0.02em] text-(--ds-text-primary) tabular-nums">
-            {value}
-          </div>
-        )}
-
-        {hint && !loading ? (
-          <div className="mt-1 text-xs text-(--ds-text-tertiary)">{hint}</div>
-        ) : null}
-      </div>
-
-      {icon ? (
-        <div aria-hidden className={cn("mt-0.5 shrink-0 text-lg leading-none [&_svg]:size-[18px]", iconClass)}>
-          {icon}
-        </div>
+      {hint && !loading ? (
+        <div className={cn("mt-1 text-xs tabular-nums", hintClass)}>{hint}</div>
       ) : null}
     </div>
   );

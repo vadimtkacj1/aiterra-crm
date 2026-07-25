@@ -123,10 +123,10 @@ export function OnboardingChecklistCard({ state, dismiss, toggleCollapsed, hasMe
   return (
     <Card
       data-tour-target="quick-start-card"
-      className="mb-5 rounded-xl border-border bg-card shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
+      className="mb-5"
     >
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4.5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-(--ds-border-subtle) px-4.5 py-3">
         <div>
           <span className="block text-[15px] font-semibold">{t("onboarding.cardTitle")}</span>
           <span className="text-xs text-muted-foreground">

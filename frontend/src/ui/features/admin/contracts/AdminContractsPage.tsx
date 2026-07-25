@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Check,
   CheckCircle2,
   Copy,
@@ -38,7 +39,7 @@ import { message } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useApp } from "../../../../app/AppProviders";
 import type { Contract } from "../../../../domain/Contract";
-import type { SubscriptionStatus } from "../../../../services/admin/AdminService";
+import type { OpenInvoiceRow, SubscriptionStatus } from "../../../../services/admin/AdminService";
 import { AppModal } from "../../../shared/components/AppModal";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { PageContainer } from "../../../shared/components/PageContainer";
@@ -147,7 +148,7 @@ const CREATE_DEFAULTS: DefaultValues<FormValues> = {
 
 function StepChip({ n }: { n: number }) {
   return (
-    <div className="flex size-5.5 shrink-0 items-center justify-center rounded-full bg-(--ds-color-primary) text-[11px] font-bold text-white">
+    <div className="flex size-5.5 shrink-0 items-center justify-center rounded-full bg-(--ds-color-primary) text-[11px] font-semibold text-white tabular-nums">
       {n}
     </div>
   );
@@ -190,6 +191,30 @@ export function AdminContractsPage() {
   const watchedMonths = form.watch("subscriptionMonths");
   const watchedBillingDay = form.watch("billingDay");
   const watchedOneTimeAmt = form.watch("oneTimeAmount");
+  const watchedAccountId = form.watch("accountId");
+
+  // A payment link cannot be revoked once issued, so a second contract for a client who
+  // still owes on the first leaves two payable links side by side. Show what is already
+  // open before another one is created.
+  const [openInvoices, setOpenInvoices] = useState<OpenInvoiceRow[]>([]);
+  useEffect(() => {
+    if (!createOpen || !watchedAccountId) {
+      setOpenInvoices([]);
+      return;
+    }
+    let cancelled = false;
+    services.admin
+      .listOpenInvoices(Number(watchedAccountId))
+      .then((rows) => {
+        if (!cancelled) setOpenInvoices(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setOpenInvoices([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [createOpen, watchedAccountId, services.admin]);
 
   const filteredContracts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -490,9 +515,12 @@ export function AdminContractsPage() {
         const paidCount = getPaidCount(r);
         const total = r.stages.length;
         const paidAmt = getPaidAmount(r);
+        // For a subscription totalAmount is only ONE month — show what the whole
+        // contract is worth, so a yearly plan does not read as a one-off payment.
+        const headline = r.contractValue ?? r.totalAmount;
         return (
           <div className="text-end">
-            <div className="font-semibold">{fmtMoney(r.totalAmount, r.currency)}</div>
+            <div className="font-semibold">{fmtMoney(headline, r.currency)}</div>
             <div className="mt-0.5 text-xs text-(--ds-text-tertiary)">
               {paidCount === total && total > 0
                 ? t("admin.contracts.installmentsTag.paid", { paid: paidCount, total })
@@ -710,7 +738,6 @@ export function AdminContractsPage() {
         onCancel={resetCreateForm}
         width={isMobile ? "100%" : 720}
         footer={createFooter}
-        styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       >
         <Form form={form} onFinish={handleCreate} className="space-y-5">
           {/* ── Step 1: Client ─────────────────────────────────── */}
@@ -842,6 +869,35 @@ export function AdminContractsPage() {
                 {t("admin.contracts.form.paymentStages")}
               </span>
             </div>
+
+            {/* What this client already owes — issued links cannot be revoked */}
+            {openInvoices.length > 0 && (
+              <div
+                className="mb-4 rounded-md px-3.5 py-2.5"
+                style={{
+                  background: "var(--ds-color-warning-surface, rgba(245, 158, 11, 0.08))",
+                  border: "1px solid rgba(245, 158, 11, 0.35)",
+                }}
+              >
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-(--ds-color-warning, #d97706)" />
+                  <div className="flex-1">
+                    <span className="block text-[13px] font-semibold text-(--ds-text-primary)">
+                      {t("admin.contracts.form.openInvoicesTitle", {
+                        count: openInvoices.length,
+                        amount: fmtMoney(
+                          openInvoices.reduce((sum, inv) => sum + inv.amount, 0),
+                          openInvoices[0]?.currency ?? watchedCurrency,
+                        ),
+                      })}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-(--ds-text-secondary)">
+                      {t("admin.contracts.form.openInvoicesHint")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ── Payment type selector cards ───────────────────── */}
             <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -1094,7 +1150,7 @@ export function AdminContractsPage() {
                           value: String(i + 1),
                           label: String(i + 1),
                         }))}
-                        placeholder={t("admin.contracts.form.billingDayPlaceholder")}
+                        placeholder={t("admin.contracts.form.billingDayFirstPayment")}
                         clearable
                         aria-label={t("admin.contracts.form.billingDay")}
                       />
@@ -1190,7 +1246,9 @@ export function AdminContractsPage() {
                                 ? `${fmtMoney(monthly, watchedCurrency)} × ${months} ${t("admin.contracts.form.months")}`
                                 : `${fmtMoney(monthly, watchedCurrency)} / ${t("admin.contracts.form.month")} · ${t("admin.contracts.form.openEnded")}`
                               }
-                              {day ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}` : ""}
+                              {day
+                                ? ` · ${t("admin.contracts.form.billingDayPreview", { day })}`
+                                : ` · ${t("admin.contracts.form.billingDayFirstPaymentPreview")}`}
                             </span>
                           </div>
                           {showOneTime && (
@@ -1224,7 +1282,6 @@ export function AdminContractsPage() {
         footer={null}
         title={detailContract?.title}
         width={isMobile ? "100%" : 640}
-        styles={isMobile ? { body: { maxHeight: "70vh", overflowY: "auto" } } : undefined}
       >
         {detailContract && (() => {
           const [statusVariant, statusKey] = statusCfg(detailContract.status);

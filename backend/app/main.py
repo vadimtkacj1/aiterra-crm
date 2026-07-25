@@ -136,6 +136,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CRM API", version="0.1.0", lifespan=lifespan)
 
+# Activate the Clean Architecture IoC container (invoice slice is the pilot). The
+# routes module is already imported via api_router above, so wiring patches it in place.
+from app.config.container import container  # noqa: E402
+
+container.wire()
+app.container = container
+
 app.add_middleware(
     CORSMiddleware,
     # "*" lets any website submit the public lead-capture form.

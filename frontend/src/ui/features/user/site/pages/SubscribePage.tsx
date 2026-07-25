@@ -78,11 +78,11 @@ export function SubscribePage() {
     <div className={wrapClass}>
       <div className="relative w-full" style={{ maxWidth: 420 }}>
         {submitting && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60">
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-card bg-background/60">
             <Spinner size="lg" label={t("subscribe.submitBtn")} />
           </div>
         )}
-        <div className="w-full rounded-xl border border-(--ds-border-subtle) bg-card px-7 py-8 shadow-sm">
+        <div className="w-full rounded-card border border-(--ds-border-subtle) bg-card px-7 py-8 shadow-(--ds-shadow-card)">
           <div className="mb-7 text-center">
             <MessageCircle
               className="mx-auto mb-2 size-9"
@@ -134,7 +134,7 @@ export function SubscribePage() {
               )}
             </FormItem>
 
-            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+            <Button type="submit" variant="brand" size="lg" className="w-full" disabled={submitting}>
               {submitting && <Spinner size="sm" className="text-primary-foreground" />}
               {t("subscribe.submitBtn")}
             </Button>

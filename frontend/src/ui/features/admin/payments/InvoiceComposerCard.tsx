@@ -160,8 +160,9 @@ export function InvoiceComposerCard({
 
   const sectionClass = "mt-5 border-t pt-5";
   const sectionStyle = { borderTopColor: "var(--ds-border-subtle)" };
-  const sectionLabelClass =
-    "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
+  /* Shared vocabulary rather than a local re-spelling, so this label tracks
+     every other caps label in the app. */
+  const sectionLabelClass = "ds-label-caps";
 
   return (
     <Card className="p-6">

@@ -102,13 +102,15 @@ const Segmented = React.forwardRef<HTMLDivElement, SegmentedProps>(
                 if (!active) onChange?.(option.value);
               }}
               className={cn(
-                "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors",
+                "inline-flex items-center justify-center whitespace-nowrap rounded-input font-medium transition-colors",
                 "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                 "disabled:pointer-events-none disabled:opacity-50",
                 sizeClasses[size],
+                /* The selected segment reads by surface + weight, not by a
+                   shadow — the track behind it already provides the contrast. */
                 active
-                  ? "bg-card text-foreground shadow-sm"
-                  : "hover:text-foreground",
+                  ? "bg-card font-semibold text-foreground"
+                  : "text-(--ds-text-secondary) hover:text-foreground",
               )}
             >
               {option.label}

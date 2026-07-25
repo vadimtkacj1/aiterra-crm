@@ -92,6 +92,49 @@ def test_zcredit_webhook_native_success_payload(client, engine, monkeypatch):
         assert row.payment_url is None
 
 
+def test_zcredit_webhook_pays_stage_via_superseded_doc_id(client, engine, monkeypatch):
+    """Client paid an old link after ?renew=true — the stage must still be marked paid."""
+    monkeypatch.setattr(settings, "zcredit_webhook_secret", "test_whsec")
+
+    from app.models.contracts import Contract, ContractPaymentStage
+
+    with Session(bind=engine) as s:
+        c = Contract(
+            account_id=1,
+            title="Renewed link",
+            total_amount=500.0,
+            currency="ILS",
+            status="signed",
+            created_by_admin_id=1,
+        )
+        s.add(c)
+        s.flush()
+        stage = ContractPaymentStage(
+            contract_id=c.id,
+            sort_order=0,
+            description="Upfront",
+            amount=500.0,
+            status="invoiced",
+            payment_doc_id="session_new",
+            payment_url="http://pay.example/new",
+            superseded_doc_ids="session_old",
+        )
+        s.add(stage)
+        s.commit()
+        stage_id = stage.id
+
+    r = client.post(
+        "/api/webhooks/zcredit",
+        json={"SessionId": "session_old", "ReferenceNumber": "777", "ApprovalNumber": "555"},
+    )
+    assert r.status_code == 200
+
+    with Session(bind=engine) as s:
+        row = s.query(ContractPaymentStage).filter_by(id=stage_id).one()
+        assert row.status == "paid"
+        assert row.paid_at is not None
+
+
 def test_mock_payment_not_available_when_zcredit_configured(client, monkeypatch):
     monkeypatch.setattr(settings, "zcredit_api_key", "K1")
     r = client.get("/api/mock-payment/any-doc")
@@ -156,3 +199,78 @@ def test_privacy_policy_html(client):
     assert r.status_code == 200
     assert "text/html" in r.headers.get("content-type", "")
     assert "פרטיות".encode("utf-8") in r.content
+
+
+def _subscription_contract_with_fee_first(engine):
+    """Contract whose setup fee sorts BEFORE the subscription stage."""
+    from app.models.contracts import Contract, ContractPaymentStage
+
+    with Session(bind=engine) as s:
+        ins = AccountBillingInstruction(
+            account_id=1,
+            charge_type="monthly",
+            amount=299.0,
+            currency="ILS",
+            description="Monthly plan",
+            subscription_status="pending",
+        )
+        s.add(ins)
+        s.flush()
+        c = Contract(
+            account_id=1,
+            title="Fee first, subscription second",
+            total_amount=799.0,
+            currency="ILS",
+            status="signed",
+            monthly_amount=299.0,
+            subscription_months=12,
+            billing_instruction_id=ins.id,
+            created_by_admin_id=1,
+        )
+        s.add(c)
+        s.flush()
+        s.add(ContractPaymentStage(
+            contract_id=c.id, sort_order=0, description="Setup fee", amount=500.0,
+            kind="one_time", status="invoiced", payment_doc_id="sess_fee",
+        ))
+        s.add(ContractPaymentStage(
+            contract_id=c.id, sort_order=1, description="Monthly", amount=299.0,
+            kind="subscription", status="invoiced", payment_doc_id="sess_sub",
+        ))
+        s.commit()
+        return ins.id
+
+
+def test_paying_a_fee_stage_does_not_activate_the_subscription(client, engine, monkeypatch):
+    from app.models.billing import SubscriptionPayment
+
+    monkeypatch.setattr(settings, "zcredit_webhook_secret", "test_whsec")
+    ins_id = _subscription_contract_with_fee_first(engine)
+
+    r = client.post("/api/webhooks/zcredit", json={"SessionId": "sess_fee", "ReferenceNumber": "1"})
+    assert r.status_code == 200
+
+    with Session(bind=engine) as s:
+        assert s.query(AccountBillingInstruction).filter_by(id=ins_id).one().subscription_status == "pending"
+        assert s.query(SubscriptionPayment).filter_by(billing_instruction_id=ins_id).count() == 0
+
+
+def test_paying_the_subscription_stage_activates_it_regardless_of_position(client, engine, monkeypatch):
+    """The subscription stage sorts second here — activation must follow `kind`, not order."""
+    from app.models.billing import SubscriptionPayment
+
+    monkeypatch.setattr(settings, "zcredit_webhook_secret", "test_whsec")
+    ins_id = _subscription_contract_with_fee_first(engine)
+
+    r = client.post(
+        "/api/webhooks/zcredit",
+        json={"SessionId": "sess_sub", "ReferenceNumber": "2", "ApprovalNumber": "A2"},
+    )
+    assert r.status_code == 200
+
+    with Session(bind=engine) as s:
+        assert s.query(AccountBillingInstruction).filter_by(id=ins_id).one().subscription_status == "active"
+        payments = s.query(SubscriptionPayment).filter_by(billing_instruction_id=ins_id).all()
+        assert len(payments) == 1
+        assert payments[0].amount == 299.0
+        assert payments[0].payment_number == 1

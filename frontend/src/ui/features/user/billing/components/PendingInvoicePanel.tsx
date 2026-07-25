@@ -171,7 +171,7 @@ export function PendingInvoicePanel({ payment, onRefresh, onCheckout }: Props) {
           {payment.payUrl ? (
             <Button
               onClick={() => onCheckout("hosted")}
-              className="h-9.5 rounded-xl px-4.5 font-semibold shadow-none"
+              className="h-9.5 px-4.5 font-semibold"
             >
               <Wallet aria-hidden="true" />
               {t("billing.payNow")}

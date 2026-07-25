@@ -1,8 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
 
 /* ============================================================
-   CRM Pro Admin — Design Tokens
-   4px base grid · Violet/Slate palette · Heebo typeface
+   CRM — Design Tokens
+   4px base grid · Ink/hairline instrument · Heebo typeface
+
+   DIRECTION (Refero research — primary: Attio "Precision Digital
+   Toolkit"; borrowed: Mezmo data-display, Sequence public-CTA):
+
+   1. BRAND VIOLET carries the primary action, in-app and out. The
+      palette is the product's identity. (`--ds-ink` exists and the
+      `ink` button variant is available for the rare toolbar where a
+      violet button would fight brand colour already on screen — but
+      it is opt-in, not the default.)
+   2. HAIRLINES separate, shadows do not. Only overlays float.
+   3. RADIUS DISCIPLINE — button 10 · card 8 · input 7 · badge 4 ·
+      tab 0 (underline). Nothing else.
+   4. THE RAIL — one 2px violet bar, one meaning: "this is active".
+      Sidebar item · tab · selected row · current step. Nowhere else.
+      (Since violet also fills primary buttons, the rail earns its
+      meaning from position and consistency, not from scarcity.)
+   5. TWO REGISTERS, told apart by SHAPE — in-app controls sit at the
+      10px system radius; public/marketing pages use the `brand`
+      gradient pill for their single CTA. Do not mix the two.
+   6. ONE SCROLLER PER DIALOG — the shell is a fixed-height flex
+      column, header and footer are pinned, and DialogBody is the
+      only thing that scrolls. Never add overflow to a modal's
+      children.
    ============================================================ */
 
 :root {
@@ -59,7 +82,18 @@
   --ds-color-info:            #3b28cc;
   --ds-color-info-surface:    #f5f3ff;
 
-  /* ── Surface hierarchy ───────────────────────────────── */
+  /* ── Ink — a neutral commit surface, available via the `ink`
+     button variant. Not the default; brand violet is. Kept distinct
+     from the text tokens so the two roles move independently. ── */
+  --ds-ink:           #0a0a12;
+  --ds-ink-hover:     #26262f;
+  --ds-ink-foreground:#ffffff;
+
+  /* ── Surface hierarchy ─────────────────────────────────
+     The cool slate-leaning neutrals are deliberate: they carry a
+     faint blue-violet cast that sits with the brand violet instead
+     of against it. A flatter, truly-neutral grey was tried and
+     reverted — it made the palette read colder and cheaper. */
   --ds-surface-0:  #ffffff;     /* card / panel backgrounds       */
   --ds-surface-1:  #f6f7f9;     /* layout / page background — cool near-white */
   --ds-surface-2:  #eef1f5;     /* hover, subtle highlight (neutral) */
@@ -79,6 +113,11 @@
   --ds-border-default: #e2e5ec;
   --ds-border-strong:  #94a3b8;
   --ds-border-focus:   #3b28cc;
+
+  /* ── The rail — the app's one ambient colour ───────────
+     Marks what is active. Never used decoratively. */
+  --ds-rail-width: 2px;
+  --ds-rail-color: #3b28cc;
 
   /* ── Typography ──────────────────────────────────────── */
   --ds-font-family:      'Heebo', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -115,6 +154,13 @@
   --ds-letter-spacing-wider:   0.05em;
   --ds-letter-spacing-caps:    0.07em;
 
+  /* Optical tracking by size (Attio: negative tracking on everything
+     ≥18px, scaling with size). Safe for Hebrew and Latin. */
+  --ds-track-body:      -0.006em;   /* 14–16px */
+  --ds-track-subhead:   -0.016em;   /* 18–20px */
+  --ds-track-heading:   -0.022em;   /* 22–28px */
+  --ds-track-display:   -0.03em;    /* 32px+   */
+
   /* ── Spacing (4 px base grid) ────────────────────────── */
   --ds-space-0-5:  2px;
   --ds-space-1:    4px;
@@ -147,14 +193,28 @@
   --ds-radius-3xl:  24px;
   --ds-radius-full: 9999px;
 
-  /* ── Shadows ─────────────────────────────────────────── */
+  /* ── Semantic radii — the whole discipline, in four values.
+     Do not introduce a fifth. (Attio: "Don't use radii other than
+     10px for buttons or 8px for cards.") ─────────────────── */
+  --ds-radius-button: 10px;
+  --ds-radius-card:    8px;
+  --ds-radius-input:   7px;
+  --ds-radius-badge:   4px;
+
+  /* ── Shadows ─────────────────────────────────────────────
+     Elevation is now almost entirely OFF. Buttons, inputs and plain
+     cards get none — a hairline is the separator. Only things that
+     genuinely float above the page (overlays) cast a shadow. */
   --ds-shadow-none:     none;
   --ds-shadow-xs:       0 1px 2px rgba(16,24,40,0.04);
   --ds-shadow-sm:       0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
   --ds-shadow-md:       0 4px 6px rgba(16,24,40,0.05), 0 2px 4px rgba(16,24,40,0.04);
   --ds-shadow-lg:       0 12px 20px -6px rgba(16,24,40,0.10), 0 4px 8px -4px rgba(16,24,40,0.06);
   --ds-shadow-xl:       0 24px 32px -12px rgba(16,24,40,0.14), 0 8px 16px -8px rgba(16,24,40,0.08);
-  --ds-shadow-card:     0 0 0 1px rgba(16,24,40,0.04), 0 1px 2px rgba(16,24,40,0.04), 0 2px 8px -2px rgba(16,24,40,0.05);
+  /* Attio "UI Frame Card" — barely-there lift for framed panels only. */
+  --ds-shadow-card:       rgba(28,40,64,0.10) 0 2px 3px -2px, rgba(28,40,64,0.04) 0 4px 6px -2px;
+  /* Hover keeps the brand's violet hairline ring — it is part of the
+     palette, not incidental elevation. */
   --ds-shadow-card-hover: 0 0 0 1px rgba(59,40,204,0.10), 0 2px 4px rgba(16,24,40,0.05), 0 12px 24px -8px rgba(16,24,40,0.12);
   --ds-shadow-dropdown: 0 8px 24px rgba(16,24,40,0.12), 0 2px 8px rgba(16,24,40,0.06);
   --ds-shadow-modal:    0 24px 48px rgba(16,24,40,0.18), 0 8px 24px rgba(16,24,40,0.08);
@@ -191,16 +251,9 @@
   --ds-page-padding:         28px;
   --ds-page-padding-mobile:  16px;
 
-  /* ── Sidebar dark tokens ─────────────────────────────── */
-  --ds-sidebar-bg:                #0f172a;
-  --ds-sidebar-item-hover:        rgba(255,255,255,0.06);
-  --ds-sidebar-item-active-bg:    rgba(99,71,221,0.22);
-  --ds-sidebar-active-indicator:  #7b6eea;
-  --ds-sidebar-text:              rgba(255,255,255,0.65);
-  --ds-sidebar-text-active:       #ffffff;
-  --ds-sidebar-border:            rgba(255,255,255,0.07);
-  --ds-sidebar-icon:              rgba(255,255,255,0.50);
-  --ds-sidebar-icon-active:       rgba(255,255,255,0.92);
+  /* The dark-sidebar token set was removed with the dark shell — the
+     sidebar is now a white panel separated from the canvas by a
+     hairline, with the rail marking the active item. */
 }
 
 /* ── Reduced motion: kill all transitions ────────────────── */

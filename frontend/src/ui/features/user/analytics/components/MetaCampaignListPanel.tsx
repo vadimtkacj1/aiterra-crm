@@ -44,6 +44,7 @@ import {
 import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { exportCampaignListCsv, exportCampaignListPdf } from "../utils/exportUtils";
 import { DateRangeControl, rangeParam, type DateRange } from "./DateRangeControl";
+import { MetricStrip } from "@/ui/shared/components/MetricStrip";
 import { KpiStatCard } from "./KpiStatCard";
 
 type StatusFilter = "ALL" | "ACTIVE" | "PAUSED";
@@ -435,18 +436,19 @@ export function MetaCampaignListPanel({ load }: MetaCampaignListPanelProps) {
     <div className="flex w-full flex-col gap-6">
       {/* Top KPI bar */}
       {data && goalMetric && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricStrip columns={3}>
           <KpiStatCard
+            variant="cell"
             title={t("analytics.stats.spend")}
             value={data.totals.spend}
             suffix={currency}
             precision={2}
           />
           {goalMetric.value !== "0" && (
-            <KpiStatCard title={goalMetric.label} value={goalMetric.value} />
+            <KpiStatCard variant="cell" title={goalMetric.label} value={goalMetric.value} />
           )}
-          <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
-        </div>
+          <KpiStatCard variant="cell" title={t("analytics.stats.impressions")} value={data.totals.impressions} />
+        </MetricStrip>
       )}
 
       {/* Campaign list: toolbar + table in one card */}

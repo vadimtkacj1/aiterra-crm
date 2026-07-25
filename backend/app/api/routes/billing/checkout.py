@@ -13,6 +13,7 @@ from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import Account, User
 from app.services import zcredit_service
+from app.services.billing import SOURCE_LANDING, SOURCE_MANUAL, record_invoice_safe
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,17 @@ def create_checkout(
         payload.currency,
         payload.description,
     )
+    record_invoice_safe(
+        db,
+        source_type=SOURCE_MANUAL,
+        source_id=None,
+        account_id=account.id,
+        amount=payload.amount,
+        currency=payload.currency,
+        description=payload.description,
+        provider_doc_id=session_id,
+        provider_url=pay_url,
+    )
 
     return CheckoutResponse(
         status="ok",
@@ -107,7 +119,10 @@ class LandingCheckoutResponse(BaseModel):
 
 
 @router.post("/public/landing-checkout", response_model=LandingCheckoutResponse)
-def public_landing_checkout(payload: LandingCheckoutRequest) -> LandingCheckoutResponse:
+def public_landing_checkout(
+    payload: LandingCheckoutRequest,
+    db: Session = Depends(get_db),
+) -> LandingCheckoutResponse:
     """PUBLIC (no auth): create a Z-Credit hosted-checkout session to buy a
     12-month landing page for ₪2,400.
 
@@ -132,6 +147,21 @@ def public_landing_checkout(payload: LandingCheckoutRequest) -> LandingCheckoutR
         unique_ref=ref,
         success_url=f"{base}/buy/success",
         cancel_url=f"{base}/buy",
+    )
+    # No account exists yet for a public buyer — the registry is the only record of
+    # this order, so the payment can be reconciled when the webhook lands.
+    record_invoice_safe(
+        db,
+        source_type=SOURCE_LANDING,
+        source_id=None,
+        account_id=None,
+        amount=LANDING_PRICE_MINOR / 100,
+        currency="ILS",
+        description=LANDING_DESCRIPTION,
+        provider_doc_id=session_id,
+        provider_url=pay_url,
+        customer_name=payload.name,
+        customer_email=payload.email,
     )
     logger.info("Public landing-page order ref=%s → session=%s", ref, session_id)
     return LandingCheckoutResponse(paymentUrl=pay_url)

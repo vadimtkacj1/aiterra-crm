@@ -32,8 +32,9 @@ function buildPages(current: number, pageCount: number): PageToken[] {
 }
 
 const pageButtonClass = cn(
-  "inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm",
-  "transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex h-8 min-w-8 items-center justify-center rounded-input px-2 text-sm tabular-nums",
+  "text-(--ds-text-secondary) transition-colors hover:bg-secondary hover:text-foreground",
+  "disabled:pointer-events-none disabled:opacity-50",
   "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
 );
 
@@ -77,7 +78,9 @@ const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
               aria-current={token === page ? "page" : undefined}
               className={cn(
                 pageButtonClass,
-                token === page && "bg-accent font-medium text-accent-foreground hover:bg-accent",
+                /* Same language as every other active mark in the app. */
+                token === page &&
+                  "bg-accent font-semibold text-accent-foreground hover:bg-accent hover:text-accent-foreground",
               )}
               onClick={() => goTo(token)}
             >

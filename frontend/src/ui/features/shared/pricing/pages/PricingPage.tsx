@@ -44,7 +44,7 @@ function PlanCard({
         <h3 className="text-lg font-semibold">{name}</h3>
         <p className="text-sm text-muted-foreground">{audience}</p>
         <div className="my-4">
-          <span className={hasNumericPrice ? "text-4xl font-extrabold tracking-tight tabular-nums" : "text-3xl font-bold tracking-tight"}>
+          <span className={hasNumericPrice ? "text-4xl font-semibold tracking-(--ds-track-display) tabular-nums" : "text-3xl font-semibold tracking-(--ds-track-display)"}>
             {displayPrice(price)}
           </span>
           {hasNumericPrice && <span className="text-sm text-muted-foreground"> / חודש</span>}
@@ -53,12 +53,14 @@ function PlanCard({
         <ul className="mb-6 grid flex-1 content-start gap-2 text-start text-sm">
           {features.map((f) => (
             <li key={f} className="flex items-start gap-2">
-              <Check className="mt-0.5 size-4 shrink-0 text-success" />
+              {/* Ink, not green: these are list bullets, not success states.
+                  Semantic colour spent on decoration stops signalling status. */}
+              <Check className="mt-0.5 size-4 shrink-0 text-(--ds-text-tertiary)" strokeWidth={2.5} />
               <span>{f}</span>
             </li>
           ))}
         </ul>
-        <Button variant={highlight ? "default" : "outline"} className="w-full">{cta}</Button>
+        <Button variant={highlight ? "brand" : "outline"} className="w-full rounded-full">{cta}</Button>
       </div>
     </Card>
   );
@@ -68,7 +70,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
   return (
     <div dir="rtl" className="min-h-screen bg-muted">
       {/* Header + Hero — one continuous brand-gradient band */}
-      <div className="bg-[#2e1fa3] [background-image:var(--ds-gradient-brand-deep)]">
+      <div className="bg-(--ds-color-primary-dark) [background-image:var(--ds-gradient-brand-deep)]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 sm:px-10">
           <span className="text-lg font-bold text-white">Aiterra CRM</span>
@@ -81,7 +83,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
             <a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex items-center gap-1.5 text-sm text-white/75 hover:text-white">
               <Mail className="size-4" /> {CONTACT_EMAIL}
             </a>
-            <Button asChild variant="outline" className="border-white/40 bg-transparent text-white shadow-none hover:bg-white/10 hover:text-white">
+            <Button asChild variant="outline" className="rounded-full border-white/35 bg-transparent text-white hover:border-white/60 hover:bg-white/10 hover:text-white">
               <Link to={Paths.login}>כניסה / הרשמה</Link>
             </Button>
           </div>
@@ -89,7 +91,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
 
         {/* Hero */}
         <div className="px-6 py-16 text-center sm:px-10">
-          <h1 className="mx-auto mb-4 max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h1 className="mx-auto mb-4 max-w-3xl text-[34px] font-medium leading-[1.12] tracking-(--ds-track-display) text-white sm:text-5xl">
             מערכת CRM לניהול קמפיינים פרסומיים
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-white/65">
@@ -98,11 +100,11 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {["SaaS", "עברית ואנגלית", "מנוי חודשי"].map((label) => (
-              <span key={label} className="rounded-md bg-white/15 px-3 py-1 text-sm text-white">{label}</span>
+              <span key={label} className="rounded-badge bg-white/15 px-3 py-1 text-sm text-white">{label}</span>
             ))}
           </div>
           <div className="mt-7">
-            <Button asChild size="lg" className="bg-white text-[#3b28cc] shadow-sm hover:bg-white/90">
+            <Button asChild size="lg" className="rounded-full bg-background text-primary hover:bg-white/90">
               <Link to={Paths.buyLanding}>רכישת דף נחיתה</Link>
             </Button>
           </div>
@@ -111,7 +113,7 @@ export function PricingPage({ hidePlans = false }: { hidePlans?: boolean } = {})
 
       {/* Features */}
       <div className="mx-auto max-w-5xl px-6 py-14">
-        <h2 className="mb-10 text-center text-2xl font-semibold tracking-tight">מה כוללת המערכת</h2>
+        <h2 className="mb-10 text-center text-[26px] font-medium tracking-(--ds-track-heading)">מה כוללת המערכת</h2>
         <div className="grid gap-6 sm:grid-cols-2">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <Card key={title} className="h-full">

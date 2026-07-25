@@ -29,17 +29,26 @@ async function fetchContract(token: string): Promise<ContractPublic> {
   return res.json() as Promise<ContractPublic>;
 }
 
+interface CheckoutResult {
+  paymentUrl?: string | null;
+  /** True when an invoice that was already open is handed back instead of a new one. */
+  reused?: boolean;
+  /** What that invoice actually charges — may differ from what this page offered. */
+  amount?: number;
+  coveredStageIds?: number[];
+}
+
 async function createContractCheckout(
   token: string,
   combined: boolean,
-): Promise<{ paymentUrl?: string | null }> {
+): Promise<CheckoutResult> {
   const url = `/api/contracts/${token}/checkout${combined ? "?combined=true" : ""}`;
   const res = await fetch(url, { method: "POST" });
   if (!res.ok) {
     const data = (await res.json()) as { detail?: string };
     throw new Error(data.detail ?? "error");
   }
-  return res.json() as Promise<{ paymentUrl?: string | null }>;
+  return res.json() as Promise<CheckoutResult>;
 }
 
 const pageBg =
@@ -55,6 +64,8 @@ export function ContractPayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  /** An already-open invoice whose amount differs from what this page offered. */
+  const [openInvoice, setOpenInvoice] = useState<{ url: string; amount: number } | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -68,7 +79,7 @@ export function ContractPayPage() {
     .filter((s) => s.status !== "paid")
     .sort((a, b) => a.sortOrder - b.sortOrder) ?? [];
 
-  const handlePay = async (combined: boolean) => {
+  const handlePay = async (combined: boolean, expectedAmount: number) => {
     if (!token) return;
     setPaying(true);
     try {
@@ -76,6 +87,15 @@ export function ContractPayPage() {
       const url = (data.paymentUrl || "").trim();
       if (!url) {
         message.warning(t("contracts.sign.paymentLinkPending"));
+        return;
+      }
+      // A payment link cannot be revoked at the gateway, so an invoice that is already
+      // open is handed back instead of a second one being issued. When it charges a
+      // different amount than the button offered, say so rather than silently sending
+      // the payer to a page with another number on it.
+      const actual = typeof data.amount === "number" ? data.amount : expectedAmount;
+      if (data.reused && Math.abs(actual - expectedAmount) > 0.01) {
+        setOpenInvoice({ url, amount: actual });
         return;
       }
       window.location.assign(url);
@@ -96,7 +116,7 @@ export function ContractPayPage() {
 
   const centeredCard = (children: React.ReactNode) => (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: pageBg }}>
-      <div style={{ textAlign: "center", maxWidth: 400, padding: "40px 32px", background: "#fff", borderRadius: 16, boxShadow: cardShadow, border: "1px solid rgba(15,23,42,.08)" }}>
+      <div style={{ textAlign: "center", maxWidth: 400, padding: "40px 32px", background: "var(--ds-surface-0)", borderRadius: 16, boxShadow: cardShadow, border: "1px solid rgba(15,23,42,.08)" }}>
         {children}
       </div>
     </div>
@@ -172,7 +192,7 @@ export function ContractPayPage() {
       {/* Main */}
       <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
         <div style={{
-          background: "#fff", borderRadius: 20, border: "1px solid rgba(15,23,42,.08)",
+          background: "var(--ds-surface-0)", borderRadius: 20, border: "1px solid rgba(15,23,42,.08)",
           boxShadow: cardShadow, padding: "40px 36px", maxWidth: 480, width: "100%",
         }}>
           {/* Contract title */}
@@ -208,7 +228,7 @@ export function ContractPayPage() {
                     borderBottom: i < pending.length - 1 ? "1px solid rgba(59,40,204,0.1)" : undefined,
                   }}
                 >
-                  <span className="text-sm" style={{ color: "#334155" }}>
+                  <span className="text-sm" style={{ color: "var(--ds-text-secondary)" }}>
                     {s.description || t("contracts.sign.stage")}
                   </span>
                   <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--ds-color-primary-dark)" }}>
@@ -255,23 +275,50 @@ export function ContractPayPage() {
             </div>
           )}
 
-          {/* Pay button */}
-          <Button
-            size="lg"
-            disabled={paying}
-            onClick={() => void handlePay(isMultiple)}
-            className="mb-3 h-13 w-full rounded-xl text-[17px] font-bold"
-            style={{ boxShadow: "0 4px 14px rgba(59, 40, 204, 0.35)" }}
-          >
-            {paying ? (
-              <Spinner size="sm" className="text-current" aria-hidden="true" />
-            ) : (
-              <CreditCard aria-hidden="true" />
-            )}
-            {t("contracts.sign.payStageNow", {
-              amount: fmtMoney(isMultiple ? totalAmount : pending[0].amount, currency),
-            })}
-          </Button>
+          {/* An invoice was already open for a different amount — let the payer decide */}
+          {openInvoice ? (
+            <div
+              className="mb-3 rounded-xl p-4"
+              style={{
+                background: "var(--ds-color-warning-surface, rgba(245, 158, 11, 0.08))",
+                border: "1px solid rgba(245, 158, 11, 0.35)",
+              }}
+            >
+              <span className="mb-2 block text-sm" style={{ color: "var(--ds-text-primary)" }}>
+                {t("contracts.pay.existingInvoiceNotice", {
+                  amount: fmtMoney(openInvoice.amount, currency),
+                })}
+              </span>
+              <Button
+                size="lg"
+                variant="brand"
+                className="h-12 w-full text-[16px] font-semibold"
+                onClick={() => window.location.assign(openInvoice.url)}
+              >
+                <CreditCard aria-hidden="true" />
+                {t("contracts.pay.openExistingInvoice", {
+                  amount: fmtMoney(openInvoice.amount, currency),
+                })}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="lg"
+              disabled={paying}
+              onClick={() => void handlePay(isMultiple, isMultiple ? totalAmount : pending[0].amount)}
+              variant="brand" className="mb-3 h-13 w-full text-[17px] font-semibold"
+              style={{ boxShadow: "0 4px 14px rgba(59, 40, 204, 0.35)" }}
+            >
+              {paying ? (
+                <Spinner size="sm" className="text-current" aria-hidden="true" />
+              ) : (
+                <CreditCard aria-hidden="true" />
+              )}
+              {t("contracts.sign.payStageNow", {
+                amount: fmtMoney(isMultiple ? totalAmount : pending[0].amount, currency),
+              })}
+            </Button>
+          )}
 
           {/* Hint for combined */}
           {isMultiple && (

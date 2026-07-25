@@ -108,7 +108,12 @@
         "oneTimeAmount": "סכום חד-פעמי",
         "oneTimeDefaultDescription": "דמי פתיחה",
         "oneTimePreview": "+ {{amount}} חד-פעמי",
-        "scheduleTitle": "לוח תשלומים"
+        "scheduleTitle": "לוח תשלומים",
+        "openInvoicesTitle_one": "ללקוח זה יש דרישת תשלום פתוחה אחת על סך {{amount}}",
+        "openInvoicesTitle_other": "ללקוח זה יש {{count}} דרישות תשלום פתוחות על סך {{amount}}",
+        "openInvoicesHint": "לא ניתן לבטל קישור תשלום שהונפק. כדאי לבדוק אם באמת צריך חוזה נוסף.",
+        "billingDayFirstPayment": "מיום התשלום הראשון",
+        "billingDayFirstPaymentPreview": "חיוב חודשי מיום התשלום הראשון"
       },
       "stage": {
         "paidAt": "שולם: {{date}}"

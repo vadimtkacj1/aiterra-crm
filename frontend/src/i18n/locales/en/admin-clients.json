@@ -1,0 +1,60 @@
+{
+  "admin": {
+    "clients": {
+      "title": "Clients",
+      "subtitle": "What each client owes, has signed, and pays — in one place.",
+      "kpiOpen": "Open invoices",
+      "kpiCollected": "Collected this month",
+      "kpiSubscriptions": "Active subscriptions",
+      "columns": {
+        "client": "Client",
+        "owed": "Open",
+        "contracts": "Contracts",
+        "subscription": "Subscription",
+        "lastPayment": "Last payment"
+      },
+      "tabs": {
+        "all": "All",
+        "owing": "Owing",
+        "subscribed": "Subscribed",
+        "idle": "No activity"
+      },
+      "openInvoices_one": "1 invoice",
+      "openInvoices_other": "{{count}} invoices",
+      "signedCount_one": "1 signed",
+      "signedCount_other": "{{count}} signed",
+      "draftCount_one": "1 draft",
+      "draftCount_other": "{{count}} drafts",
+      "perMonth": "{{amount}} / month",
+      "neverPaid": "Never paid",
+      "contractsTitle": "Contracts",
+      "openInvoicesTitle": "Open invoices",
+      "noContracts": "No contracts yet",
+      "noOpenInvoices": "Nothing outstanding",
+      "linkWarning": "A payment link stays live until it is paid — Z-Credit cannot revoke it.",
+      "exposureNote": "Every open invoice is a live payment link. Two links for the same work can both be paid.",
+      "searchPlaceholder": "Search client…",
+      "emptyTitle": "No clients match",
+      "emptyDescription": "Adjust the filter or search to see clients.",
+      "subscription": {
+        "active": "Active",
+        "pastDue": "Past due",
+        "completed": "Completed",
+        "none": "None"
+      },
+      "paymentStatus": {
+        "unpaid": "Not invoiced",
+        "invoiced": "Awaiting payment",
+        "partial": "Partly paid",
+        "paid": "Paid"
+      },
+      "source": {
+        "contract": "Contract",
+        "billing_instruction": "Subscription",
+        "meta_topup": "Ad top-up",
+        "landing": "Landing purchase",
+        "manual": "Manual charge"
+      }
+    }
+  }
+}

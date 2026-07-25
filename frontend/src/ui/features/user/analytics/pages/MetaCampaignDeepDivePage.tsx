@@ -36,6 +36,7 @@ import { EmptyState } from "@/ui/shared/components/EmptyState";
 import { UserContentLayout } from "@/ui/shared/components/UserContentLayout";
 import { CampaignCreativeGallery } from "../components/CampaignCreativeGallery";
 import { DateRangeControl, rangeParam, type DateRange } from "../components/DateRangeControl";
+import { MetricStrip } from "@/ui/shared/components/MetricStrip";
 import { KpiStatCard } from "../components/KpiStatCard";
 import {
   classifyCampaignObjective,
@@ -283,25 +284,27 @@ export function MetaCampaignDeepDivePage() {
 
         {/* Top KPI cards */}
         {campaign && mainGoal && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricStrip columns={4}>
             <KpiStatCard
+              variant="cell"
               title={t("analytics.stats.spend")}
               value={campaign.spend}
               suffix={currency}
               precision={2}
             />
             {mainGoal.value !== "0" && (
-              <KpiStatCard title={mainGoal.label} value={mainGoal.value} />
+              <KpiStatCard variant="cell" title={mainGoal.label} value={mainGoal.value} />
             )}
-            <KpiStatCard title={t("analytics.stats.impressions")} value={campaign.impressions} />
+            <KpiStatCard variant="cell" title={t("analytics.stats.impressions")} value={campaign.impressions} />
             {costPerResult && (
               <KpiStatCard
+                variant="cell"
                 title={costPerResult.label}
                 value={costPerResult.value}
                 suffix={currency}
               />
             )}
-          </div>
+          </MetricStrip>
         )}
 
         {/* ── Creatives section (prominent, right after KPIs) ── */}

@@ -1,13 +1,18 @@
 /* ============================================================
-   Tailwind v4 + shadcn tokens — coexists with Ant Design.
-   IMPORTANT: preflight (the global reset) is intentionally NOT
-   imported, so Tailwind does not reset/override antd components
-   during the incremental antd → shadcn migration. box-sizing is
-   already normalized in global.css.
+   Tailwind v4 + shadcn tokens.
+
+   Token ROLES (see tokens.css for the full direction):
+     --ink      primary action surface — buttons that commit
+     --primary  the indicator accent (violet) — links, active
+                states, focus rings, the rail. NOT a fill for
+                large surfaces, NOT a button background in-app.
+     --brand-*  public/marketing register only — hero bands and
+                the one violet CTA on unauthenticated pages.
+   Moving a token outside its role is what makes an interface
+   look generic. Don't.
    ============================================================ */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
-/* antd is fully removed — the standard preflight reset is now safe to enable. */
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 /* Enter/exit animation utilities (animate-in/out, fade/zoom/slide) for
@@ -24,6 +29,14 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* Semantic radii → rounded-button / rounded-card / rounded-input /
+     rounded-badge. Four values, no fifth. Prefer these over the
+     numeric scale so the discipline is visible in the markup. */
+  --radius-button: var(--ds-radius-button);
+  --radius-card:   var(--ds-radius-card);
+  --radius-input:  var(--ds-radius-input);
+  --radius-badge:  var(--ds-radius-badge);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -32,6 +45,9 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-brand: var(--brand);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -49,40 +65,42 @@
 }
 
 :root {
-  --radius: 0.5rem; /* 8px — matches the app control radius */
+  --radius: 0.5rem; /* 8px — the card radius */
 
-  --background: #ffffff;
-  --foreground: #0a0a12;
-  --card: #ffffff;
-  --card-foreground: #0a0a12;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a12;
+  --background: var(--ds-surface-0);
+  --foreground: var(--ds-text-primary);
+  --card: var(--ds-surface-0);
+  --card-foreground: var(--ds-text-primary);
+  --popover: var(--ds-surface-0);
+  --popover-foreground: var(--ds-text-primary);
 
-  --primary: #3b28cc;            /* brand violet 700 */
+  /* Primary = the INDICATOR accent. Links, active states, focus rings,
+     the rail. It marks things; it does not fill them. */
+  --primary: var(--ds-color-primary);
   --primary-foreground: #ffffff;
-  --secondary: #eef1f5;          /* surface-2 */
-  --secondary-foreground: #0a0a12;
-  --muted: #f6f7f9;              /* surface-1 */
-  --muted-foreground: #475569;   /* text-secondary */
-  --accent: #f5f3ff;             /* primary-surface */
-  --accent-foreground: #3b28cc;
-  --destructive: #dc2626;
+
+  /* Ink = the COMMIT surface. Primary buttons are ink, not violet —
+     the single change that most separates this from generic SaaS. */
+  --ink: var(--ds-ink);
+  --ink-foreground: var(--ds-ink-foreground);
+
+  /* Brand = public/marketing register only. */
+  --brand: var(--ds-color-brand-purple);
+
+  --secondary: var(--ds-surface-2);
+  --secondary-foreground: var(--ds-text-primary);
+  --muted: var(--ds-surface-1);
+  --muted-foreground: var(--ds-text-secondary);
+  --accent: var(--ds-color-primary-surface);
+  --accent-foreground: var(--ds-color-primary);
+  --destructive: var(--ds-color-error);
   --destructive-foreground: #ffffff;
-  --success: #16a34a;
+  --success: var(--ds-color-success);
 
-  --border: #e2e5ec;             /* border-default */
-  --input: #e2e5ec;
-  --ring: #3b28cc;
+  --border: var(--ds-border-default);
+  --input: var(--ds-border-default);
+  --ring: var(--ds-color-primary);
 
-  --sidebar: #0f172a;            /* dark sidebar */
-  --sidebar-foreground: rgba(255,255,255,0.85);
-}
-
-/* shadcn components assume border-color defaults from preflight; since we
-   skip preflight, give Tailwind's border utilities a sane default color. */
-@layer base {
-  .tw *,
-  [data-tw] * {
-    border-color: var(--border);
-  }
+  --sidebar: var(--ds-surface-0);
+  --sidebar-foreground: var(--ds-text-secondary);
 }

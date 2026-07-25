@@ -25,8 +25,11 @@ function isGroup(
   return "type" in item && item.type === "group";
 }
 
-/* Light shell (Stripe/Attio/Linear signature): white sidebar separated from
-   the canvas by a hairline; violet reserved for the active item only. */
+/* White sidebar panel separated from the ash canvas by a hairline. The active
+   item is marked by the rail — the same 2px violet bar used by tabs, selected
+   table rows and the current step. Nothing else in the nav carries colour, so
+   the eye finds "where am I" in one jump. The rail is flat, not gradient: a
+   gradient across 2px is invisible detail that only costs paint. */
 function NavItem({
   item,
   selected,
@@ -43,23 +46,18 @@ function NavItem({
         onClick={() => onClick(item.key)}
         aria-current={selected ? "page" : undefined}
         className={cn(
-          "relative mx-3 flex h-10 w-[calc(100%-1.5rem)] items-center gap-2 rounded-md px-4 text-start text-sm transition-colors",
+          "relative mx-2.5 flex h-9 w-[calc(100%-1.25rem)] items-center gap-2.5 rounded-button px-3.5 text-start text-sm transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           selected
             ? "bg-accent font-medium text-primary"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            : "text-(--ds-text-secondary) hover:bg-secondary hover:text-foreground",
         )}
       >
-        {selected && (
-          <span
-            aria-hidden="true"
-            className="absolute inset-s-0 top-1.75 bottom-1.75 w-0.75 rounded-e-full bg-primary [background-image:var(--ds-gradient-brand)]"
-          />
-        )}
+        {selected && <span aria-hidden="true" className="ds-rail ds-rail--inline-start" />}
         <span
           aria-hidden="true"
           className={cn(
-            "flex shrink-0 items-center justify-center text-sm [&_svg]:size-4",
+            "flex shrink-0 items-center justify-center [&_svg]:size-4",
             selected ? "text-primary" : "text-(--ds-text-tertiary)",
           )}
         >
@@ -84,8 +82,8 @@ function SideMenu({
             <li key={`group-${item.label}-${index}`}>
               <div
                 className={cn(
-                  "pb-0.5 pe-4 ps-7 text-[11px] font-semibold uppercase tracking-[0.07em] text-(--ds-text-tertiary)",
-                  index === 0 ? "pt-1" : "pt-2.5",
+                  "ds-label-caps pb-1 pe-4 ps-6",
+                  index === 0 ? "pt-1" : "pt-4",
                 )}
               >
                 {item.label}
@@ -166,7 +164,7 @@ export function AppSidebar({ isMobile, drawerOpen, onDrawerClose, menuItems, sel
   }
 
   return (
-    <aside className="fixed inset-s-0 top-0 z-20 h-dvh w-62 border-e border-border bg-background">
+    <aside className="fixed inset-s-0 top-0 z-20 h-dvh w-62 border-e border-(--ds-border-subtle) bg-background">
       {/* height (not minHeight): the container must stay within the viewport so
           the middle nav area scrolls instead of pushing the footer off-screen */}
       <div className="flex h-full flex-col">

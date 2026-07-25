@@ -1,0 +1,60 @@
+{
+  "admin": {
+    "clients": {
+      "title": "לקוחות",
+      "subtitle": "כמה כל לקוח חייב, מה נחתם ומה משולם — במקום אחד.",
+      "kpiOpen": "חשבוניות פתוחות",
+      "kpiCollected": "נגבה החודש",
+      "kpiSubscriptions": "מנויים פעילים",
+      "columns": {
+        "client": "לקוח",
+        "owed": "פתוח",
+        "contracts": "חוזים",
+        "subscription": "מנוי",
+        "lastPayment": "תשלום אחרון"
+      },
+      "tabs": {
+        "all": "הכול",
+        "owing": "עם חוב",
+        "subscribed": "עם מנוי",
+        "idle": "ללא פעילות"
+      },
+      "openInvoices_one": "חשבונית אחת",
+      "openInvoices_other": "{{count}} חשבוניות",
+      "signedCount_one": "חוזה חתום אחד",
+      "signedCount_other": "{{count}} חתומים",
+      "draftCount_one": "טיוטה אחת",
+      "draftCount_other": "{{count}} טיוטות",
+      "perMonth": "{{amount}} לחודש",
+      "neverPaid": "טרם שילם",
+      "contractsTitle": "חוזים",
+      "openInvoicesTitle": "חשבוניות פתוחות",
+      "noContracts": "אין חוזים",
+      "noOpenInvoices": "אין חוב פתוח",
+      "linkWarning": "קישור תשלום נשאר פעיל עד שישולם — Z-Credit לא מאפשרת לבטל אותו.",
+      "exposureNote": "כל חשבונית פתוחה היא קישור תשלום חי. שני קישורים לאותה עבודה עלולים להיות משולמים שניהם.",
+      "searchPlaceholder": "חיפוש לקוח…",
+      "emptyTitle": "לא נמצאו לקוחות",
+      "emptyDescription": "שנו את הסינון או החיפוש כדי לראות לקוחות.",
+      "subscription": {
+        "active": "פעיל",
+        "pastDue": "בפיגור",
+        "completed": "הסתיים",
+        "none": "אין"
+      },
+      "paymentStatus": {
+        "unpaid": "טרם הונפקה חשבונית",
+        "invoiced": "ממתין לתשלום",
+        "partial": "שולם חלקית",
+        "paid": "שולם"
+      },
+      "source": {
+        "contract": "חוזה",
+        "billing_instruction": "מנוי",
+        "meta_topup": "טעינת תקציב",
+        "landing": "רכישת דף נחיתה",
+        "manual": "חיוב ידני"
+      }
+    }
+  }
+}

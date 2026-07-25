@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -32,7 +33,11 @@ interface AppModalProps {
   footer?: ReactNode;
   width?: number | string;
   centered?: boolean;
-  /** Adds max-height + scroll to the modal body. Default: true */
+  /**
+   * @deprecated No longer needed. The dialog shell is a fixed-height flex
+   * column and DialogBody is always the single scroller, so the body scrolls
+   * when — and only when — it has to. Kept so existing call sites compile.
+   */
   scrollableBody?: boolean;
   /** Kept for antd-API compatibility — Radix unmounts content on close anyway. */
   destroyOnClose?: boolean;
@@ -55,7 +60,7 @@ export function AppModal({
   footer,
   width = 600,
   centered: _centered = true,
-  scrollableBody = true,
+  scrollableBody: _scrollableBody,
   destroyOnClose: _destroyOnClose,
   destroyOnHidden: _destroyOnHidden,
   okButtonProps,
@@ -63,10 +68,12 @@ export function AppModal({
 }: AppModalProps) {
   const { t } = useTranslation();
 
-  const bodyStyle: CSSProperties = {
-    ...(scrollableBody ? { maxHeight: "68vh", overflowY: "auto" as const } : {}),
-    ...styles?.body,
-  };
+  /* Deliberately NO max-height/overflow here any more. This used to set
+     `maxHeight: 68vh; overflowY: auto` while DialogContent was itself
+     `max-h-[85vh] overflow-y-auto` — two nested scrollers, so a long form
+     grew two scrollbars and the footer drifted mid-content. DialogBody is
+     now the only scroller. */
+  const bodyStyle: CSSProperties | undefined = styles?.body;
 
   const hasFooter = footer !== null;
   const footerContent =
@@ -104,9 +111,9 @@ export function AppModal({
         style={{ maxWidth: typeof width === "number" ? `min(${width}px, calc(100vw - 32px))` : width }}
       >
         <DialogHeader className={cn(title == null && "sr-only")}>
-          <DialogTitle className="pe-8">{title ?? ""}</DialogTitle>
+          <DialogTitle>{title ?? ""}</DialogTitle>
         </DialogHeader>
-        <div style={bodyStyle}>{children}</div>
+        <DialogBody style={bodyStyle}>{children}</DialogBody>
         {hasFooter && footerContent != null ? <DialogFooter>{footerContent}</DialogFooter> : null}
       </DialogContent>
     </Dialog>

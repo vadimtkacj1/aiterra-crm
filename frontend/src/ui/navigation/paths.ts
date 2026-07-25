@@ -26,6 +26,7 @@ export const Paths = {
   admin: "/admin",
   adminStatistics: "/admin/statistics",
   adminUsers: "/admin/users",
+  adminClients: "/admin/clients",
   adminPayments: "/admin/payments",
   adminContracts: "/admin/contracts",
   adminInvoices: "/admin/invoices",

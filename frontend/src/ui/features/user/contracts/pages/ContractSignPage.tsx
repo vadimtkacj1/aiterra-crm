@@ -217,7 +217,7 @@ export function ContractSignPage() {
             textAlign: "center",
             maxWidth: 400,
             padding: "40px 32px",
-            background: "#fff",
+            background: "var(--ds-surface-0)",
             borderRadius: 16,
             boxShadow: cardShadow,
             border: "1px solid rgba(15,23,42,.08)",
@@ -253,7 +253,7 @@ export function ContractSignPage() {
       <div style={{ minHeight: "100vh", background: pageBg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div
           style={{
-            background: "#fff",
+            background: "var(--ds-surface-0)",
             borderRadius: 20,
             border: "1px solid rgba(15,23,42,.08)",
             boxShadow: panelShadow,
@@ -289,16 +289,16 @@ export function ContractSignPage() {
           )}
           <div className="flex flex-col gap-3">
             {showPayButton && (
-              <Button onClick={handlePayNow} className="h-11 rounded-[10px]">
+              <Button variant="brand" onClick={handlePayNow} className="h-11">
                 {payButtonLabel}
               </Button>
             )}
             {contract.pdfBase64 ? (
-              <Button variant="outline" onClick={downloadPdf} className="h-11 rounded-[10px]">
+              <Button variant="outline" onClick={downloadPdf} className="h-11 rounded-full">
                 {t("contracts.sign.downloadSignedPdf")}
               </Button>
             ) : null}
-            <Button variant="outline" asChild className="h-11 rounded-[10px]">
+            <Button variant="outline" asChild className="h-11 rounded-full">
               <a href="/">{t("contracts.sign.backToSite")}</a>
             </Button>
           </div>
@@ -375,7 +375,7 @@ export function ContractSignPage() {
           <div
             id="contract-terms"
             style={{
-              background: "#fff",
+              background: "var(--ds-surface-0)",
               borderRadius: 16,
               border: "1px solid rgba(15,23,42,.09)",
               boxShadow: cardShadow,
@@ -406,7 +406,7 @@ export function ContractSignPage() {
                   padding: "20px 22px",
                   fontSize: 14,
                   lineHeight: 1.85,
-                  color: "#334155",
+                  color: "var(--ds-text-secondary)",
                 }}
               >
                 {renderContractBody(contract.body, {
@@ -476,7 +476,7 @@ export function ContractSignPage() {
                   borderRadius: 14,
                   border: "1px solid rgba(15,23,42,.1)",
                   overflow: "hidden",
-                  background: "#fff",
+                  background: "var(--ds-surface-0)",
                 }}
               >
                 <div
@@ -513,7 +513,7 @@ export function ContractSignPage() {
                       gap: 16,
                       padding: "16px 18px",
                       borderTop: i > 0 ? "1px solid rgba(15,23,42,.06)" : undefined,
-                      background: i % 2 === 0 ? "#fff" : "#fafbfc",
+                      background: i % 2 === 0 ? "var(--ds-surface-0)" : "var(--ds-surface-1)",
                     }}
                   >
                     <span style={{ display: "flex", alignItems: "flex-start", gap: 12, minWidth: 0 }}>
@@ -534,7 +534,7 @@ export function ContractSignPage() {
                       >
                         {i + 1}
                       </span>
-                      <span style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.5 }}>
+                      <span style={{ fontSize: 14, color: "var(--color-slate-800)", lineHeight: 1.5 }}>
                         <strong>{t("contracts.sign.stage")} {i + 1}</strong>
                         {s.description ? `: ${s.description}` : ""}
                       </span>
@@ -553,14 +553,14 @@ export function ContractSignPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "18px 18px",
-                    background: "linear-gradient(180deg, #1e293b 0%, var(--ds-text-primary) 100%)",
-                    color: "#fff",
+                    background: "linear-gradient(180deg, var(--color-slate-800) 0%, var(--ds-text-primary) 100%)",
+                    color: "var(--ds-surface-0)",
                   }}
                 >
-                  <span className="text-sm font-semibold" style={{ color: "#e2e8f0" }}>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-slate-200)" }}>
                     {t("contracts.sign.total")}
                   </span>
-                  <span className="text-[22px] font-semibold tabular-nums" style={{ color: "#fff" }}>
+                  <span className="text-[22px] font-semibold tabular-nums" style={{ color: "var(--ds-surface-0)" }}>
                     {fmtMoney(contract.totalAmount, contract.currency)}
                   </span>
                 </div>
@@ -573,7 +573,7 @@ export function ContractSignPage() {
             style={{
               position: "sticky",
               top: 24,
-              background: "#fff",
+              background: "var(--ds-surface-0)",
               borderRadius: 16,
               border: "1px solid rgba(15,23,42,.1)",
               boxShadow: panelShadow,
@@ -608,7 +608,7 @@ export function ContractSignPage() {
             </div>
 
             <div>
-              <span className="mb-2 block text-[13px] font-semibold" style={{ color: "#334155" }}>
+              <span className="mb-2 block text-[13px] font-semibold" style={{ color: "var(--ds-text-secondary)" }}>
                 {t("contracts.sign.yourName")}
               </span>
               <Input
@@ -620,7 +620,7 @@ export function ContractSignPage() {
             </div>
 
             <div>
-              <span className="mb-2 block text-[13px] font-semibold" style={{ color: "#334155" }}>
+              <span className="mb-2 block text-[13px] font-semibold" style={{ color: "var(--ds-text-secondary)" }}>
                 {t("contracts.sign.recipientEmail")}
               </span>
               <span className="mb-2 block text-xs text-muted-foreground">
@@ -645,7 +645,7 @@ export function ContractSignPage() {
             </div>
 
             <div>
-              <span className="mb-1 block text-[13px] font-semibold" style={{ color: "#334155" }}>
+              <span className="mb-1 block text-[13px] font-semibold" style={{ color: "var(--ds-text-secondary)" }}>
                 {t("contracts.sign.signHere")}
               </span>
               <span className="mb-2.5 block text-xs text-muted-foreground">
@@ -676,7 +676,7 @@ export function ContractSignPage() {
                 onCheckedChange={(checked) => setAgreed(checked === true)}
                 className="mt-0.5"
               />
-              <span className="text-[13px] leading-[1.65]" style={{ color: "#334155" }}>
+              <span className="text-[13px] leading-[1.65]" style={{ color: "var(--ds-text-secondary)" }}>
                 <Trans
                   i18nKey="contracts.sign.acceptTermsHtml"
                   components={{
@@ -692,7 +692,7 @@ export function ContractSignPage() {
                 onCheckedChange={(checked) => setPoliciesAgreed(checked === true)}
                 className="mt-0.5"
               />
-              <span className="text-[13px] leading-[1.65]" style={{ color: "#334155" }}>
+              <span className="text-[13px] leading-[1.65]" style={{ color: "var(--ds-text-secondary)" }}>
                 <Trans
                   i18nKey="contracts.sign.acceptPoliciesHtml"
                   components={{
@@ -730,7 +730,7 @@ export function ContractSignPage() {
               size="lg"
               disabled={!canSubmit || submitting}
               onClick={() => void handleSign()}
-              className="h-12.5 w-full rounded-xl text-base font-bold"
+              variant="brand" className="h-12.5 w-full text-base font-semibold"
               style={{
                 boxShadow: canSubmit ? "0 4px 14px rgba(59, 40, 204, 0.35)" : undefined,
               }}

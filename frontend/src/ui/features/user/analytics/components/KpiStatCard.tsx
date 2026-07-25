@@ -6,21 +6,23 @@ interface KpiStatCardProps {
   value: string | number;
   suffix?: ReactNode;
   precision?: number;
-  /** Optional accent for the icon tile / emphasis (kept neutral by default). */
+  /** Semantic accent — colours the delta line only, never the tile. */
   accent?: StatAccent;
+  /** @deprecated tiles no longer carry decorative icons; ignored. */
   icon?: ReactNode;
   /** @deprecated retained for call-site compatibility; layout is handled by StatCard. */
   compact?: boolean;
   /** @deprecated retained for call-site compatibility; StatCard keeps numbers neutral. */
   valueStyle?: React.CSSProperties;
+  /** `cell` when rendered inside a MetricStrip. */
+  variant?: "card" | "cell";
 }
 
 /**
  * KPI tile for the analytics screens. Renders the shared design-system StatCard
- * (white surface, hairline ring, caps label, big tabular number) so campaign KPIs
- * match every other KPI in the app.
+ * so campaign KPIs match every other metric readout in the app.
  */
-export function KpiStatCard({ title, value, suffix, precision, accent, icon }: KpiStatCardProps) {
+export function KpiStatCard({ title, value, suffix, precision, accent, variant }: KpiStatCardProps) {
   const formatted =
     typeof value === "number"
       ? value.toLocaleString(undefined, {
@@ -33,12 +35,14 @@ export function KpiStatCard({ title, value, suffix, precision, accent, icon }: K
     <StatCard
       title={title}
       accent={accent}
-      icon={icon}
+      variant={variant}
       value={
         <span>
           {formatted}
+          {/* Unit rides at body size next to the figure so the number keeps
+              the full weight of the tile. */}
           {suffix ? (
-            <span style={{ fontSize: 14, fontWeight: 500, marginInlineStart: 4 }}>{suffix}</span>
+            <span className="ms-1 text-sm font-normal text-(--ds-text-tertiary)">{suffix}</span>
           ) : null}
         </span>
       }

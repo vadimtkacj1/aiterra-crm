@@ -108,7 +108,12 @@
         "oneTimeAmount": "One-time amount",
         "oneTimeDefaultDescription": "Setup fee",
         "oneTimePreview": "+ {{amount}} one-time",
-        "scheduleTitle": "Payment schedule"
+        "scheduleTitle": "Payment schedule",
+        "openInvoicesTitle_one": "This client has 1 unpaid invoice for {{amount}}",
+        "openInvoicesTitle_other": "This client has {{count}} unpaid invoices for {{amount}}",
+        "openInvoicesHint": "A payment link cannot be cancelled once issued. Check whether a new contract is really needed.",
+        "billingDayFirstPayment": "From the first payment day",
+        "billingDayFirstPaymentPreview": "charged monthly from the first payment day"
       },
       "stage": {
         "paidAt": "Paid: {{date}}"

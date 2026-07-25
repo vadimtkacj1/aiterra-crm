@@ -1,7 +1,16 @@
 @import "./tokens.css";
 
 /* ============================================================
-   CRM Pro Admin — Global Styles & Ant Design Overrides
+   CRM — Global base styles
+
+   The `.ant-*` override block that used to live here (~380 lines)
+   died with the antd removal and has been deleted. `@ant-design/plots`
+   still renders the charts, but it draws to canvas/SVG and never
+   emits antd component DOM — none of those selectors matched.
+
+   Everything below is either a base-layer default or a vocabulary
+   item used by more than one feature. Component-level styling lives
+   in the components. See tokens.css for the design direction.
    ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -18,13 +27,58 @@ body {
   font-weight: var(--ds-font-weight-regular);
   color: var(--ds-text-primary);
   background: var(--ds-surface-1);
+  letter-spacing: var(--ds-track-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   line-height: var(--ds-line-height-normal);
 }
 
-/* ── Scrollbar: thin, branded ────────────────────────────── */
+/* ── Heading typography ──────────────────────────────────────
+   Two rules carry the whole editorial feel:
+
+   1. Optical tracking tightens as size grows (Attio applies negative
+      letter-spacing to everything ≥18px, scaling with the type scale).
+   2. Large headings get LIGHTER, not heavier (Mezmo: "weight 300 for
+      headlines 36px and above — authority through restraint"). Heebo
+      carries 300 for both Hebrew and Latin, which is what makes this
+      adaptable to an RTL product; a Latin display serif would not be.
+
+   In @layer base so Tailwind utilities can override per component. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: var(--ds-track-heading);
+    line-height: var(--ds-line-height-tight);
+    text-wrap: balance;
+  }
+  h4, h5, h6 { letter-spacing: var(--ds-track-subhead); }
+
+  /* ── Focus ring fallback: accessible + branded ────────────
+     In @layer base so kit components that draw their own
+     focus-visible ring (utilities layer) override it. */
+  :focus-visible {
+    outline: 2px solid var(--ds-color-primary);
+    outline-offset: 2px;
+  }
+
+  /* ── Minimal native-button reset ────────────────────────────
+     Preflight leaves enough UA button chrome (border, background) to
+     show through kit ghost/text buttons and the hand-rolled sidebar
+     nav. MUST live in @layer base: an unlayered rule would beat
+     Tailwind's layered utilities (bg-primary etc.) regardless of
+     specificity. */
+  button {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
+}
+
+/* ── Scrollbar: thin, neutral ────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -34,14 +88,10 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--ds-border-strong); }
 
-/* ── Focus ring fallback: accessible + branded ────────────
-   In @layer base so kit components that draw their own
-   focus-visible ring (utilities layer) override it. */
-@layer base {
-  :focus-visible {
-    outline: 2px solid var(--ds-color-primary);
-    outline-offset: 2px;
-  }
+/* ── Text selection ──────────────────────────────────────── */
+::selection {
+  background: var(--ds-color-primary-surface-deep);
+  color: var(--ds-color-primary-dark);
 }
 
 /* ── Skip-to-content link: visually hidden until focused ──
@@ -72,607 +122,118 @@ body {
   padding: 8px 16px;
   background: var(--ds-color-primary);
   color: #fff;
-  border-radius: var(--ds-radius-md);
-  font-weight: var(--ds-font-weight-semibold);
+  border-radius: var(--ds-radius-button);
+  font-weight: var(--ds-font-weight-medium);
   text-decoration: none;
 }
 
-/* ── Text selection ──────────────────────────────────────── */
-::selection {
-  background: var(--ds-color-primary-surface-deep);
-  color: var(--ds-color-primary-dark);
-}
+/* ============================================================
+   THE RAIL — the app's one ambient colour
 
-/* ── Heading typography ──────────────────────────────────────
-   Tight optical tracking on headings/titles is the single strongest
-   "premium editorial" signal (shadcn/Front/Linear). Body copy keeps
-   natural tracking. Values are modest — safe for Hebrew and Latin. */
-h1.ant-typography,
-h2.ant-typography,
-h3.ant-typography,
-h4.ant-typography,
-h5.ant-typography,
-.ant-typography h1,
-.ant-typography h2,
-.ant-typography h3,
-.ant-typography h4,
-.ant-card-head-title,
-.ant-modal-title,
-.ant-descriptions-title,
-.ant-drawer-title,
-.ant-page-header-heading-title {
-  letter-spacing: -0.018em;
+   A 2px violet bar with exactly one meaning: "this is the active
+   one". Sidebar item, tab, selected table row, current step. If you
+   are reaching for it to decorate something, use a hairline instead.
+
+   `.ds-rail` is the shared primitive; the edge is chosen per side so
+   every active affordance in the app draws the identical mark.
+   Logical properties throughout — correct under RTL for free.
+
+   Everything from here down lives in @layer components on purpose:
+   unlayered rules beat every Tailwind utility regardless of
+   specificity, so a class like .ds-label-caps would silently win
+   against a `text-foreground` sitting next to it in the same
+   className. In the components layer, utilities override as expected.
+   ============================================================ */
+@layer components {
+
+.ds-rail {
+  position: absolute;
+  /* Brand gradient, not a flat fill — the indigo→purple ramp is the
+     product's signature and the rail is where it shows in-app. */
+  background: var(--ds-gradient-brand);
+  border-radius: var(--ds-radius-full);
+  pointer-events: none;
 }
-h1.ant-typography,
-h2.ant-typography,
-.ant-typography h1,
-.ant-typography h2 {
-  letter-spacing: -0.024em;
+.ds-rail--inline-start {
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: var(--ds-rail-width);
+}
+.ds-rail--block-end {
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--ds-rail-width);
+  border-radius: 0;
+}
+.ds-rail--block-start {
+  inset-inline: 0;
+  top: 0;
+  height: var(--ds-rail-width);
+  border-radius: 0;
 }
 
 /* ============================================================
-   TABLE
+   VOCABULARY
    ============================================================ */
 
-/* Column headers: uppercase, semibold, muted */
-.ant-table-thead > tr > th,
-.ant-table-thead > tr > td {
-  font-weight:    var(--ds-font-weight-semibold) !important;
-  font-size:      var(--ds-font-size-xs) !important;
-  text-transform: uppercase !important;
-  letter-spacing: var(--ds-letter-spacing-caps) !important;
-  color:          var(--ds-text-secondary) !important;
-}
-
-/* Body rows: comfortable line height + tabular figures so numeric
-   columns (amounts, counts, dates) align on a consistent grid */
-.ant-table-tbody > tr > td {
-  font-size:   var(--ds-font-size-base) !important;
-  line-height: var(--ds-line-height-snug) !important;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Zebra stripe: very subtle violet tint */
-.ant-table-tbody > tr:nth-child(even) > td {
-  background: var(--ds-surface-1);
-}
-
-/* Row hover */
-.ant-table-tbody > tr.ant-table-row:hover > td {
-  background: var(--ds-surface-2) !important;
-  transition: background var(--ds-duration-fast) var(--ds-ease-out);
-}
-
-/* ============================================================
-   INPUTS / FORMS
-   ============================================================ */
-
-.ant-input,
-.ant-input-affix-wrapper,
-.ant-select-selector,
-.ant-picker,
-.ant-input-number {
+/* Interactive card. Deliberately does NOT lift on hover — a floating
+   translate is the tell of a generic template, and this system says
+   depth comes from hairlines. The border darkens instead. */
+.ds-card-interactive {
+  cursor: pointer;
   transition:
     border-color var(--ds-duration-base) var(--ds-ease-out),
-    box-shadow   var(--ds-duration-base) var(--ds-ease-out) !important;
+    background   var(--ds-duration-base) var(--ds-ease-out);
 }
-
-/* Form labels: medium weight, muted */
-.ant-form-item-label > label {
-  font-weight: var(--ds-font-weight-medium) !important;
-  font-size:   var(--ds-font-size-sm) !important;
-  color:       var(--ds-text-secondary) !important;
-}
-
-/* Error message: tight, near-field */
-.ant-form-item-explain-error {
-  font-size: var(--ds-font-size-xs) !important;
-  margin-top: var(--ds-space-0-5) !important;
-}
-
-/* ============================================================
-   CARDS
-   ============================================================ */
-
-.ant-card {
-  box-shadow: var(--ds-shadow-card) !important;
-  border-color: var(--ds-border-subtle) !important;
-  transition:
-    box-shadow var(--ds-duration-base) var(--ds-ease-out),
-    transform  var(--ds-duration-base) var(--ds-ease-out),
-    border-color var(--ds-duration-base) var(--ds-ease-out);
-}
-/* Interactive cards (opt-in via .ds-card-interactive) lift on hover */
-.ds-card-interactive { cursor: pointer; }
 .ds-card-interactive:hover {
-  box-shadow: var(--ds-shadow-card-hover) !important;
-  transform: translateY(-2px);
-}
-.ant-card-head {
-  border-bottom-color: var(--ds-border-subtle) !important;
+  border-color: var(--ds-color-primary-surface-muted);
+  box-shadow: var(--ds-shadow-card-hover);
 }
 
-/* ============================================================
-   SIDEBAR MENU
-   ============================================================ */
-
-/* Light shell (Stripe/Attio signature): violet only on the active item */
-.app-sider-nav .ant-menu-item {
-  color: var(--ds-text-secondary);
-}
-.app-sider-nav .ant-menu-item .anticon {
-  color: var(--ds-text-tertiary);
-}
-.app-sider-nav .ant-menu-item-selected {
-  background: var(--ds-color-primary-surface) !important;
-  color: var(--ds-color-primary) !important;
-  font-weight: var(--ds-font-weight-medium);
-  position: relative;
-}
-.app-sider-nav .ant-menu-item-selected .anticon {
-  color: var(--ds-color-primary);
-}
-.app-sider-nav .ant-menu-item-selected::before {
-  content: '';
-  position: absolute;
-  inset-inline-start: 0;
-  top: 7px;
-  bottom: 7px;
-  width: 3px;
-  border-radius: 0 var(--ds-radius-full) var(--ds-radius-full) 0;
-  background: var(--ds-color-primary);
-}
-.app-sider-nav .ant-menu-item:not(.ant-menu-item-selected):hover {
-  background: var(--ds-surface-2) !important;
-  color: var(--ds-text-primary) !important;
-}
-
-/* ============================================================
-   TAGS & BADGES
-   ============================================================ */
-
-.ant-tag {
-  border-radius:  var(--ds-radius-sm) !important;
-  font-size:      var(--ds-font-size-xs) !important;
-  font-weight:    var(--ds-font-weight-medium) !important;
-  line-height:    20px !important;
-  padding-inline: var(--ds-space-1-5) !important;
-}
-
-.ant-badge-count {
-  font-size:   var(--ds-font-size-2xs) !important;
-  font-weight: var(--ds-font-weight-semibold) !important;
-  min-width:   18px !important;
-  height:      18px !important;
-  line-height: 18px !important;
-  border-radius: var(--ds-radius-full) !important;
-}
-
-/* ============================================================
-   STATISTICS / KPI
-   ============================================================ */
-
-.ant-statistic-content-value {
+/* Tabular figures — any column of numbers that has to line up.
+   Amounts, counts, dates, percentages, KPI values. */
+.ds-nums {
   font-variant-numeric: tabular-nums;
-  font-weight: var(--ds-font-weight-bold) !important;
-  letter-spacing: var(--ds-letter-spacing-tight);
+  font-feature-settings: "tnum";
 }
 
-.ant-statistic-title {
-  font-size:   var(--ds-font-size-xs) !important;
-  font-weight: var(--ds-font-weight-medium) !important;
-  text-transform: uppercase;
-  letter-spacing: var(--ds-letter-spacing-caps);
-  color: var(--ds-text-secondary) !important;
-}
-
-/* ============================================================
-   TABS
-   ============================================================ */
-
-.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-  font-weight: var(--ds-font-weight-semibold) !important;
-}
-
-.ant-tabs-tab-btn {
-  font-size: var(--ds-font-size-sm) !important;
-  transition: color var(--ds-duration-base) var(--ds-ease-out);
-}
-
-/* ============================================================
-   STEPS
-   ============================================================ */
-
-.ant-steps-item-title {
-  font-weight: var(--ds-font-weight-medium) !important;
-  font-size:   var(--ds-font-size-sm) !important;
-}
-.ant-steps-item-description {
-  font-size: var(--ds-font-size-xs) !important;
-}
-
-/* ============================================================
-   OVERLAYS: Modal / Drawer / Dropdown
-   ============================================================ */
-
-/* Backdrop: soft, slightly cool */
-.ant-modal-mask {
-  background: rgba(15, 23, 42, 0.45) !important;
-  backdrop-filter: blur(2px);
-}
-
-/* Shell: generous radius, layered shadow, edge-to-edge sections */
-.ant-modal-content {
-  box-shadow:    var(--ds-shadow-modal) !important;
-  border-radius: var(--ds-radius-2xl) !important;   /* 16px */
-  padding:       0 !important;                        /* sections own their padding */
-  overflow:      hidden;                              /* header/footer meet the rounded corners */
-}
-
-/* Header: hairline divider spans full width */
-.ant-modal-header {
-  margin:        0 !important;
-  padding:       18px 24px !important;
-  border-bottom: 1px solid var(--ds-border-subtle) !important;
-  border-radius: 0 !important;
-}
-.ant-modal-title {
-  font-size:      var(--ds-font-size-lg) !important;   /* 18px */
-  font-weight:    var(--ds-font-weight-semibold) !important;
-  letter-spacing: var(--ds-letter-spacing-tight) !important;
-  line-height:    1.4 !important;
-}
-
-/* Body: comfortable, roomy padding */
-.ant-modal-body {
-  padding: 20px 24px !important;
-}
-
-/* Footer: hairline top divider, right-clustered actions (RTL-aware via flex-end) */
-.ant-modal-footer {
-  margin:        0 !important;
-  padding:       14px 24px !important;
-  border-top:    1px solid var(--ds-border-subtle) !important;
-  display:       flex;
-  align-items:   center;
-  justify-content: flex-end;
-  gap:           8px;
-}
-.ant-modal-footer > .ant-btn {
-  margin: 0 !important;   /* spacing handled by gap */
-}
-.ant-modal-footer .ant-btn {
-  min-height: 36px;
-  padding-inline: 18px;
-}
-
-/* Close: rounded, subtle hover — sits aligned with the title */
-.ant-modal-close {
-  inset-inline-end: 14px !important;
-  top:              14px !important;
-  width:            32px !important;
-  height:           32px !important;
-  border-radius:    var(--ds-radius-lg) !important;
-  color:            var(--ds-text-tertiary) !important;
-  transition:       background var(--ds-duration-fast) var(--ds-ease-out),
-                    color var(--ds-duration-fast) var(--ds-ease-out);
-}
-.ant-modal-close:hover {
-  background: var(--ds-surface-2) !important;
-  color:     var(--ds-text-secondary) !important;
-}
-
-/* Confirm dialogs keep their own inner padding (no header/body/footer structure) */
-.ant-modal-confirm .ant-modal-content {
-  padding: 24px !important;
-}
-.ant-modal-confirm .ant-modal-confirm-btns {
-  margin-top: 20px !important;
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-.ant-modal-confirm .ant-modal-confirm-btns .ant-btn {
-  margin-inline-start: 0 !important;
-  min-height: 36px;
-}
-
-.ant-drawer-content {
-  box-shadow: var(--ds-shadow-modal) !important;
-}
-.ant-drawer-header {
-  border-bottom-color: var(--ds-border-subtle) !important;
-}
-.ant-drawer-title {
-  font-weight: var(--ds-font-weight-semibold) !important;
-}
-
-/* ── Overlay surfaces: dropdown menu, select, date picker ── */
-.ant-dropdown .ant-dropdown-menu,
-.ant-select-dropdown,
-.ant-picker-dropdown .ant-picker-panel-container {
-  box-shadow:    var(--ds-shadow-dropdown) !important;
-  border-radius: var(--ds-radius-xl) !important;   /* 12px */
-  border:        1px solid var(--ds-border-subtle) !important;
-  padding:       6px !important;
-}
-
-/* Dropdown menu items */
-.ant-dropdown-menu-item,
-.ant-dropdown-menu-submenu-title {
-  border-radius: var(--ds-radius-md) !important;
-  padding:       7px 10px !important;
-  font-size:     var(--ds-font-size-base) !important;
-  gap:           10px;
-  transition:    background var(--ds-duration-fast) var(--ds-ease-out);
-}
-.ant-dropdown-menu-item:hover,
-.ant-dropdown-menu-submenu-title:hover {
-  background: var(--ds-surface-2) !important;
-}
-.ant-dropdown-menu-item .anticon {
-  font-size: 15px;
-  color:     var(--ds-text-tertiary);
-}
-.ant-dropdown-menu-item-danger .anticon { color: var(--ds-color-error); }
-.ant-dropdown-menu-item-danger:hover {
-  background: var(--ds-color-error-surface) !important;
-}
-.ant-dropdown-menu-item-divider {
-  background: var(--ds-border-subtle) !important;
-  margin:     4px 2px !important;
-}
-
-/* Select option rows */
-.ant-select-item {
-  border-radius: var(--ds-radius-md) !important;
-  font-size:     var(--ds-font-size-base) !important;
-  padding:       6px 10px !important;
-  min-height:    34px;
-}
-.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-  background: var(--ds-surface-2) !important;
-}
-.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-  background:   var(--ds-color-primary-surface) !important;
-  color:        var(--ds-color-primary-dark) !important;
-  font-weight:  var(--ds-font-weight-semibold) !important;
-}
-
-/* Date-picker cells */
-.ant-picker-cell-inner {
-  border-radius: var(--ds-radius-md) !important;
-}
-
-/* ── Popover & Popconfirm ── */
-.ant-popover-inner {
-  border-radius: var(--ds-radius-xl) !important;
-  box-shadow:    var(--ds-shadow-dropdown) !important;
-  border:        1px solid var(--ds-border-subtle) !important;
-  padding:       14px 16px !important;
-}
-.ant-popconfirm .ant-popconfirm-message {
-  align-items: flex-start;
-}
-.ant-popconfirm .ant-popconfirm-buttons {
-  margin-top:      12px !important;
-  display:         flex;
-  gap:             8px;
-  justify-content: flex-end;
-}
-.ant-popconfirm .ant-popconfirm-buttons .ant-btn {
-  min-height:    30px;
-  margin-inline-start: 0 !important;
-}
-
-/* ============================================================
-   TOOLTIPS
-   ============================================================ */
-
-.ant-tooltip-inner {
-  font-size:     var(--ds-font-size-xs) !important;
-  border-radius: var(--ds-radius-md) !important;
-  padding:       var(--ds-space-1) var(--ds-space-2) !important;
-}
-
-/* ============================================================
-   TOASTS / NOTIFICATIONS
-   ============================================================ */
-
-.ant-message-notice-content {
-  border-radius: var(--ds-radius-xl) !important;
-  box-shadow:    var(--ds-shadow-dropdown) !important;
-  border:        1px solid var(--ds-border-subtle) !important;
-  font-weight:   var(--ds-font-weight-medium) !important;
-  font-size:     var(--ds-font-size-sm) !important;
-  padding:       10px 16px !important;
-}
-
-.ant-notification-notice {
-  border-radius: var(--ds-radius-xl) !important;
-  box-shadow:    var(--ds-shadow-modal) !important;
-}
-.ant-notification-notice-message {
-  font-weight: var(--ds-font-weight-semibold) !important;
-  font-size:   var(--ds-font-size-base) !important;
-}
-
-/* ============================================================
-   BUTTONS
-   ============================================================ */
-
-.ant-btn {
-  font-weight: var(--ds-font-weight-medium) !important;
-  transition:
-    background    var(--ds-duration-base) var(--ds-ease-out),
-    border-color  var(--ds-duration-base) var(--ds-ease-out),
-    box-shadow    var(--ds-duration-base) var(--ds-ease-out),
-    opacity       var(--ds-duration-base) var(--ds-ease-out) !important;
-}
-.ant-btn:active {
-  transform: scale(0.98);
-  transition-duration: var(--ds-duration-fast) !important;
-}
-
-/* ============================================================
-   PROGRESS
-   ============================================================ */
-
-.ant-progress-bg {
-  transition: width var(--ds-duration-slow) var(--ds-ease-out) !important;
-}
-
-/* ============================================================
-   PAGINATION
-   ============================================================ */
-
-.ant-pagination-item {
-  border-radius: var(--ds-radius-md) !important;
-  font-size: var(--ds-font-size-sm) !important;
-}
-.ant-pagination-item-active {
-  font-weight: var(--ds-font-weight-semibold) !important;
-}
-
-/* ============================================================
-   BREADCRUMB
-   ============================================================ */
-
-.ant-breadcrumb-link {
-  font-size: var(--ds-font-size-sm) !important;
-}
-
-/* ============================================================
-   ALERT
-   ============================================================ */
-
-.ant-alert {
-  border-radius: var(--ds-radius-lg) !important;
-}
-.ant-alert-message {
-  font-weight: var(--ds-font-weight-medium) !important;
-}
-
-/* ============================================================
-   EMPTY STATE
-   ============================================================ */
-
-.ant-empty-description {
-  font-size: var(--ds-font-size-sm) !important;
-  color: var(--ds-text-tertiary) !important;
-}
-
-/* ============================================================
-   UTILITY CLASSES
-   ============================================================ */
-
-/* Page header title */
-.ds-page-title {
-  font-size:      var(--ds-font-size-xl);
-  font-weight:    var(--ds-font-weight-bold);
-  color:          var(--ds-text-primary);
-  line-height:    var(--ds-line-height-tight);
-  letter-spacing: var(--ds-letter-spacing-tight);
-  margin: 0;
-}
-
-/* Page sub-title / description */
-.ds-page-subtitle {
-  font-size:  var(--ds-font-size-base);
-  color:      var(--ds-text-secondary);
-  line-height:var(--ds-line-height-normal);
-  margin: 0;
-}
-
-/* KPI / metric value */
-.ds-kpi-value {
-  font-size:            var(--ds-font-size-4xl);
-  font-weight:          var(--ds-font-weight-extrabold);
-  color:                var(--ds-text-primary);
-  font-variant-numeric: tabular-nums;
-  letter-spacing:       var(--ds-letter-spacing-tight);
-  line-height:          1;
-}
-
-/* KPI label */
-.ds-kpi-label {
-  font-size:      var(--ds-font-size-xs);
-  font-weight:    var(--ds-font-weight-medium);
-  color:          var(--ds-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: var(--ds-letter-spacing-caps);
-}
-
-/* Section divider */
-.ds-divider {
-  border: none;
-  border-top: 1px solid var(--ds-border-subtle);
-  margin: var(--ds-space-6) 0;
-}
-
-/* Monospaced data: IDs, codes, phone numbers */
+/* Monospaced data: IDs, codes, invoice numbers, phone numbers. */
 .ds-mono {
-  font-family:          var(--ds-font-family-mono);
-  font-size:            var(--ds-font-size-sm);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-font-size-sm);
   font-variant-numeric: tabular-nums;
-  letter-spacing:       var(--ds-letter-spacing-tight);
+  letter-spacing: var(--ds-letter-spacing-tight);
 }
 
 /* Status indicator dot */
 .ds-status-dot {
-  display:      inline-block;
-  width:        8px;
-  height:       8px;
-  border-radius:var(--ds-radius-full);
-  flex-shrink:  0;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--ds-radius-full);
+  flex-shrink: 0;
 }
 .ds-status-dot--active  { background: var(--ds-color-success); }
 .ds-status-dot--warning { background: var(--ds-color-warning); }
 .ds-status-dot--error   { background: var(--ds-color-error);   }
 .ds-status-dot--neutral { background: var(--ds-text-tertiary); }
 
-/* Truncate with ellipsis */
-.ds-truncate {
-  overflow:      hidden;
-  text-overflow: ellipsis;
-  white-space:   nowrap;
+/* Small caps label — the ONE place uppercase tracking is allowed:
+   table column headers and metric labels. Not section titles, not
+   nav, not buttons. Sprinkling caps everywhere flattens hierarchy. */
+.ds-label-caps {
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--ds-letter-spacing-caps);
+  color: var(--ds-text-secondary);
 }
 
-/* Card content section with consistent padding */
-.ds-card-section {
-  padding: var(--ds-space-6);
-}
-.ds-card-section + .ds-card-section {
-  border-top: 1px solid var(--ds-border-subtle);
-}
-
-/* ── Sidebar nav group titles (Refero: Fernand/Navan grouped nav) ── */
-.app-sider-nav .ant-menu-item-group-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  color: var(--ds-text-tertiary);
-  padding-block: 10px 2px;
-  padding-inline: 28px 16px;
-}
-.app-sider-nav .ant-menu-item-group:first-child .ant-menu-item-group-title {
-  padding-block-start: 4px;
+/* Hebrew letterforms are not designed to be tracked, and `uppercase` is a
+   no-op for them — so in Hebrew the label earns its hierarchy from size,
+   weight and colour alone, with tracking pulled back to almost nothing. */
+:lang(he) .ds-label-caps {
+  letter-spacing: 0.015em;
 }
 
-/* ── Minimal native-button reset ─────────────────────────────
-   Tailwind preflight is off during the antd coexistence phase, so native
-   <button> shows UA borders/background under kit ghost/text buttons and the
-   hand-rolled sidebar nav. MUST live in @layer base: unlayered rules would
-   beat Tailwind's layered utilities (bg-primary etc.) regardless of
-   specificity. antd's own styles are unlayered and win over any layer. */
-@layer base {
-  button {
-    border: none;
-    background: none;
-    padding: 0;
-    font: inherit;
-    color: inherit;
-    text-align: inherit;
-    cursor: pointer;
-  }
-}
+}  /* @layer components */

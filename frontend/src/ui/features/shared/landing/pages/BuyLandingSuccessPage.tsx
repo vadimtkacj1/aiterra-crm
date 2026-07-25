@@ -17,7 +17,7 @@ export function BuyLandingSuccessPage() {
           <p className="mb-6 text-sm text-muted-foreground">
             קיבלנו את ההזמנה לדף הנחיתה. צוות Aiterra יצור אתכם קשר במייל בהקדם עם הפרטים והשלבים הבאים.
           </p>
-          <Button asChild size="lg">
+          <Button asChild variant="brand" size="lg">
             <Link to={Paths.root}>חזרה לאתר</Link>
           </Button>
         </Card>

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -54,8 +54,23 @@ async def zcredit_webhook(request: Request, db: Session = Depends(get_db)) -> di
 
     data = parse_webhook_json_body(payload)
     event_type = resolve_event_type(data)
-    logger.warning("zcredit_webhook received event=%s keys=%s data=%s", event_type, list(data.keys()), data)
+    # Never log the body: it carries the card token, holder name and expiry, and this
+    # token is what authorises future charges.
+    logger.info(
+        "zcredit_webhook received event=%s session=%s ref=%s keys=%s",
+        event_type,
+        data.get("SessionId"),
+        data.get("ReferenceNumber"),
+        sorted(data.keys()),
+    )
 
-    apply_zcredit_webhook_event(db, event_type, data)
+    try:
+        apply_zcredit_webhook_event(db, event_type, data)
+    except Exception:
+        # Acknowledging a callback we failed to apply loses the payment for good —
+        # the gateway will not send it again. Fail loudly so it retries.
+        logger.exception("zcredit_webhook: applying event failed session=%s", data.get("SessionId"))
+        db.rollback()
+        raise HTTPException(status_code=500, detail="webhook_processing_failed")
 
     return {"received": True}

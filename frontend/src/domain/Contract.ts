@@ -1,3 +1,5 @@
+export type ContractPaymentStatus = "unpaid" | "invoiced" | "partial" | "paid";
+
 export interface ContractStage {
   id: number;
   sortOrder: number;
@@ -5,6 +7,8 @@ export interface ContractStage {
   amount: number;
   status: "pending" | "invoiced" | "paid";
   paidAt?: string | null;
+  /** "subscription" activates recurring billing when paid; "one_time" is a plain fee. */
+  kind?: "subscription" | "one_time";
 }
 
 export interface Contract {
@@ -28,6 +32,10 @@ export interface Contract {
   monthlyAmount?: number | null;
   subscriptionMonths?: number | null;
   billingDay?: number | null;
+  /** Derived from the stages — never stored, so it cannot drift. */
+  paymentStatus?: ContractPaymentStatus;
+  /** Whole-contract worth: monthly x months + fees. Null when open-ended. */
+  contractValue?: number | null;
 }
 
 export interface ContractPublic {
@@ -43,6 +51,8 @@ export interface ContractPublic {
   stages: ContractStage[];
   monthlyAmount?: number | null;
   subscriptionStatus?: string | null;
+  paymentStatus?: ContractPaymentStatus;
+  contractValue?: number | null;
 }
 
 export interface ContractStageInput {

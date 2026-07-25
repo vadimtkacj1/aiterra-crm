@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -278,15 +278,78 @@ def pay_open_invoice(
     if not inv or getattr(inv, "status", None) != "open":
         raise HTTPException(status_code=400, detail="invoice_not_open")
 
+    doc_id = instruction.payment_doc_id
+    amount = float(instruction.amount or 0)
     paid = zcredit_service.pay_open_invoice(
-        instruction.payment_doc_id,
+        doc_id,
         card.zcredit_token,
-        amount_major=float(instruction.amount or 0),
+        amount_major=amount,
         currency=instruction.currency or "ILS",
     )
+
+    # The charge goes straight to the card, so no webhook ever arrives for it. Without
+    # recording it here the demand stayed open: the overview kept offering the same
+    # button and a second click charged the client again.
+    _settle_saved_card_payment(db, instruction, doc_id=doc_id, amount=amount, paid=paid)
+
     status = str(getattr(paid, "status", "") or "")
     url = getattr(paid, "payment_url", None)
     return PayInvoiceResponse(status=status, hostedInvoiceUrl=str(url) if url else None)
+
+
+def _settle_saved_card_payment(
+    db: Session,
+    instruction: AccountBillingInstruction,
+    *,
+    doc_id: str,
+    amount: float,
+    paid: object,
+) -> None:
+    """Close the demand and record the money, mirroring what the webhook does."""
+    from app.models.billing import SubscriptionPayment
+    from app.models.contracts import Contract
+    from app.services.billing import mark_paid_safe
+
+    contract = (
+        db.query(Contract).filter(Contract.billing_instruction_id == instruction.id).first()
+    )
+    payment_count = (
+        db.query(SubscriptionPayment)
+        .filter(SubscriptionPayment.billing_instruction_id == instruction.id)
+        .count()
+    )
+    reference = str(getattr(paid, "id", "") or doc_id)
+
+    already = (
+        db.query(SubscriptionPayment)
+        .filter(
+            SubscriptionPayment.billing_instruction_id == instruction.id,
+            SubscriptionPayment.zcredit_transaction_id == reference,
+        )
+        .first()
+    )
+    if not already:
+        db.add(SubscriptionPayment(
+            billing_instruction_id=instruction.id,
+            contract_id=contract.id if contract else None,
+            amount=amount,
+            currency=instruction.currency or "ILS",
+            payment_number=payment_count + 1,
+            status="success",
+            zcredit_transaction_id=reference,
+            zcredit_approval_number="",
+        ))
+
+    # payment_url is what the overview reads to decide "still payable"
+    instruction.payment_url = None
+    if instruction.charge_type == "monthly":
+        instruction.subscription_status = "active"
+        if instruction.billing_day is None:
+            instruction.billing_day = min(date.today().day, 28)
+    db.add(instruction)
+    db.commit()
+
+    mark_paid_safe(db, doc_id, reference_number=reference)
 
 
 @router.get("/{account_id}/billing/overview", response_model=BillingOverview)

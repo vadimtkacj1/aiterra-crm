@@ -243,7 +243,7 @@ export function MemberContractsPage() {
             </Button>
           }
         />
-        <Card className="overflow-hidden rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
+        <Card className="overflow-hidden">
           {!loading && rows.length === 0 ? (
             <EmptyState title={t("memberContracts.empty")} />
           ) : isMobile ? (

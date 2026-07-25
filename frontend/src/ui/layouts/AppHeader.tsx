@@ -96,7 +96,9 @@ export function AppHeader({
     <header
       className={cn(
         "sticky top-0 z-10 flex h-14 items-center justify-between gap-2",
-        "border-b border-border bg-card shadow-[0_1px_0_rgba(0,0,0,0.03)]",
+        /* Hairline only — the faux 1px shadow it used to carry was a second
+           separator doing the same job as the border. */
+        "border-b border-(--ds-border-subtle) bg-card",
         isMobile ? "px-3" : "px-5",
       )}
     >
@@ -174,10 +176,10 @@ export function AppHeader({
           <Button
             variant="ghost"
             aria-label={headerRightLabel || t("layout.menuSettings")}
-            className={cn("flex h-10 items-center gap-2 rounded-[10px]", isMobile ? "px-1" : "px-2")}
+            className={cn("flex h-9 items-center gap-2", isMobile ? "px-1" : "px-2")}
           >
-            <Avatar className="size-7.5 shrink-0">
-              <AvatarFallback className="bg-accent text-[13px] font-semibold text-primary">
+            <Avatar className="size-7 shrink-0">
+              <AvatarFallback className="bg-secondary text-[12px] font-semibold text-(--ds-text-secondary)">
                 {(headerRightLabel || userEmail || "?").trim().charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>

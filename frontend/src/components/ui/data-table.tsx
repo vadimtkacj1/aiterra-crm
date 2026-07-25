@@ -120,24 +120,32 @@ export function DataTable<T>({
         </div>
       )}
       <div className="overflow-x-auto">
+        {/* Hairlines separate rows; no zebra striping. Stripes plus rules is
+            double-signalling, and the ash/white tone step already gives the
+            table its edges. Numbers are tabular so columns align. */}
         <table
-          className="w-full border-collapse text-sm"
+          className="w-full border-collapse text-sm tabular-nums"
           style={scroll?.x ? { minWidth: scroll.x } : undefined}
         >
           <thead>
-            <tr className="border-b border-border bg-muted/60">
+            <tr className="border-b border-(--ds-border-default)">
               {rowSelection && (
-                <th className={cn(cellPad, "w-10")}>
+                <th className={cn(cellPad, "w-10 border-s-2 border-s-transparent")}>
                   <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="select all" />
                 </th>
               )}
-              {expandable && <th className={cn(cellPad, "w-8")} />}
+              {expandable && (
+                <th className={cn(cellPad, "w-8", !rowSelection && "border-s-2 border-s-transparent")} />
+              )}
               {columns.map((c, i) => (
                 <th
                   key={c.key ?? String(c.dataIndex ?? i)}
                   className={cn(
                     cellPad, alignClass(c.align),
-                    "text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap",
+                    /* Uppercase tracking is rationed to exactly two places in
+                       this system — column headers and metric labels. */
+                    "ds-label-caps whitespace-nowrap",
+                    i === 0 && !rowSelection && !expandable && "border-s-2 border-s-transparent",
                     c.responsive?.length ? RESPONSIVE_CELL[c.responsive[0]] : undefined,
                   )}
                   style={c.width ? { width: c.width } : undefined}
@@ -150,7 +158,7 @@ export function DataTable<T>({
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={colCount} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={colCount} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {locale?.emptyText ?? "—"}
                 </td>
               </tr>
@@ -160,23 +168,37 @@ export function DataTable<T>({
                 const canExpand = expandable ? (expandable.rowExpandable?.(record) ?? true) : false;
                 const isExpanded = expandedKeys.has(key);
                 const rowProps = onRow?.(record, ri);
+                const isSelected = Boolean(selected?.has(key));
+                /* The rail, on a table row. It rides the first cell's
+                   inline-start border so it stays RTL-correct and costs no
+                   extra element; every row reserves the 2px so selecting
+                   one never shifts the column grid. */
+                const rail = cn(
+                  "border-s-2",
+                  isSelected ? "border-s-(--ds-rail-color)" : "border-s-transparent",
+                );
+                const railOn = (first: boolean) => (first ? rail : undefined);
                 return (
                   <React.Fragment key={key}>
                     <tr
                       {...rowProps}
+                      data-selected={isSelected || undefined}
                       className={cn(
-                        "border-b border-border transition-colors hover:bg-muted/50",
+                        /* `last:border-b-0` — inside a Card the final row's rule
+                           would otherwise sit a hair above the card's own
+                           border and read as a double line. */
+                        "border-b border-(--ds-border-subtle) transition-colors last:border-b-0 hover:bg-secondary/70",
+                        isSelected && "bg-accent/60",
                         rowProps?.className,
                       )}
                     >
                       {rowSelection && (
-                        <td className={cellPad}>
+                        <td className={cn(cellPad, railOn(true))}>
                           <Checkbox
-                            checked={Boolean(selected?.has(key))}
+                            checked={isSelected}
                             onCheckedChange={() => {
-                              const has = selected?.has(key);
                               rowSelection.onChange(
-                                has
+                                isSelected
                                   ? rowSelection.selectedRowKeys.filter((k) => k !== key)
                                   : [...rowSelection.selectedRowKeys, key],
                               );
@@ -186,7 +208,7 @@ export function DataTable<T>({
                         </td>
                       )}
                       {expandable && (
-                        <td className={cn(cellPad, "w-8")}>
+                        <td className={cn(cellPad, "w-8", railOn(!rowSelection))}>
                           {canExpand && (
                             <button
                               type="button"
@@ -211,6 +233,7 @@ export function DataTable<T>({
                             key={c.key ?? String(c.dataIndex ?? ci)}
                             className={cn(
                               cellPad, alignClass(c.align),
+                              railOn(ci === 0 && !rowSelection && !expandable),
                               c.responsive?.length ? RESPONSIVE_CELL[c.responsive[0]] : undefined,
                               cell?.className,
                             )}
@@ -222,7 +245,7 @@ export function DataTable<T>({
                       })}
                     </tr>
                     {isExpanded && (
-                      <tr className="border-b border-border bg-muted/30">
+                      <tr className="border-b border-(--ds-border-subtle) bg-muted">
                         <td colSpan={colCount} className="px-4 py-3">
                           {expandable!.expandedRowRender(record)}
                         </td>

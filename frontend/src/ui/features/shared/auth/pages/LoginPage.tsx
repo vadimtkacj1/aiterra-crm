@@ -18,7 +18,7 @@ export function LoginPage() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-muted p-4 sm:p-6">
       {/* Language switcher — fixed so it's always visible */}
-      <div className="fixed end-4 top-4 z-50 flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 shadow-sm">
+      <div className="fixed end-4 top-4 z-50 flex items-center gap-1.5 rounded-full border border-(--ds-border-subtle) bg-card px-3 py-1.5">
         <Globe className="size-4 text-muted-foreground" />
         <select
           value={currentLang}
@@ -31,17 +31,19 @@ export function LoginPage() {
         </select>
       </div>
 
-      <Card className="relative w-full max-w-[420px] overflow-hidden p-8">
+      <Card variant="framed" className="relative w-full max-w-[420px] overflow-hidden p-8 sm:p-9">
         {/* Brand accent — gradient hairline along the card top */}
         <div aria-hidden className="absolute inset-x-0 top-0 h-1 [background-image:var(--ds-gradient-brand)]" />
-        <div className="mb-6 flex justify-center">
+        <div className="mb-7 flex justify-center">
           <img src={logoUrl} alt={t("layout.brand")} className="size-20 sm:size-24" />
         </div>
 
-        <h1 className="mb-1.5 text-center text-2xl font-bold tracking-tight text-foreground">
+        {/* Restrained display type: 26px at weight 500 with tight optical
+            tracking reads more confident here than a bold 24px. */}
+        <h1 className="mb-1.5 text-center text-[26px] font-medium leading-tight tracking-(--ds-track-heading) text-foreground">
           {t("login.title")}
         </h1>
-        <p className="mb-6 text-center text-sm text-muted-foreground">
+        <p className="mx-auto mb-7 max-w-[34ch] text-center text-sm leading-normal text-muted-foreground">
           {t("login.hint")}
         </p>
 

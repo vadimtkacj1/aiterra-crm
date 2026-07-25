@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import date
 from typing import NamedTuple
 
 from fastapi import HTTPException
@@ -272,6 +273,8 @@ def apply_mock_hosted_confirm(db: Session, doc_id: str, *, success: bool) -> Non
             ins.payment_url = None
         if ins.charge_type == "monthly":
             ins.subscription_status = "active"
+            if ins.billing_day is None:
+                ins.billing_day = min(date.today().day, 28)
         logger.info("mock_payment: confirmed doc_id=%s account_id=%s", doc_id, ins.account_id)
     else:
         if ins.charge_type == "monthly":
@@ -280,3 +283,10 @@ def apply_mock_hosted_confirm(db: Session, doc_id: str, *, success: bool) -> Non
 
     db.add(ins)
     db.commit()
+
+    if success:
+        # Mock mode must leave the same trace as the real gateway, otherwise the registry
+        # silently diverges from reality on every developer machine.
+        from app.services.billing import mark_paid_safe
+
+        mark_paid_safe(db, doc_id, reference_number=f"mock_{doc_id[:12]}")

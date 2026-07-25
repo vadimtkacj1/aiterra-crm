@@ -15,6 +15,7 @@ import adminAudit from "./admin-audit.json";
 import adminPaymentsA from "./admin-payments-a.json";
 import adminPaymentsB from "./admin-payments-b.json";
 import adminTopup from "./admin-topup.json";
+import adminClients from "./admin-clients.json";
 import adminContracts from "./admin-contracts.json";
 import adminInvoices from "./admin-invoices.json";
 import adminLeads from "./admin-leads.json";
@@ -44,6 +45,7 @@ const merged = deepMerge(
   adminPaymentsA,
   adminPaymentsB,
   adminTopup,
+  adminClients,
   adminContracts,
   adminInvoices,
   adminLeads,

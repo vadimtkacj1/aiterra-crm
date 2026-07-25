@@ -6,7 +6,9 @@
       "contractNotSigned": "The contract must be signed before payment can proceed",
       "breakdown": "Due now",
       "total": "Total",
-      "combinedHint": "All items processed in one secure transaction"
+      "combinedHint": "All items processed in one secure transaction",
+      "existingInvoiceNotice": "You already have an unpaid invoice for {{amount}}. Pay that one first — a payment link cannot be cancelled once issued.",
+      "openExistingInvoice": "Open the {{amount}} invoice"
     },
     "pdf": {
       "loadError": "Failed to load document",

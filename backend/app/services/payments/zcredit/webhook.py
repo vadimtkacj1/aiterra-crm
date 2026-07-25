@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.models.billing import AccountBillingInstruction, SubscriptionPayment
 from app.models.contracts import ContractPaymentStage
 from app.models.core import User
+from app.services.billing import mark_paid_safe
 from app.services.email.smtp_mail import send_past_due_alert
 from app.services.payments.zcredit.card_service import upsert_saved_card
 
@@ -51,9 +52,22 @@ def resolve_event_type(data: dict[str, Any]) -> str:
     explicit = _get_field(data, "event", "type")
     if explicit:
         return explicit
+
+    # Negative signals win. A declined card still carries a ReferenceNumber, so treating
+    # any reference as success marked rejected payments as paid.
+    if data.get("TransactionSuccess") is False or data.get("HasError") is True:
+        return "payment.failed"
     rc = data.get("ReturnCode")
     if rc not in (None, 0, "0"):
         return "payment.failed"
+    inner = data.get("Data")
+    if isinstance(inner, dict):
+        if inner.get("HasError") is True:
+            return "payment.failed"
+        inner_rc = inner.get("ReturnCode")
+        if inner_rc not in (None, 0, "0"):
+            return "payment.failed"
+
     if (
         data.get("TransactionSuccess") is True
         or data.get("ReferenceNumber")
@@ -61,6 +75,65 @@ def resolve_event_type(data: dict[str, Any]) -> str:
     ):
         return "payment.success"
     return ""
+
+
+class _GatewayUnavailable(Exception):
+    """Verification could not be completed — as opposed to a definitive 'not paid'."""
+
+
+def _gateway_confirms_payment(data: dict[str, Any]) -> bool:
+    """Ask Z-Credit whether the session was really paid.
+
+    The callback endpoint is public and unsigned, so the body alone proves nothing —
+    anyone who sees a SessionId could otherwise mark a contract paid. When the gateway
+    is not configured (mock/dev), there is nothing to ask and the body is trusted.
+
+    Three outcomes, kept distinct on purpose:
+      - gateway confirms paid            → True  (apply)
+      - gateway reachable, says NOT paid → False (ignore, ack 200 — a forgery or a real
+                                                  failure that will not become paid)
+      - verification could not run       → raise (the caller answers 5xx so Z-Credit
+                                                  retries; never silently drop a payment)
+    """
+    if not _gateway_is_live():
+        return True
+
+    session_id = _get_field(data, "SessionId") or _get_field(data, "docId", "doc_id")
+    if not session_id:
+        # Recurring-billing callbacks carry no session; they are matched by UniqueID and
+        # cannot be confirmed this way. Left to the legacy path rather than dropped.
+        return True
+
+    from app.services.payments.zcredit.service import try_retrieve_invoice
+
+    try:
+        doc = try_retrieve_invoice(session_id)
+    except Exception as exc:
+        logger.exception("zcredit_webhook: verification call failed session=%s", session_id)
+        raise _GatewayUnavailable(session_id) from exc
+
+    if doc is None:
+        # Ambiguous: unknown session (likely forged) or a transient gateway error, and the
+        # body claimed success. Retry rather than acknowledge — a genuine payment must not
+        # be lost, and a forged one is merely ignored again on redelivery (idempotent).
+        logger.warning(
+            "zcredit_webhook: could not confirm session=%s — asking gateway to retry", session_id
+        )
+        raise _GatewayUnavailable(session_id)
+
+    if getattr(doc, "status", None) != "paid":
+        logger.warning(
+            "zcredit_webhook: gateway reports session=%s as %s — callback ignored",
+            session_id, getattr(doc, "status", None),
+        )
+        return False
+    return True
+
+
+def _gateway_is_live() -> bool:
+    from app.core.settings import settings
+
+    return bool((settings.zcredit_api_key or "").strip())
 
 
 def _find_instruction_by_doc_id(db: Session, doc_id: str) -> AccountBillingInstruction | None:
@@ -145,46 +218,111 @@ def _save_card_from_webhook(db: Session, account_id: int, data: dict[str, Any]) 
     logger.info("zcredit_webhook: saved card token for account_id=%s", account_id)
 
 
+def _stages_for_session(db: Session, session_id: str) -> list[ContractPaymentStage]:
+    """Stages billed by *session_id* — current invoice first, superseded links as fallback.
+
+    A combined payment puts one session ID on several stages, so this can return more
+    than one. The fallback catches a client paying an old link after ?renew=true issued
+    a fresh invoice (Z-Credit cannot void the old one).
+    """
+    direct = (
+        db.query(ContractPaymentStage)
+        .filter(ContractPaymentStage.payment_doc_id == session_id)
+        .all()
+    )
+
+    candidates = (
+        db.query(ContractPaymentStage)
+        .filter(ContractPaymentStage.superseded_doc_ids.like(f"%{session_id}%"))
+        .all()
+    )
+    # LIKE can over-match; confirm the ID is a whole entry in the comma-separated list
+    superseded = [s for s in candidates if session_id in (s.superseded_doc_ids or "").split(",")]
+
+    # Union, not fallback: after a partial renew the same session can be the current doc
+    # of some stages and a replaced one for others. Short-circuiting on the direct hit
+    # left the rest of a combined payment unpaid.
+    by_id = {s.id: s for s in direct}
+    for stage in superseded:
+        by_id.setdefault(stage.id, stage)
+    return list(by_id.values())
+
+
+def _default_billing_day(today: date | None = None) -> int:
+    """Billing day to lock in on the first payment.
+
+    Capped at 28 so a subscription started on the 29th-31st still has a day that exists
+    in every month — otherwise the scheduler would skip most months.
+    """
+    return min((today or date.today()).day, 28)
+
+
+def _is_subscription_stage(stage: ContractPaymentStage) -> bool:
+    """Whether paying this stage should activate recurring billing.
+
+    Reads the explicit ``kind``; rows written before that column existed fall back to the
+    old rule (the subscription was always created as the first stage).
+    """
+    kind = (getattr(stage, "kind", None) or "").strip()
+    if kind:
+        return kind == "subscription"
+    return stage.sort_order == 0
+
+
 def _mark_contract_stage_paid(
     db: Session, session_id: str
 ) -> tuple[bool, int | None, "Contract | None", "ContractPaymentStage | None"]:
-    """Mark the contract payment stage with the given session ID as paid.
-    Returns (found, account_id, contract, stage).
+    """Mark every contract payment stage billed by the given session ID as paid.
+    Returns (found, account_id, contract, earliest stage).
     """
     from app.models.contracts import Contract
-    stage = (
-        db.query(ContractPaymentStage)
-        .filter(ContractPaymentStage.payment_doc_id == session_id)
-        .first()
+    stages = _stages_for_session(db, session_id)
+    if not stages:
+        return False, None, None, None
+
+    stages.sort(key=lambda s: s.sort_order)
+    now = datetime.now(timezone.utc)
+    newly_paid = 0
+    for s in stages:
+        if s.status == "paid":
+            continue  # webhook retry — keep the original paid_at
+        s.status = "paid"
+        s.paid_at = now
+        db.add(s)
+        newly_paid += 1
+    db.commit()
+    logger.info(
+        "zcredit_webhook: session=%s covers %d stage(s), %d newly marked paid (stage_ids=%s)",
+        session_id, len(stages), newly_paid, [s.id for s in stages],
     )
-    if stage:
-        now = datetime.now(timezone.utc)
-        stage.status = "paid"
-        stage.paid_at = now
-        db.add(stage)
-        # For combined payments all sibling stages share the same payment_doc_id — mark them paid too
-        siblings = (
-            db.query(ContractPaymentStage)
-            .filter(
-                ContractPaymentStage.payment_doc_id == session_id,
-                ContractPaymentStage.id != stage.id,
-            )
-            .all()
-        )
-        for s in siblings:
-            s.status = "paid"
-            s.paid_at = now
-            db.add(s)
-        if siblings:
-            logger.info(
-                "zcredit_webhook: marked %d sibling stage(s) paid for combined session=%s",
-                len(siblings), session_id,
-            )
-        db.commit()
-        logger.info("zcredit_webhook: marked contract stage paid stage_id=%s session=%s", stage.id, session_id)
-        contract = db.query(Contract).filter(Contract.id == stage.contract_id).first()
-        return True, (contract.account_id if contract else None), contract, stage
-    return False, None, None, None
+
+    stage = stages[0]
+    contract = db.query(Contract).filter(Contract.id == stage.contract_id).first()
+    return True, (contract.account_id if contract else None), contract, stage
+
+
+def _record_registry_payment(db: Session, data: dict[str, Any]) -> None:
+    """Mark the matching invoice registry row paid.
+
+    Bookkeeping only — runs before the legacy per-entity handling and commits on its
+    own, so it can neither block nor alter the existing flow. Tries every ID Z-Credit
+    may send, since older invoices were keyed by different fields.
+    """
+    candidates = [
+        _get_field(data, "SessionId"),
+        _get_field(data, "UniqueID", "UniqueId"),
+        _get_field(data, "docId", "doc_id"),
+    ]
+    for doc_id in candidates:
+        if not doc_id:
+            continue
+        if mark_paid_safe(
+            db,
+            doc_id,
+            reference_number=_get_field(data, "ReferenceNumber") or None,
+            approval_number=_get_field(data, "ApprovalNumber") or None,
+        ):
+            return
 
 
 def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, Any]) -> None:
@@ -196,11 +334,18 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
     """
     try:
         if event_type in ("payment.success", "J4"):
+            if not _gateway_confirms_payment(data):
+                return
+            _record_registry_payment(db, data)
             sid = _get_field(data, "SessionId")
             if sid:
                 found, account_id, contract, stage = _mark_contract_stage_paid(db, sid)
                 if found:
-                    if account_id:
+                    # Only the subscription stage may replace the account's card on file.
+                    # Anyone can open a contract's public pay link, so saving the card of
+                    # whoever settled a one-off fee would silently redirect every future
+                    # recurring charge to that person's card.
+                    if account_id and stage is not None and _is_subscription_stage(stage):
                         try:
                             _save_card_from_webhook(db, account_id, data)
                             db.commit()
@@ -210,10 +355,10 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                                 account_id,
                                 exc_info=True,
                             )
-                    # Activate billing and record SubscriptionPayment ONLY for the subscription
-                    # stage (sort_order == 0). One-time fee stages (sort_order > 0) must not
-                    # trigger billing activation or create false SubscriptionPayment records.
-                    is_subscription_stage = stage is not None and stage.sort_order == 0
+                    # Activate billing and record a SubscriptionPayment ONLY for the stage that
+                    # actually sells the subscription. One-time fee stages must not trigger
+                    # billing activation or create false SubscriptionPayment records.
+                    is_subscription_stage = stage is not None and _is_subscription_stage(stage)
                     if (
                         is_subscription_stage
                         and contract
@@ -245,6 +390,16 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                                 )
                                 db.add(payment)
                                 ins.subscription_status = "active"
+                                # Without a billing day the scheduler's `billing_day ==
+                                # today.day` filter never matches and the subscription is
+                                # active but never charged again. Lock it in on the first
+                                # payment, exactly as the billing-instruction path does.
+                                if ins.billing_day is None:
+                                    ins.billing_day = _default_billing_day()
+                                    logger.info(
+                                        "zcredit_webhook: locked billing_day=%s for instruction %s",
+                                        ins.billing_day, ins.id,
+                                    )
                                 db.add(ins)
                                 db.commit()
                                 logger.info(
@@ -271,7 +426,7 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                             exc_info=True,
                         )
                     if ins.billing_day is None:
-                        ins.billing_day = date.today().day
+                        ins.billing_day = _default_billing_day()
 
                 db.add(ins)
 
@@ -374,4 +529,7 @@ def apply_zcredit_webhook_event(db: Session, event_type: str, data: dict[str, An
                     db.add(ins)
                     db.commit()
     except Exception:
+        # Re-raised so the HTTP layer answers 5xx and the gateway redelivers. Swallowing
+        # it here acknowledged callbacks that were never applied, and the money with them.
         logger.exception("zcredit_webhook handler failed event=%s", event_type)
+        raise

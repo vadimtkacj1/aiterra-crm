@@ -86,7 +86,9 @@ export function LoginForm({ onSuccess }: Props) {
         </div>
       )}
 
-      <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+      {/* Public register: the one CTA on an unauthenticated page is the
+          brand pill, not the in-app ink button. */}
+      <Button type="submit" variant="brand" size="lg" className="w-full" disabled={submitting}>
         {submitting && <Loader2 className="animate-spin" />}
         {t("login.submit")}
       </Button>

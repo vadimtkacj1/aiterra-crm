@@ -18,6 +18,11 @@ from app.schemas.billing import (
 )
 from app.services import zcredit_service
 from app.services.admin.audit import log_admin_action
+from app.services.billing import (
+    SOURCE_BILLING_INSTRUCTION,
+    InvoiceLineIn,
+    record_invoice_safe,
+)
 
 
 def sync_account_billing_instruction(
@@ -35,6 +40,9 @@ def sync_account_billing_instruction(
         .filter(AccountBillingInstruction.account_id == account_id)
         .first()
     )
+    # Doc ID this sync replaces — the old Z-Credit link stays payable, so the registry
+    # keeps it resolvable instead of dropping it.
+    replaced_doc_id = instruction.payment_doc_id if instruction else None
 
     if instruction and instruction.charge_type != "none":
         common.mark_active_history_superseded(db, account_id)
@@ -68,7 +76,13 @@ def sync_account_billing_instruction(
         instruction.installment_total_amount = None
     instruction.currency = payload.currency.upper()
     instruction.description = (payload.description or "").strip() or None
-    instruction.billing_day = payload.billingDay if payload.chargeType == "monthly" else None
+    if payload.chargeType != "monthly":
+        instruction.billing_day = None
+    elif payload.billingDay is not None:
+        instruction.billing_day = payload.billingDay
+    # else: keep the day already locked in. Overwriting it with None — which is what a
+    # second subscription contract signed without a billing day used to do — leaves the
+    # scheduler with nothing to match and the client is never charged again.
     instruction.billing_week_day = payload.billingWeekDay if payload.chargeType == "monthly" else None
     instruction.test_interval_minutes = payload.testIntervalMinutes if payload.chargeType == "monthly" else None
     instruction.payment_doc_id = None
@@ -173,6 +187,25 @@ def sync_account_billing_instruction(
 
     db.commit()
     db.refresh(instruction)
+
+    if instruction.payment_doc_id:
+        record_invoice_safe(
+            db,
+            source_type=SOURCE_BILLING_INSTRUCTION,
+            source_id=instruction.id,
+            account_id=account_id,
+            amount=instruction.amount or 0.0,
+            currency=instruction.currency,
+            description=instruction.description,
+            provider_doc_id=instruction.payment_doc_id,
+            provider_url=instruction.payment_url,
+            created_by_admin_id=admin.id,
+            lines=[
+                InvoiceLineIn(li.label, li.amount) for li in (payload.lineItems or [])
+            ] or None,
+            supersedes_doc_id=replaced_doc_id,
+        )
+
     return BillingInstructionOut(
         chargeType=instruction.charge_type,
         amount=instruction.amount,

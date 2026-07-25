@@ -98,7 +98,7 @@ const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
             disabled={disabled}
             data-slot="combobox-trigger"
             className={cn(
-              "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-[color,border-color,box-shadow] hover:border-slate-300 focus:outline-none focus:border-ring focus:ring-[3px] focus:ring-ring/20 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-9 w-full items-center justify-between gap-2 rounded-input border border-input bg-background px-3 py-2 text-sm text-foreground transition-[color,border-color,box-shadow] hover:border-(--ds-border-strong) focus:outline-none focus:border-ring focus:ring-[3px] focus:ring-ring/20 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50",
               className,
             )}
           >
@@ -130,7 +130,7 @@ const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
             align="start"
             sideOffset={4}
             data-slot="combobox-content"
-            className="z-50 w-[var(--radix-popover-trigger-width)] min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md outline-none"
+            className="z-50 w-[var(--radix-popover-trigger-width)] min-w-[8rem] overflow-hidden rounded-xl border border-(--ds-border-subtle) bg-popover text-popover-foreground shadow-(--ds-shadow-dropdown) outline-none"
           >
             <Command shouldFilter={false} className="flex w-full flex-col">
               <div className="flex items-center gap-2 border-b border-border px-3">

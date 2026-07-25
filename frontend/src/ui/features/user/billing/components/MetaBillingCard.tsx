@@ -104,7 +104,7 @@ export function MetaBillingCard({ metaBilling, metaLoading, appLocale }: Props) 
   ];
 
   return (
-    <Card className="rounded-xl border-(--ds-border-subtle) shadow-(--ds-shadow-card)">
+    <Card>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-(--ds-border-subtle) px-4 py-3">
         <span className="flex items-center gap-2 text-[15px] font-semibold">
           <FacebookGlyph className="size-4 text-[#1877f2]" />

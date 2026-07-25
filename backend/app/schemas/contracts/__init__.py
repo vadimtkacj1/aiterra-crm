@@ -70,6 +70,8 @@ class ContractStageOut(BaseModel):
     amount: float
     status: str
     paidAt: datetime | None = None
+    """"subscription" activates recurring billing when paid; "one_time" is a plain fee."""
+    kind: str = "one_time"
 
 
 class ContractOut(BaseModel):
@@ -94,6 +96,11 @@ class ContractOut(BaseModel):
     monthlyAmount: float | None = None
     subscriptionMonths: int | None = None
     billingDay: int | None = None
+    """Derived: "unpaid" | "invoiced" | "partial" | "paid" — computed from the stages."""
+    paymentStatus: str = "unpaid"
+    """What the contract is worth in total. For a subscription that is monthly x months
+    plus any one-off fees; None when the subscription runs open-ended."""
+    contractValue: float | None = None
 
 
 class ContractPublicOut(BaseModel):
@@ -110,6 +117,8 @@ class ContractPublicOut(BaseModel):
     stages: list[ContractStageOut]
     monthlyAmount: float | None = None
     subscriptionStatus: str | None = None
+    paymentStatus: str = "unpaid"
+    contractValue: float | None = None
 
 
 class ContractMemberOut(BaseModel):
@@ -127,6 +136,8 @@ class ContractMemberOut(BaseModel):
     stages: list[ContractStageOut]
     monthlyAmount: float | None = None
     subscriptionMonths: int | None = None
+    paymentStatus: str = "unpaid"
+    contractValue: float | None = None
 
 
 class ContractSignRequest(BaseModel):

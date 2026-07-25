@@ -7,12 +7,14 @@ import {
   ScrollText,
   ShieldCheck,
   Users,
+  Wallet,
 } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/brand';
 import { AdminStatisticsPage } from '@/ui/features/admin/stats/AdminStatisticsPage';
 import { AdminAuditPage } from '@/ui/features/admin/audit/AdminAuditPage';
 import { AdminUsersPage } from '@/ui/features/admin/users/AdminUsersPage';
 import { AdminPaymentsPage } from '@/ui/features/admin/payments/AdminPaymentsView';
+import { AdminClientsPage } from '@/ui/features/admin/clients/AdminClientsPage';
 import { AdminContractsPage } from '@/ui/features/admin/contracts/AdminContractsPage';
 import { AdminInvoicesPage } from '@/ui/features/admin/invoices/AdminInvoicesPage';
 import { AdminMetaBudgetPage } from '@/ui/features/admin/meta-budget/AdminMetaBudgetPage';
@@ -43,6 +45,14 @@ export const adminUsersModule: AdminModule = {
   path: 'users',
   element: <AdminUsersPage />,
   navItem: (t) => ({ key: Paths.adminUsers, icon: <Users />, label: t('admin.userListTitle') }),
+};
+
+export const adminClientsModule: AdminModule = {
+  id: 'admin-clients',
+  navGroupKey: 'layout.navBilling',
+  path: 'clients',
+  element: <AdminClientsPage />,
+  navItem: (t) => ({ key: Paths.adminClients, icon: <Wallet />, label: t('admin.clients.title') }),
 };
 
 export const adminPaymentsModule: AdminModule = {

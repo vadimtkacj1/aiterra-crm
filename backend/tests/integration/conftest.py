@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -21,6 +21,19 @@ from app.db.session import Base, get_db
 from app.main import app
 from app.models.core import Account, AccountMembership, User
 from app.services.auth.security import hash_password
+
+
+@pytest.fixture(autouse=True)
+def _no_live_gateway(monkeypatch):
+    """Keep every test off the real payment gateway.
+
+    Settings are read from the developer's .env, so a real ZCREDIT_API_KEY would make
+    code paths that verify a payment with Z-Credit issue outbound calls from the suite.
+    Tests that want a "configured gateway" set the key themselves and stub the client.
+    """
+    from app.core.settings import settings
+
+    monkeypatch.setattr(settings, "zcredit_api_key", "", raising=False)
 
 
 @pytest.fixture
@@ -50,6 +63,16 @@ def engine():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+    # SQLite ignores foreign keys unless asked; production is Postgres, which enforces
+    # them. Without this, ON DELETE CASCADE/SET NULL never fire and the suite passes on
+    # data shapes the real database would reject.
+    @event.listens_for(eng, "connect")
+    def _enable_sqlite_fks(dbapi_connection, _record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
     yield eng
     eng.dispose()
 

@@ -12,6 +12,7 @@ import { message } from "@/lib/toast";
 import { useIsMobile } from "@/lib/use-media-query";
 import type { CampaignAnalyticsSnapshot, CampaignSummaryRow } from "@/domain/CampaignAnalytics";
 import { EmptyState } from "@/ui/shared/components/EmptyState";
+import { MetricStrip } from "@/ui/shared/components/MetricStrip";
 import { PageHeader } from "@/ui/shared/components/PageHeader";
 import { CampaignCardList } from "./CampaignCardList";
 import { CampaignSpendChart } from "./CampaignSpendChart";
@@ -292,8 +293,10 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
 
       {data && !isSnapshotEmpty(data) ? (
         <>
-          <div className="flex flex-col gap-2">
-            <span className="text-xs text-muted-foreground tabular-nums">
+          <div className="flex flex-col gap-2.5">
+            {/* Period + row count read as the caption of the panel below, so
+                they get the same caps treatment as a column header. */}
+            <span className="ds-label-caps tabular-nums">
               {periodText}
               {data.rows.length > 0 ? (
                 <>
@@ -303,65 +306,73 @@ export function CampaignAnalyticsPanel({ title, description, load }: CampaignAna
               ) : null}
             </span>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiStatCard title={t("analytics.stats.impressions")} value={data.totals.impressions} />
-              <KpiStatCard title={t("analytics.stats.clicks")} value={data.totals.clicks} />
+            <MetricStrip columns={4}>
+              <KpiStatCard variant="cell" title={t("analytics.stats.impressions")} value={data.totals.impressions} />
+              <KpiStatCard variant="cell" title={t("analytics.stats.clicks")} value={data.totals.clicks} />
               <KpiStatCard
+                variant="cell"
                 title={t("analytics.stats.spend")}
                 value={data.totals.spend}
                 suffix={data.currency}
                 precision={2}
               />
-              <KpiStatCard title={t("analytics.stats.conversions")} value={data.totals.conversions} />
-            </div>
+              <KpiStatCard variant="cell" title={t("analytics.stats.conversions")} value={data.totals.conversions} />
+            </MetricStrip>
           </div>
 
           <Accordion
             type="multiple"
             defaultValue={isMobile ? [] : ["more"]}
-            className="rounded-xl bg-muted/60 px-4"
+            className="rounded-card bg-muted px-4"
           >
             <AccordionItem value="more" className="border-b-0">
               <AccordionTrigger className="hover:no-underline">
                 <span className="font-semibold">{t("analytics.table.moreMetrics")}</span>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <KpiStatCard title={t("analytics.stats.reach")} value={data.totals.reach ?? 0} />
+                <MetricStrip columns={4} className="mb-4">
+                  <KpiStatCard variant="cell" title={t("analytics.stats.reach")} value={data.totals.reach ?? 0} />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.frequency")}
                     value={data.totals.frequency ?? 0}
                     precision={2}
                   />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.cpc")}
                     value={data.totals.cpc ?? 0}
                     suffix={data.currency}
                     precision={4}
                   />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.cpm")}
                     value={data.totals.cpm ?? 0}
                     suffix={data.currency}
                     precision={4}
                   />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.inlineLinkClicks")}
                     value={data.totals.inlineLinkClicks ?? 0}
                   />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.uniqueClicks")}
                     value={data.totals.uniqueClicks ?? 0}
                   />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.postEngagement")}
                     value={data.totals.postEngagement ?? 0}
                   />
                   <KpiStatCard
+                    variant="cell"
                     title={t("analytics.stats.videoViews")}
                     value={data.totals.videoViews ?? 0}
                   />
-                </div>
+                </MetricStrip>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

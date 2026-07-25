@@ -12,9 +12,9 @@ from app.db.session import SessionLocal
 from app.models.billing import AccountBillingInstruction, SavedCard, SubscriptionPayment
 from app.models.contracts import Contract
 from app.models.core import User
+from app.infra.payments.factory import get_payment_gateway
 from app.services.billing import SOURCE_BILLING_INSTRUCTION, mark_paid_safe, record_invoice_safe
 from app.services.email.smtp_mail import send_past_due_alert
-from app.services.payments.zcredit.service import pay_open_invoice
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ def _charge_one(db: Session, ins: AccountBillingInstruction, today: date) -> Non
 
     doc_id = f"sub_{ins.id}_{today.isoformat()}_{uuid.uuid4().hex[:8]}"
     try:
-        pay_open_invoice(doc_id, card.zcredit_token, amount_major=amount, currency=ins.currency or "ILS")
+        get_payment_gateway().pay_open_invoice(doc_id, card.zcredit_token, amount_major=amount, currency=ins.currency or "ILS")
     except Exception:
         logger.exception("subscription_billing: charge failed ins_id=%s — marking past_due", ins.id)
         ins.subscription_status = "past_due"
@@ -328,7 +328,7 @@ def _charge_one_test(db: Session, ins: AccountBillingInstruction, now: datetime)
 
     doc_id = f"test_{ins.id}_{now.strftime('%Y%m%dT%H%M%S')}_{uuid.uuid4().hex[:8]}"
     try:
-        pay_open_invoice(doc_id, card.zcredit_token, amount_major=amount, currency=ins.currency or "ILS")
+        get_payment_gateway().pay_open_invoice(doc_id, card.zcredit_token, amount_major=amount, currency=ins.currency or "ILS")
     except Exception:
         logger.exception("test_billing: charge failed ins_id=%s — marking past_due", ins.id)
         ins.subscription_status = "past_due"

@@ -16,7 +16,7 @@ from app.schemas.billing import (
     monthly_amount_for_installment_plan,
     parse_stored_line_items,
 )
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 from app.services.admin.audit import log_admin_action
 from app.services.billing import (
     SOURCE_BILLING_INSTRUCTION,
@@ -49,9 +49,9 @@ def sync_account_billing_instruction(
 
     if instruction:
         if instruction.payment_recurring_id and payload.chargeType != "monthly":
-            zcredit_service.cancel_subscription(instruction.payment_recurring_id)
+            get_payment_gateway().cancel_subscription(instruction.payment_recurring_id)
         if instruction.payment_doc_id and payload.chargeType != "one_time":
-            zcredit_service.void_invoice(instruction.payment_doc_id)
+            get_payment_gateway().void_invoice(instruction.payment_doc_id)
 
     if not instruction:
         instruction = AccountBillingInstruction(
@@ -105,7 +105,7 @@ def sync_account_billing_instruction(
 
     if payload.chargeType != "none" and instruction.amount and instruction.amount > 0:
         owner_email, owner_name = common.account_owner_contact(db, account_id)
-        token_id = zcredit_service.ensure_customer(
+        token_id = get_payment_gateway().ensure_customer(
             account,
             account.zcredit_token_id,
             customer_email=owner_email,
@@ -133,14 +133,14 @@ def sync_account_billing_instruction(
                     minor = int(round(li.amount * 100))
                     line_desc = li.label if not li.code else f"{li.label} ({li.code})"
                     tuples.append((minor, line_desc))
-                doc_id, payment_url = zcredit_service.create_invoice_with_line_items(
+                doc_id, payment_url = get_payment_gateway().create_invoice_with_line_items(
                     account,
                     payload.currency,
                     tuples,
                     description,
                 )
             else:
-                doc_id, payment_url = zcredit_service.create_invoice(
+                doc_id, payment_url = get_payment_gateway().create_invoice(
                     account,
                     amount_minor,
                     payload.currency,

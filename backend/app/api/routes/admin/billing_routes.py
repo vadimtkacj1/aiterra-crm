@@ -33,7 +33,7 @@ from app.schemas.billing import (
     MetaTopupRequest,
     parse_stored_line_items,
 )
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 from app.services.admin.audit import log_admin_action
 
 router = APIRouter()
@@ -385,9 +385,9 @@ def revoke_billing_history_row(
         raise HTTPException(status_code=400, detail="billing_history_not_revokable")
 
     if row.payment_recurring_id:
-        zcredit_service.cancel_subscription(row.payment_recurring_id)
+        get_payment_gateway().cancel_subscription(row.payment_recurring_id)
     if row.payment_doc_id:
-        zcredit_service.void_invoice(row.payment_doc_id)
+        get_payment_gateway().void_invoice(row.payment_doc_id)
 
     now = datetime.now(timezone.utc)
     row.record_status = "revoked"

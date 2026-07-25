@@ -19,7 +19,7 @@ from app.models.contracts import Contract, ContractPaymentStage
 
 def _stub_invoices(monkeypatch) -> list[str]:
     from app.core.settings import settings
-    from app.services import zcredit_service
+    from app.services.payments.zcredit import service as zcredit_service
 
     monkeypatch.setattr(settings, "zcredit_api_key", "test_key")
     calls: list[str] = []
@@ -134,7 +134,7 @@ def test_webhook_marks_the_registry_invoice_paid(client, test_ids, engine, monke
 
 def test_public_landing_purchase_is_recorded(client, engine, monkeypatch):
     """A public buyer has no account — without the registry the order left no trace."""
-    from app.services import zcredit_service
+    from app.services.payments.zcredit import service as zcredit_service
 
     monkeypatch.setattr(
         zcredit_service,

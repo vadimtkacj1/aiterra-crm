@@ -321,7 +321,7 @@ def test_contract_checkout_all_stages_paid_returns_409(client, test_ids, engine)
 
 
 def test_contract_checkout_success(client, test_ids, engine, monkeypatch):
-    from app.services import zcredit_service
+    from app.services.payments.zcredit import service as zcredit_service
     from app.core.settings import settings
 
     monkeypatch.setattr(settings, "zcredit_api_key", "test_key")
@@ -346,7 +346,7 @@ def test_contract_checkout_success(client, test_ids, engine, monkeypatch):
 
 def _stub_invoices(monkeypatch) -> list[str]:
     """Patch create_invoice to hand out a fresh session per call; returns the call log."""
-    from app.services import zcredit_service
+    from app.services.payments.zcredit import service as zcredit_service
     from app.core.settings import settings
 
     monkeypatch.setattr(settings, "zcredit_api_key", "test_key")

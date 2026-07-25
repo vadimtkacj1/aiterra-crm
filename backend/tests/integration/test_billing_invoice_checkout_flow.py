@@ -183,7 +183,7 @@ def test_pay_open_invoice_success_when_invoice_open_mocked(
         )
         s.commit()
 
-    from app.services import zcredit_service
+    from app.services.payments.zcredit import service as zcredit_service
 
     monkeypatch.setattr(
         zcredit_service,

@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     # Override in production: APP_BASE_URL=https://api.yourdomain.com
     app_base_url: str = "http://localhost:8000"
 
+    # Which payment provider the app uses. Adapters register in
+    # app/infra/payments/factory.py; the rest of the code depends only on the port.
+    payment_provider: str = "zcredit"            # PAYMENT_PROVIDER
+
     # Z-Credit — WebCheckout (hosted page) + Gateway (token charge)
     # Docs: https://zcreditwc.docs.apiary.io/  |  https://zcreditws.docs.apiary.io/
     zcredit_terminal_number: str | None = None   # ZCREDIT_TERMINAL_NUMBER (Gateway API)

@@ -32,7 +32,7 @@ from app.schemas.billing import (
     SubscriptionRecord,
     parse_stored_line_items,
 )
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 from app.services.payments.zcredit.card_service import upsert_saved_card
 from app.services.meta.analytics import build_meta_campaign_snapshot
 
@@ -201,9 +201,9 @@ def save_card(
     holder_name = (payload.holderName or "").strip() or "Cardholder"
 
     # Retrieve card display info from Z-Credit (last4, brand, expiry)
-    last4, brand, exp_month, exp_year = zcredit_service.fetch_token_card_info(zcredit_token)
+    last4, brand, exp_month, exp_year = get_payment_gateway().fetch_card_info(zcredit_token)
 
-    token_id = zcredit_service.ensure_customer(
+    token_id = get_payment_gateway().ensure_customer(
         account,
         account.zcredit_token_id,
         customer_email=user.email,
@@ -246,7 +246,7 @@ def delete_card(
     card = db.query(SavedCard).filter(SavedCard.account_id == account_id).first()
     if card:
         if card.zcredit_token:
-            zcredit_service.detach_token(card.zcredit_token)
+            get_payment_gateway().detach_token(card.zcredit_token)
         db.delete(card)
         db.commit()
 
@@ -274,13 +274,13 @@ def pay_open_invoice(
     if not card or not card.zcredit_token:
         raise HTTPException(status_code=400, detail="no_saved_card")
 
-    inv = zcredit_service.try_retrieve_invoice(instruction.payment_doc_id)
+    inv = get_payment_gateway().retrieve_invoice(instruction.payment_doc_id)
     if not inv or getattr(inv, "status", None) != "open":
         raise HTTPException(status_code=400, detail="invoice_not_open")
 
     doc_id = instruction.payment_doc_id
     amount = float(instruction.amount or 0)
-    paid = zcredit_service.pay_open_invoice(
+    paid = get_payment_gateway().pay_open_invoice(
         doc_id,
         card.zcredit_token,
         amount_major=amount,
@@ -400,7 +400,7 @@ def billing_overview(
     has_saved_card = bool(card_row and card_row.zcredit_token)
 
     if instruction and instruction.charge_type == "one_time" and instruction.amount:
-        inv = zcredit_service.try_retrieve_invoice(instruction.payment_doc_id or "")
+        inv = get_payment_gateway().retrieve_invoice(instruction.payment_doc_id or "")
         inv_status = getattr(inv, "status", None) if inv else None
 
         if inv_status == "paid" and inv:
@@ -444,10 +444,9 @@ def billing_overview(
                 )
             )
 
-        inv = zcredit_service.try_retrieve_invoice(instruction.payment_doc_id or "")
+        inv = get_payment_gateway().retrieve_invoice(instruction.payment_doc_id or "")
         inv_status = getattr(inv, "status", None) if inv else None
-        from app.services.payments.zcredit import service as _zs
-        if not _zs._is_webcheckout_configured():
+        if not get_payment_gateway().is_configured():
             # Mock / dev: only surface a pay link while `payment_url` is set (admin or WC stub).
             # After mock confirm or webhook, URL is cleared — do not synthesize a new link.
             pay_url = instruction.payment_url
@@ -505,14 +504,13 @@ def billing_overview(
         if payment_doc_id in covered_one_time_docs:
             return
         bi_lines = parse_stored_line_items(line_items_json)
-        inv = zcredit_service.try_retrieve_invoice(payment_doc_id)
+        inv = get_payment_gateway().retrieve_invoice(payment_doc_id)
         inv_status = getattr(inv, "status", None) if inv else None
         if inv_status == "paid":
             return
         if inv_status in ("void", "uncollectible"):
             return
-        from app.services.payments.zcredit import service as _zs
-        if not _zs._is_webcheckout_configured():
+        if not get_payment_gateway().is_configured():
             if not (stored_payment_url or "").strip():
                 return
             pay_url = (stored_payment_url or "").strip()

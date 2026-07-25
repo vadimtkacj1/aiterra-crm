@@ -6,9 +6,8 @@ Layout:
   admin/         — reporting, audit logging
   billing/       — invoice registry (every payment demand is recorded here)
   meta/          — Meta Marketing API + analytics bundle
-  payments/      — payment providers (Z-Credit)
+  payments/      — payment provider implementations (behind app.domain.payments.gateway)
+
+The app depends on the payment PORT (app/domain/payments/gateway.py), resolved via
+app/infra/payments/factory.py — not on any concrete provider module.
 """
-
-from app.services.payments import zcredit_service
-
-__all__ = ["zcredit_service"]

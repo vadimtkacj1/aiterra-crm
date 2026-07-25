@@ -95,7 +95,10 @@ def _gateway_confirms_payment(data: dict[str, Any]) -> bool:
       - verification could not run       → raise (the caller answers 5xx so Z-Credit
                                                   retries; never silently drop a payment)
     """
-    if not _gateway_is_live():
+    from app.infra.payments.factory import get_payment_gateway
+
+    gateway = get_payment_gateway()
+    if not gateway.is_configured():
         return True
 
     session_id = _get_field(data, "SessionId") or _get_field(data, "docId", "doc_id")
@@ -104,10 +107,8 @@ def _gateway_confirms_payment(data: dict[str, Any]) -> bool:
         # cannot be confirmed this way. Left to the legacy path rather than dropped.
         return True
 
-    from app.services.payments.zcredit.service import try_retrieve_invoice
-
     try:
-        doc = try_retrieve_invoice(session_id)
+        doc = gateway.retrieve_invoice(session_id)
     except Exception as exc:
         logger.exception("zcredit_webhook: verification call failed session=%s", session_id)
         raise _GatewayUnavailable(session_id) from exc
@@ -128,12 +129,6 @@ def _gateway_confirms_payment(data: dict[str, Any]) -> bool:
         )
         return False
     return True
-
-
-def _gateway_is_live() -> bool:
-    from app.core.settings import settings
-
-    return bool((settings.zcredit_api_key or "").strip())
 
 
 def _find_instruction_by_doc_id(db: Session, doc_id: str) -> AccountBillingInstruction | None:

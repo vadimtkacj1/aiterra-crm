@@ -174,9 +174,10 @@ def test_recurring_charge_lands_in_the_invoice_registry(client, test_ids, engine
     """A scheduled charge never has a hosted link — it must still be recorded as money taken."""
     from app.jobs import billing_charge_job
     from app.models.billing import Invoice
+    from app.services.payments.zcredit import service as zc
 
     ins_id = _instruction(engine, account_id=test_ids["account_id"], billing_day=15, amount=200.0)
-    monkeypatch.setattr(billing_charge_job, "pay_open_invoice", lambda *a, **k: None)
+    monkeypatch.setattr(zc, "pay_open_invoice", lambda *a, **k: None)
 
     with Session(bind=engine) as s:
         s.add(SavedCard(
@@ -203,7 +204,8 @@ def test_a_failed_registry_write_does_not_undo_the_charge(client, test_ids, engi
     from app.jobs import billing_charge_job
 
     ins_id = _instruction(engine, account_id=test_ids["account_id"], billing_day=15, amount=200.0)
-    monkeypatch.setattr(billing_charge_job, "pay_open_invoice", lambda *a, **k: None)
+    from app.services.payments.zcredit import service as zc
+    monkeypatch.setattr(zc, "pay_open_invoice", lambda *a, **k: None)
 
     def _boom(*_a, **_k):
         raise RuntimeError("registry down")

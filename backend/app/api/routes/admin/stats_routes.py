@@ -19,7 +19,7 @@ from app.schemas.admin import (
     AdminPaymentStatsOut,
     AdminStats,
 )
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 from app.services.meta.integration import get_global_meta_integration
 
 router = APIRouter()
@@ -92,11 +92,11 @@ def get_admin_payment_stats(
         inv_st: str | None = None
         sub_st: str | None = None
         if row.payment_doc_id:
-            inv = zcredit_service.try_retrieve_invoice(row.payment_doc_id)
+            inv = get_payment_gateway().retrieve_invoice(row.payment_doc_id)
             if inv:
                 inv_st = str(getattr(inv, "status", "") or "") or None
         if row.payment_recurring_id:
-            sub = zcredit_service.try_retrieve_subscription(row.payment_recurring_id)
+            sub = get_payment_gateway().retrieve_subscription(row.payment_recurring_id)
             if sub:
                 sub_st = str(getattr(sub, "status", "") or "") or None
 

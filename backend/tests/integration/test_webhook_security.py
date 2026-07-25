@@ -179,20 +179,20 @@ def test_callback_body_is_not_logged(client, engine, monkeypatch, caplog):
 def test_saved_card_payment_closes_the_demand(client, h_member, test_ids, engine, monkeypatch):
     """Charging the saved card left the demand open — a second click charged again."""
     from app.models.billing import SubscriptionPayment
-    from app.services.payments.zcredit import service as zcredit_service
-    from app.api.routes.accounts import routes as account_routes
+    # The gateway adapter delegates to this service module — patch it there and every
+    # caller (route, adapter, port) sees the stub.
+    from app.services.payments.zcredit import service as zc
 
     monkeypatch.setattr(settings, "zcredit_api_key", "live_key")
     monkeypatch.setattr(
-        account_routes.zcredit_service, "try_retrieve_invoice",
-        lambda doc_id: SimpleNamespace(status="open", amount_paid=0, currency="ILS", payment_url=None),
+        zc, "try_retrieve_invoice",
+        lambda doc_id: SimpleNamespace(id=doc_id, status="open", amount_paid=0, currency="ILS", payment_url=None),
     )
     monkeypatch.setattr(
-        account_routes.zcredit_service, "pay_open_invoice",
+        zc, "pay_open_invoice",
         lambda *a, **k: SimpleNamespace(id="ref_1", status="paid", amount_paid=100000,
                                         currency="ILS", payment_url=None),
     )
-    _ = zcredit_service
 
     with Session(bind=engine) as s:
         s.add(AccountBillingInstruction(

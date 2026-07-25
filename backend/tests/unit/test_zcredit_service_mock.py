@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.models.core import Account
-from app.services import zcredit_service as zc
+from app.services.payments.zcredit import service as zc
 
 
 def test_create_invoice_raises_503_when_not_configured():

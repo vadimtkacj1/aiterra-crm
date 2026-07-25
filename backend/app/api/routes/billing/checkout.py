@@ -12,7 +12,7 @@ from app.api.deps import get_current_user, require_account_member
 from app.core.settings import settings
 from app.db.session import get_db
 from app.models.core import Account, User
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 from app.services.billing import SOURCE_LANDING, SOURCE_MANUAL, record_invoice_safe
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ def create_checkout(
 
     callback_url = f"{settings.app_base_url.rstrip('/')}/api/webhooks/zcredit"
     amount_minor = int(round(float(payload.amount) * 100))
-    session_id, pay_url = zcredit_service.create_invoice(
+    session_id, pay_url = get_payment_gateway().create_invoice(
         account,
         amount_minor,
         payload.currency,
@@ -140,7 +140,7 @@ def public_landing_checkout(
         payload.name, payload.email, LANDING_PRICE_MINOR, ref,
     )
 
-    session_id, pay_url = zcredit_service.create_public_checkout(
+    session_id, pay_url = get_payment_gateway().create_public_checkout(
         amount_minor=LANDING_PRICE_MINOR,
         currency="ILS",
         description=LANDING_DESCRIPTION,

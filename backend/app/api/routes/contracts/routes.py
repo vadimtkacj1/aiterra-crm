@@ -33,7 +33,7 @@ from app.services.billing import (
     record_invoice_safe,
 )
 from app.services.email.smtp_mail import send_signed_contract_pdf
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -684,7 +684,7 @@ def create_contract_checkout(
         combined_desc = f"Contract #{c.id} · " + " + ".join(descriptions)
         amount_minor = int(round(total_amount * 100))
         replaced_doc_id = pending[0].payment_doc_id
-        session_id, pay_url = zcredit_service.create_invoice(
+        session_id, pay_url = get_payment_gateway().create_invoice(
             account, amount_minor, c.currency, combined_desc,
             success_url=success_url, cancel_url=cancel_url, callback_url=callback_url,
         )
@@ -724,7 +724,7 @@ def create_contract_checkout(
     amount_minor = int(round(float(stage.amount) * 100))
     stage_desc = f"Contract #{c.id} · {stage.description or 'Payment'}"
     replaced_doc_id = stage.payment_doc_id
-    session_id, pay_url = zcredit_service.create_invoice(
+    session_id, pay_url = get_payment_gateway().create_invoice(
         account, amount_minor, c.currency, stage_desc,
         success_url=success_url, cancel_url=cancel_url, callback_url=callback_url,
     )

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.models.billing import AccountBillingInstruction, BillingInstructionHistory
 from app.models.core import AccountMembership, User
 from app.schemas.billing import BillingHistoryOut, parse_stored_line_items
-from app.services import zcredit_service
+from app.infra.payments.factory import get_payment_gateway
 
 
 def first_account_id_for_user(db: Session, user_id: int) -> int | None:
@@ -131,11 +131,11 @@ def history_to_out(
     inv_st: str | None = None
     sub_st: str | None = None
     if row.payment_doc_id:
-        inv = zcredit_service.try_retrieve_invoice(row.payment_doc_id)
+        inv = get_payment_gateway().retrieve_invoice(row.payment_doc_id)
         if inv:
             inv_st = str(getattr(inv, "status", "") or "") or None
     if row.payment_recurring_id:
-        sub = zcredit_service.try_retrieve_subscription(row.payment_recurring_id)
+        sub = get_payment_gateway().retrieve_subscription(row.payment_recurring_id)
         if sub:
             sub_st = str(getattr(sub, "status", "") or "") or None
     is_current = False

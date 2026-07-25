@@ -17,10 +17,7 @@ from app.db.session import get_db
 from app.models.billing import AccountBillingInstruction, SavedCard, SubscriptionPayment
 from app.models.contracts import Contract
 from app.models.core import User
-from app.services.payments.zcredit.service import (
-    _is_gateway_configured,
-    pay_open_invoice,
-)
+from app.infra.payments.factory import get_payment_gateway
 
 logger = logging.getLogger(__name__)
 
@@ -223,7 +220,7 @@ def simulate_monthly_payment(
     ).count()
 
     # Require Gateway to be configured
-    if not _is_gateway_configured():
+    if not get_payment_gateway().can_charge_token():
         raise HTTPException(
             status_code=503,
             detail="zcredit_gateway_not_configured: set ZCREDIT_TERMINAL_NUMBER and ZCREDIT_GATEWAY_PASSWORD in .env",
@@ -242,7 +239,7 @@ def simulate_monthly_payment(
         )
 
     # Charge the saved card via Gateway
-    doc = pay_open_invoice(
+    doc = get_payment_gateway().pay_open_invoice(
         f"manual_{contract_id}_{payment_count + 1}",
         saved_card.zcredit_token,
         amount_major=float(billing.amount or 0),
